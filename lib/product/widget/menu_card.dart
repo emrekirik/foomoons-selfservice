@@ -43,7 +43,7 @@ class MenuCard extends StatelessWidget {
             child: Text(
               item.title ?? '',
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -51,7 +51,7 @@ class MenuCard extends StatelessWidget {
           Text(
             item.price != null ? '${item.price} ₺' : 'Fiyat Yok',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 10,
               color: Colors.grey[600],
             ),
           ),
