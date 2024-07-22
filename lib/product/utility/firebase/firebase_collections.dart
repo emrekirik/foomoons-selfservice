@@ -4,6 +4,7 @@ enum FirebaseCollections {
   category,
   table,
   order,
+  tableBill,
   checkOrder;
 
   CollectionReference get reference =>

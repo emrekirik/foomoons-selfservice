@@ -1,34 +1,45 @@
+import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/utility/base/base_firebase_model.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 @immutable
-class CoffeTable with EquatableMixin, BaseFirebaseModel<CoffeTable>, IdModel {
+class CoffeTable with EquatableMixin, IdModel {
   final int? tableId;
+  final List<Menu>? billItems;
   @override
   final String? id;
 
-  CoffeTable({this.tableId, this.id});
+  CoffeTable({this.tableId, this.billItems, this.id});
 
   @override
-  List<Object?> get props => [tableId, id];
+  List<Object?> get props => [tableId, billItems, id];
 
   CoffeTable copyWith({
     int? tableId,
+    List<Menu>? billItems,
   }) {
-    return CoffeTable(tableId: tableId ?? this.tableId, id: id);
+    return CoffeTable(
+      tableId: tableId ?? this.tableId,
+      billItems: billItems ?? this.billItems,
+      id: id,
+    );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'tableId': tableId,
+      'billItems': billItems?.map((item) => item.toJson()).toList(),
+      'id': id,
     };
   }
 
-  @override
-  CoffeTable fromJson(Map<String, dynamic> json) {
+  static CoffeTable fromJson(Map<String, dynamic> json) {
     return CoffeTable(
       tableId: json['tableId'] as int?,
+      billItems: (json['billItems'] as List<dynamic>?)
+          ?.map((item) => Menu.fromJson(item as Map<String, dynamic>))
+          .toList(),
       id: json['id'] as String?,
     );
   }

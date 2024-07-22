@@ -3,41 +3,37 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 @immutable
-class Category with EquatableMixin, BaseFirebaseModel<Category>, IdModel {
+class Category with EquatableMixin, IdModel {
+  final String? name;
   @override
   final String? id;
-  final String? name;
 
-  const Category({
-    this.id,
-    this.name,
-  });
+  Category({this.name, this.id});
 
   @override
-  List<Object?> get props => [id, name];
+  List<Object?> get props => [name, id];
 
   Category copyWith({
     String? name,
+    String? id,
   }) {
     return Category(
       name: name ?? this.name,
-      id: id,
+      id: id ?? this.id,
     );
   }
 
-  @override
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
+      'id': id,
     };
   }
 
-  @override
-  Category fromJson(Map<String, dynamic> json) {
+  static Category fromJson(Map<String, dynamic> json) {
     return Category(
-      id: json['id'] as String?,
       name: json['name'] as String?,
+      id: json['id'] as String?,
     );
   }
 }

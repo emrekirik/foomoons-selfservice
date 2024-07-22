@@ -1,3 +1,4 @@
+import 'package:altmisdokuzapp/featured/menu/add_order_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/add_product_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/add_table_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart';
@@ -20,7 +21,6 @@ class MenuView extends ConsumerWidget {
     final selectedCategory = ref.watch(_menuProvider).selectedValue;
     final tables = ref.watch(_menuProvider).tables ?? [];
     print("Tables in UI: ${tables.length}");
-    
 
     // Seçili kategoriye göre ürünleri filtrele
     final filteredItems = selectedCategory == null ||
@@ -111,7 +111,8 @@ class MenuView extends ConsumerWidget {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 1050, bottom: 20),
+                            padding:
+                                const EdgeInsets.only(left: 1050, bottom: 20),
                             child: FloatingActionButton(
                                 onPressed: () {
                                   showAddProductDialog(context, menuNotifier,
@@ -154,15 +155,26 @@ class MenuView extends ConsumerWidget {
                                 ),
                                 itemCount: tables.length,
                                 itemBuilder: (BuildContext context, int index) {
-                                  return Card(
-                                    color: ColorConstants.appbackgroundColor,
-                                    child: Center(
-                                      child: Text(
-                                        'Masa ${tables[index].tableId}',
-                                        style: const TextStyle(
-                                          fontSize: 20.0,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                  return InkWell(
+                                    onTap: () {
+                                      final tableId = tables[index].tableId;
+                                      if (tableId != null) {
+                                        showAddOrderDialog(
+                                            context, ref, tableId, orderItem);
+                                      } else {
+                                        // Masa ID'si null ise yapılacak işlemler
+                                      }
+                                    },
+                                    child: Card(
+                                      color: ColorConstants.appbackgroundColor,
+                                      child: Center(
+                                        child: Text(
+                                          'Masa ${tables[index].tableId}',
+                                          style: const TextStyle(
+                                            fontSize: 20.0,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -172,10 +184,12 @@ class MenuView extends ConsumerWidget {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 400, bottom: 20) ,
-                            child: FloatingActionButton(onPressed: (){
-                              showAddTableDialog(context, menuNotifier);
-                            }, child: const Icon(Icons.add)),
+                            padding: EdgeInsets.only(left: 400, bottom: 20),
+                            child: FloatingActionButton(
+                                onPressed: () {
+                                  showAddTableDialog(context, menuNotifier);
+                                },
+                                child: const Icon(Icons.add)),
                           )
                         ],
                       ),
@@ -254,7 +268,7 @@ class MenuView extends ConsumerWidget {
                       },
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 350, bottom: 20),
+                      padding: const EdgeInsets.only(left: 310, bottom: 20),
                       child: FloatingActionButton(
                         onPressed: () {
                           showAddProductDialog(context, menuNotifier,
@@ -264,13 +278,12 @@ class MenuView extends ConsumerWidget {
                       ),
                     ),
                     Divider(),
-                  
                     const Padding(
                       padding: EdgeInsets.only(top: 20, bottom: 20),
                       child: Text(
                         'Masalar',
-                        style:
-                            TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 30, fontWeight: FontWeight.bold),
                       ),
                     ),
                     GridView.builder(
@@ -303,7 +316,7 @@ class MenuView extends ConsumerWidget {
                       },
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 360, bottom: 20),
+                      padding: const EdgeInsets.only(left: 310, bottom: 20),
                       child: FloatingActionButton(
                         onPressed: () {
                           showAddTableDialog(context, menuNotifier);

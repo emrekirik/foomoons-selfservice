@@ -2,16 +2,17 @@ import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
 import 'package:altmisdokuzapp/product/utility/firebase/firebase_collections.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/firebase_utility.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 
 final menuProvider = StateNotifierProvider<MenuNotifier, HomeState>((ref) {
   return MenuNotifier();
 });
 
-class MenuNotifier extends StateNotifier<HomeState> with FirebaseUtility {
-  static const String allCategories = 'All Categories';
+
+class MenuNotifier extends StateNotifier<HomeState> {
+  static const String allCategories = 'Tüm Kategoriler';
 
   MenuNotifier() : super(const HomeState()) {
     fetchOrder();
@@ -22,9 +23,9 @@ class MenuNotifier extends StateNotifier<HomeState> with FirebaseUtility {
   Future<void> fetchOrder() async {
     try {
       final orderCollectionReference = FirebaseCollections.order.reference;
-      final response = await orderCollectionReference.withConverter(
+      final response = await orderCollectionReference.withConverter<Menu>(
         fromFirestore: (snapshot, options) {
-          return const Menu().fromFirebase(snapshot);
+          return Menu.fromJson(snapshot.data()!);
         },
         toFirestore: (value, options) {
           return value.toJson();
@@ -38,16 +39,16 @@ class MenuNotifier extends StateNotifier<HomeState> with FirebaseUtility {
         state = state.copyWith(orders: []);
       }
     } catch (e) {
-      // Hata yönetimi yapabilirsiniz, örneğin loglama veya kullanıcıya hata mesajı gösterme
-      print('Fetch order error: $e');
+      _handleError(e, 'Siparişleri getirme hatası');
     }
   }
-   Future<void> fetchTable() async {
+
+  Future<void> fetchTable() async {
     try {
       final tableCollectionReference = FirebaseCollections.table.reference;
-      final response = await tableCollectionReference.withConverter(
+      final response = await tableCollectionReference.withConverter<CoffeTable>(
         fromFirestore: (snapshot, options) {
-          return CoffeTable().fromFirebase(snapshot);
+          return CoffeTable.fromJson(snapshot.data()!);
         },
         toFirestore: (value, options) {
           return value.toJson();
@@ -56,26 +57,24 @@ class MenuNotifier extends StateNotifier<HomeState> with FirebaseUtility {
 
       if (response.docs.isNotEmpty) {
         final values = response.docs.map((e) => e.data()).toList();
-        values.sort((a, b) => a.tableId!.compareTo(b.tableId!)); // Tabloları küçükten büyüğe sırala
+        values.sort((a, b) => a.tableId!.compareTo(b.tableId!));
         state = state.copyWith(tables: values);
-        print("Tables fetched: ${values.length}"); // Tabloların alındığını kontrol etmek için debug log
       } else {
         state = state.copyWith(tables: []);
-        print("No tables found"); // Tabloların bulunmadığını kontrol etmek için debug log
       }
     } catch (e) {
-      print('Fetch table error: $e');
+      _handleError(e, 'Masaları getirme hatası');
     }
   }
 
-
-
   Future<void> fetchCategories() async {
     try {
-      final categoryCollectionReference = FirebaseCollections.category.reference;
-      final response = await categoryCollectionReference.withConverter<Category>(
+      final categoryCollectionReference =
+          FirebaseCollections.category.reference;
+      final response =
+          await categoryCollectionReference.withConverter<Category>(
         fromFirestore: (snapshot, options) {
-          return const Category().fromFirebase(snapshot);
+          return Category.fromJson(snapshot.data()!);
         },
         toFirestore: (value, options) {
           return value.toJson();
@@ -89,8 +88,7 @@ class MenuNotifier extends StateNotifier<HomeState> with FirebaseUtility {
         state = state.copyWith(categories: []);
       }
     } catch (e) {
-      // Hata yönetimi yapabilirsiniz, örneğin loglama veya kullanıcıya hata mesajı gösterme
-      print('Fetch categories error: $e');
+      _handleError(e, 'Kategorileri getirme hatası');
     }
   }
 
@@ -99,54 +97,152 @@ class MenuNotifier extends StateNotifier<HomeState> with FirebaseUtility {
       final orderCollectionReference = FirebaseCollections.order.reference;
       await orderCollectionReference.add(newProduct.toJson());
 
-      // Yeni ürün eklenince state'i güncelle
       state = state.copyWith(orders: [...?state.orders, newProduct]);
     } catch (e) {
-      // Hata yönetimi yapabilirsiniz, örneğin loglama veya kullanıcıya hata mesajı gösterme
-      print('Add product error: $e');
+      _handleError(e, 'Ürün ekleme hatası');
     }
   }
-   Future<void> addTable(CoffeTable tableId) async {
-    try {
-      final orderCollectionReference = FirebaseCollections.table.reference;
-      await orderCollectionReference.add(tableId.toJson());
 
-      // Yeni ürün eklenince state'i güncelle
-      state = state.copyWith(tables: [...?state.tables, tableId]);
+  Future<void> addTable(CoffeTable table) async {
+    try {
+      final tableCollectionReference = FirebaseCollections.table.reference;
+      await tableCollectionReference.add(table.toJson());
+
+      state = state.copyWith(tables: [...?state.tables, table]);
     } catch (e) {
-      // Hata yönetimi yapabilirsiniz, örneğin loglama veya kullanıcıya hata mesajı gösterme
-      print('Add product error: $e');
+      _handleError(e, 'Masa ekleme hatası');
     }
   }
-  
+
+  Future<void> addItemToBill(int tableId, Menu item) async {
+    try {
+      final tableBillCollectionReference =
+          FirebaseCollections.tableBill.reference.doc(tableId.toString());
+      final doc = await tableBillCollectionReference.get();
+
+      List<Menu> currentBillItems = [];
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        currentBillItems = (data['billItems'] as List<dynamic>)
+            .map((item) => Menu.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+
+      currentBillItems.add(item);
+      await tableBillCollectionReference.set({
+        'tableId': tableId,
+        'billItems': currentBillItems.map((item) => item.toJson()).toList(),
+      });
+
+      state = state.copyWith(tableBills: {
+        ...state.tableBills,
+        tableId: currentBillItems,
+      });
+    } catch (e) {
+      _handleError(e, 'Hesaba ürün ekleme hatası');
+    }
+  }
+
+  Future<void> removeItemFromBill(int tableId, Menu item) async {
+    try {
+      final tableBillCollectionReference =
+          FirebaseCollections.tableBill.reference.doc(tableId.toString());
+      final doc = await tableBillCollectionReference.get();
+
+      List<Menu> currentBillItems = [];
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        currentBillItems = (data['billItems'] as List<dynamic>)
+            .map((item) => Menu.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+
+      currentBillItems.remove(item);
+      await tableBillCollectionReference.set({
+        'tableId': tableId,
+        'billItems': currentBillItems.map((item) => item.toJson()).toList(),
+      });
+
+      state = state.copyWith(tableBills: {
+        ...state.tableBills,
+        tableId: currentBillItems,
+      });
+    } catch (e) {
+      _handleError(e, 'Hesaptan ürün çıkarma hatası');
+    }
+  }
+
+  Future<void> fetchTableBill(int tableId) async {
+    try {
+      final tableBillCollectionReference =
+          FirebaseCollections.tableBill.reference.doc(tableId.toString());
+      final doc = await tableBillCollectionReference.get();
+
+      List<Menu> currentBillItems = [];
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        currentBillItems = (data['billItems'] as List<dynamic>)
+            .map((item) => Menu.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+
+      state = state.copyWith(tableBills: {
+        ...state.tableBills,
+        tableId: currentBillItems,
+      });
+    } catch (e) {
+      _handleError(e, 'Adisyonu getirme hatası');
+    }
+  }
 
   void selectCategory(String? categoryName) {
     state = state.copyWith(selectedValue: categoryName);
   }
+
+  void _handleError(Object e, String message) {
+    // Hatanızı kayıt hizmetine loglayın
+    print('$message: $e');
+    // Gerekirse hatayı yansıtmak için durumu güncelleyin
+    // state = state.copyWith(errorMessage: '$message: $e');
+  }
 }
 
 class HomeState extends Equatable {
-  const HomeState({this.orders, this.categories, this.selectedValue, this.tables});
+  const HomeState({
+    this.orders,
+    this.categories,
+    this.selectedValue,
+    this.tables,
+    this.tableBills = const {},
+  });
 
   final List<Menu>? orders;
   final List<Category>? categories;
   final String? selectedValue;
   final List<CoffeTable>? tables;
+  final Map<int, List<Menu>> tableBills;
 
   @override
-  List<Object?> get props => [orders, categories, selectedValue, tables];
+  List<Object?> get props =>
+      [orders, categories, selectedValue, tables, tableBills];
 
   HomeState copyWith({
     List<Menu>? orders,
     List<Category>? categories,
     String? selectedValue,
     List<CoffeTable>? tables,
+    Map<int, List<Menu>>? tableBills,
   }) {
     return HomeState(
       orders: orders ?? this.orders,
       categories: categories ?? this.categories,
       selectedValue: selectedValue ?? this.selectedValue,
       tables: tables ?? this.tables,
+      tableBills: tableBills ?? this.tableBills,
     );
+  }
+
+  List<Menu> getTableBill(int tableId) {
+    return tableBills[tableId] ?? [];
   }
 }

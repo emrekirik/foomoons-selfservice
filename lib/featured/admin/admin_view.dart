@@ -1,8 +1,8 @@
-import 'package:altmisdokuzapp/featured/admin/admin_provider.dart';
+import 'package:altmisdokuzapp/featured/admin/admin_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final _menuProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
+final _adminProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
   return AdminNotifier(ref);
 });
 
@@ -16,7 +16,7 @@ class AdminView extends ConsumerStatefulWidget {
 class _AdminViewState extends ConsumerState<AdminView> {
   @override
   Widget build(BuildContext context) {
-    final orders = ref.watch(_menuProvider).orders ?? [];
+    final orders = ref.watch(_adminProvider).orders ?? [];
     final newOrders = orders.where((order) => order.status == 'yeni').toList();
     final preparingOrders =
         orders.where((order) => order.status == 'hazırlanıyor').toList();
@@ -101,7 +101,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                 onPressed: () {
                                   if (item.id != null) {
                                     ref
-                                        .read(_menuProvider.notifier)
+                                        .read(_adminProvider.notifier)
                                         .updateOrderStatus(item.id!, nextStatus);
                                   }
                                 },
@@ -111,7 +111,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                 onPressed: () {
                                   if (item.id != null) {
                                     ref
-                                        .read(_menuProvider.notifier)
+                                        .read(_adminProvider.notifier)
                                         .updateOrderStatus(
                                             item.id!, 'iptal edildi');
                                   }

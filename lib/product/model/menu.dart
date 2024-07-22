@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 @immutable
-class Menu with EquatableMixin, BaseFirebaseModel<Menu>, IdModel {
+class Menu with EquatableMixin, IdModel {
   final String? title;
   final int? price;
   final String? image;
@@ -46,7 +46,6 @@ class Menu with EquatableMixin, BaseFirebaseModel<Menu>, IdModel {
     );
   }
 
-  @override
   Map<String, dynamic> toJson() {
     return {
       'title': title,
@@ -59,8 +58,7 @@ class Menu with EquatableMixin, BaseFirebaseModel<Menu>, IdModel {
     };
   }
 
-  @override
-  Menu fromJson(Map<String, dynamic> json) {
+  static Menu fromJson(Map<String, dynamic> json) {
     return Menu(
       title: json['title'] as String?,
       price: _parseToInt(json['price']),
@@ -72,7 +70,7 @@ class Menu with EquatableMixin, BaseFirebaseModel<Menu>, IdModel {
     );
   }
 
-  int? _parseToInt(dynamic value) {
+  static int? _parseToInt(dynamic value) {
     if (value is int) {
       return value;
     } else if (value is String) {
