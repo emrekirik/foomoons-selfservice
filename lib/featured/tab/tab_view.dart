@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:altmisdokuzapp/featured/admin/admin_view.dart';
 import 'package:altmisdokuzapp/featured/menu/menu_view.dart';
-import 'package:altmisdokuzapp/featured/orders/offer_view.dart';
+import 'package:altmisdokuzapp/featured/reports/reports_view.dart';
 
 class TabView extends StatefulWidget {
   const TabView({super.key});
@@ -32,7 +32,7 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ColorConstants.appbackgroundColor,
+      backgroundColor: ColorConstants.appbackgroundColor.withOpacity(0.15),
       extendBody: true,
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(70.0),
@@ -41,52 +41,36 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
       body: Column(
         children: [
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() {
-                    _tabIndex = index;
-                  });
-                },
-                children: const [
-                  MenuView(),
-                  AdminView(),
-                  OfferView(),
-                ],
-              ),
+            child: PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _tabIndex = index;
+                });
+              },
+              children: const [
+                MenuView(),
+                AdminView(),
+                ReportsView(),
+              ],
             ),
           ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16.0),
-            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 34),
             child: CircleNavBar(
               activeIcons: const [
                 Padding(
-                    padding: EdgeInsets.only(right: 10),
-                    child: Icon(Icons.menu_book, color: Colors.orangeAccent)),
+                  padding: EdgeInsets.only(right: 20),
+                  child: Icon(Icons.menu_book, color: ColorConstants.appbackgroundColor),
+                ),
                 Padding(
-                    padding: EdgeInsets.only(right: 30),
-                    child: Icon(Icons.home, color: Colors.orangeAccent)),
+                  padding: EdgeInsets.only(right: 200),
+                  child: Icon(Icons.home, color: ColorConstants.appbackgroundColor),
+                ),
                 Padding(
-                    padding: EdgeInsets.only(right: 100),
-                    child: Icon(Icons.settings, color: Colors.orangeAccent)),
+                  padding: EdgeInsets.only(right: 100),
+                  child: Icon(Icons.settings, color: ColorConstants.appbackgroundColor),
+                ),
               ],
               inactiveIcons: const [
                 Text("Menü"),
@@ -104,7 +88,7 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
                 bottomRight: Radius.circular(24),
                 bottomLeft: Radius.circular(24),
               ),
-              shadowColor: ColorConstants.appbackgroundColor,
+              shadowColor: ColorConstants.black.withOpacity(0.5),
               elevation: 10,
             ),
           ),
@@ -114,44 +98,42 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
   }
 }
 
-class _CustomAppbar extends StatelessWidget {
-  const _CustomAppbar({
-    super.key,
-  });
+class _CustomAppbar extends StatelessWidget  {
+  const _CustomAppbar();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.05),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 5,
-            blurRadius: 7,
-            offset: Offset(0, 3),
+    return AppBar(
+      automaticallyImplyLeading: false,
+      flexibleSpace: Container(
+        margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(70),
+            bottomRight: Radius.circular(70),
           ),
-        ],
-      ),
-      child: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.only(top: 7),
-          child: Image.asset(
-            'assets/images/logo.png',
-            width: 80,
-            height: 80,
-            fit: BoxFit.cover,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 5,
+              blurRadius: 7,
+              offset: Offset(0, 3),
+            ),
+          ],
         ),
       ),
+      title: Padding(
+        padding: const EdgeInsets.only(top: 7),
+        child: Image.asset(
+          'assets/images/logo.png',
+          width: 80,
+          height: 80,
+          fit: BoxFit.cover,
+        ),
+      ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
     );
   }
 }

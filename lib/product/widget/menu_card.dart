@@ -22,14 +22,14 @@ class MenuCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               child: FadeInImage.assetNetwork(
                 placeholder:
-                    'assets/images/placeholder.png', // Geçici resim yolu
+                    'assets/images/food_placeholder.png', // Geçici resim yolu
                 image: item.image ?? 'assets/images/placeholder.png',
                 width: double.infinity,
                 height: 150,
                 fit: BoxFit.cover,
                 imageErrorBuilder: (context, error, stackTrace) {
                   return Image.asset(
-                    'assets/images/placeholder.png', // Placeholder image path
+                    'assets/images/food_placeholder.png', // Placeholder image path
                     width: double.infinity,
                     height: 150,
                     fit: BoxFit.cover,
