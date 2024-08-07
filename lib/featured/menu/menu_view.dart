@@ -1,6 +1,6 @@
-import 'package:altmisdokuzapp/featured/menu/add_order_dialog.dart';
-import 'package:altmisdokuzapp/featured/menu/add_product_dialog.dart';
-import 'package:altmisdokuzapp/featured/menu/add_table_dialog.dart';
+import 'package:altmisdokuzapp/featured/menu/dialogs/add_order_dialog.dart';
+import 'package:altmisdokuzapp/featured/menu/dialogs/add_product_dialog.dart';
+import 'package:altmisdokuzapp/featured/menu/dialogs/add_table_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:altmisdokuzapp/product/widget/menu_card.dart';
@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final _menuProvider =
-    StateNotifierProvider<MenuNotifier, HomeState>((ref) => MenuNotifier());
+    StateNotifierProvider<MenuNotifier, MenuState>((ref) => MenuNotifier());
 
 class MenuView extends ConsumerWidget {
   const MenuView({super.key});
@@ -20,7 +20,6 @@ class MenuView extends ConsumerWidget {
     final categories = ref.watch(_menuProvider).categories ?? [];
     final selectedCategory = ref.watch(_menuProvider).selectedValue;
     final tables = ref.watch(_menuProvider).tables ?? [];
-    print("Tables in UI: ${tables.length}");
     double deviceWidth = MediaQuery.of(context).size.width;
 
     // Seçili kategoriye göre ürünleri filtrele
@@ -47,7 +46,7 @@ class MenuView extends ConsumerWidget {
                           color: Colors.grey.withOpacity(0.5),
                           spreadRadius: 5,
                           blurRadius: 7,
-                          offset: Offset(0, 3),
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -172,7 +171,7 @@ class MenuView extends ConsumerWidget {
                           color: Colors.grey.withOpacity(0.5),
                           spreadRadius: 5,
                           blurRadius: 7,
-                          offset: Offset(0, 3),
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -184,7 +183,7 @@ class MenuView extends ConsumerWidget {
                             height: 20,
                           ),
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
                             child: Row(
                               children: [
                                 const Expanded(
@@ -282,7 +281,7 @@ class MenuView extends ConsumerWidget {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     SizedBox(
                       height: 50,
                       child: ListView.builder(
@@ -327,7 +326,7 @@ class MenuView extends ConsumerWidget {
                     ),
                     GridView.builder(
                       shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(10),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
@@ -357,7 +356,7 @@ class MenuView extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    Divider(),
+                    const Divider(),
                     const Padding(
                       padding: EdgeInsets.only(top: 20, bottom: 20),
                       child: Text(
@@ -368,7 +367,7 @@ class MenuView extends ConsumerWidget {
                     ),
                     GridView.builder(
                       shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(8.0),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
@@ -414,7 +413,7 @@ class MenuView extends ConsumerWidget {
                         onPressed: () {
                           showAddTableDialog(context, menuNotifier);
                         },
-                        child: Icon(
+                        child: const Icon(
                           Icons.add,
                           color: Colors.white,
                         ),

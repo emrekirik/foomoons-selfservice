@@ -1,11 +1,15 @@
-import 'package:altmisdokuzapp/featured/admin/admin_notifier.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:altmisdokuzapp/featured/admin/admin_notifier.dart' as admin;
+import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart' as menu;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final _adminProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
-  return AdminNotifier(ref);
+final _adminProvider =
+    StateNotifierProvider<admin.AdminNotifier, admin.HomeState>((ref) {
+  return admin.AdminNotifier(ref);
 });
+
+final _menuProvider = StateNotifierProvider<menu.MenuNotifier, menu.MenuState>(
+    (ref) => menu.MenuNotifier());
 
 class AdminView extends ConsumerStatefulWidget {
   const AdminView({super.key});
@@ -18,11 +22,14 @@ class _AdminViewState extends ConsumerState<AdminView> {
   @override
   Widget build(BuildContext context) {
     final orders = ref.watch(_adminProvider).orders ?? [];
+    final menus = ref.watch(_menuProvider).orders ?? [];
     final newOrders = orders.where((order) => order.status == 'yeni').toList();
     final preparingOrders =
         orders.where((order) => order.status == 'hazırlanıyor').toList();
-    final readyOrders =
-        orders.where((order) => order.status == 'hazır').toList();
+    // final readyOrders =
+    //     orders.where((order) => order.status == 'hazır').toList();
+    final pastOrders =
+        orders.where((order) => order.status == 'teslim edildi').toList();
 
     return Center(
       child: Padding(
@@ -31,21 +38,21 @@ class _AdminViewState extends ConsumerState<AdminView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildOrderColumn(
-                context, 'Yeni Siparişler', newOrders, 'hazırlanıyor'),
+                context, 'Yeni Siparişler', newOrders, 'hazırlanıyor', menus),
             const SizedBox(width: 16),
             _buildOrderColumn(
-                context, 'Hazırlanıyor', preparingOrders, 'hazır'),
+                context, 'Hazırlanıyor', preparingOrders, 'hazır', menus),
             const SizedBox(width: 16),
-            _buildOrderColumn(
-                context, 'Geçmiş Siparişler', readyOrders, 'teslim edildi'),
+            _buildOrderColumn(context, 'Geçmiş Siparişler', pastOrders,
+                'teslim edildi', menus),
           ],
         ),
       ),
     );
   }
 
-  Expanded _buildOrderColumn(
-      BuildContext context, String title, List orders, String nextStatus) {
+  Expanded _buildOrderColumn(BuildContext context, String title, List orders,
+      String nextStatus, List menus) {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -56,7 +63,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
               color: Colors.grey.withOpacity(0.5),
               spreadRadius: 5,
               blurRadius: 7,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -67,8 +74,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               const Divider(
@@ -80,6 +87,13 @@ class _AdminViewState extends ConsumerState<AdminView> {
                   itemCount: orders.length,
                   itemBuilder: (context, index) {
                     final item = orders[index];
+                    final menuItem = menus.firstWhere(
+                      (menu) => menu.title == item.title,
+                      orElse: () => null, // Doğru şekilde lambda fonksiyonunu kullan
+                    );
+
+                    final effectivePreparationTime =
+                        item.preperationTime ?? menuItem?.preparationTime;
                     return Card(
                       color: Colors.white,
                       margin: const EdgeInsets.symmetric(
@@ -90,27 +104,28 @@ class _AdminViewState extends ConsumerState<AdminView> {
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             final isLargeScreen = constraints.maxWidth > 200;
-                            return Wrap(
-                              direction: isLargeScreen
-                                  ? Axis.horizontal
-                                  : Axis.vertical,
-                              spacing: 8.0,
-                              runSpacing: 4.0,
-                              children: [
-                                _buildOrderDetail(item.title ?? ''),
-                                _buildOrderDetail(item.piece ?? ''),
-                                _buildOrderDetail(item.preperationTime != null
-                                    ? '${item.preperationTime} dk'
-                                    : 'Süre Yok'),
-                                _buildOrderDetail(item.tableId ?? ''),
-                                _buildOrderDetail(item.price != null
-                                    ? '${item.price} ₺'
-                                    : 'Fiyat Yok'),
-                                Center(
-                                  child:
-                                      _buildActionButtons(item, nextStatus),
-                                ),
-                              ],
+                            return SingleChildScrollView(
+                              child: Wrap(
+                                direction: isLargeScreen
+                                    ? Axis.horizontal
+                                    : Axis.vertical,
+                                spacing: 8.0,
+                                runSpacing: 4.0,
+                                children: [
+                                  _buildOrderDetail(item.title ?? ''),
+                                  _buildOrderDetail(item.piece ?? ''),
+                                  _buildOrderDetailWithTime(
+                                      effectivePreparationTime),
+                                  _buildOrderDetail(item.tableId ?? ''),
+                                  _buildOrderDetail(item.price != null
+                                      ? '${item.price} ₺'
+                                      : 'Fiyat Yok'),
+                                  Center(
+                                    child:
+                                        _buildActionButtons(item, nextStatus),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -134,6 +149,24 @@ class _AdminViewState extends ConsumerState<AdminView> {
         overflow: TextOverflow.visible,
       ),
     );
+  }
+
+    Widget _buildOrderDetailWithTime(int? preparationTime) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Text(
+        preparationTime != null ? formatDuration(preparationTime * 60) : 'Süre Yok', // Dakikayı saniyeye çevir
+        overflow: TextOverflow.visible,
+      ),
+    );
+  }
+
+  String formatDuration(int seconds) {
+    final int minutes = seconds ~/ 60;
+    final int remainingSeconds = seconds % 60;
+    final formattedMinutes = minutes.toString().padLeft(2, '0');
+    final formattedSeconds = remainingSeconds.toString().padLeft(2, '0');
+    return '$formattedMinutes:$formattedSeconds';
   }
 
   Widget _buildActionButtons(item, String nextStatus) {

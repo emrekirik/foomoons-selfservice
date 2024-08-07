@@ -6,15 +6,15 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 
-final menuProvider = StateNotifierProvider<MenuNotifier, HomeState>((ref) {
+final menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
   return MenuNotifier();
 });
 
 
-class MenuNotifier extends StateNotifier<HomeState> {
+class MenuNotifier extends StateNotifier<MenuState> {
   static const String allCategories = 'Tüm Kategoriler';
 
-  MenuNotifier() : super(const HomeState()) {
+  MenuNotifier() : super(const MenuState()) {
     fetchOrder();
     fetchCategories();
     fetchTable();
@@ -201,14 +201,14 @@ class MenuNotifier extends StateNotifier<HomeState> {
 
   void _handleError(Object e, String message) {
     // Hatanızı kayıt hizmetine loglayın
-    print('$message: $e');
+   
     // Gerekirse hatayı yansıtmak için durumu güncelleyin
     // state = state.copyWith(errorMessage: '$message: $e');
   }
 }
 
-class HomeState extends Equatable {
-  const HomeState({
+class MenuState extends Equatable {
+  const MenuState({
     this.orders,
     this.categories,
     this.selectedValue,
@@ -226,14 +226,14 @@ class HomeState extends Equatable {
   List<Object?> get props =>
       [orders, categories, selectedValue, tables, tableBills];
 
-  HomeState copyWith({
+  MenuState copyWith({
     List<Menu>? orders,
     List<Category>? categories,
     String? selectedValue,
     List<CoffeTable>? tables,
     Map<int, List<Menu>>? tableBills,
   }) {
-    return HomeState(
+    return MenuState(
       orders: orders ?? this.orders,
       categories: categories ?? this.categories,
       selectedValue: selectedValue ?? this.selectedValue,

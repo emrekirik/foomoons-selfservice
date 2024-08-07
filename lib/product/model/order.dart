@@ -1,3 +1,4 @@
+import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/utility/base/base_firebase_model.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -11,24 +12,34 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
   final int? preperationTime;
   final String? tableId;
   final String? status;
+  final Menu? menu;
 
   @override
   final String? id;
 
-  const Order({
-    this.title,
-    this.price,
-    this.image,
-    this.id,
-    this.piece,
-    this.preperationTime,
-    this.tableId,
-    this.status = 'yeni',
-  });
+  const Order(
+      {this.title,
+      this.price,
+      this.image,
+      this.id,
+      this.piece,
+      this.preperationTime,
+      this.tableId,
+      this.status = 'yeni',
+      this.menu});
+
+  int? get effectivePreparationTime {
+    if (preperationTime != null) {
+      return preperationTime;
+    } else if (menu != null) {
+      return menu!.preparationTime;
+    }
+    return null;
+  }
 
   @override
   List<Object?> get props =>
-      [title, price, image, id, preperationTime, piece, tableId, status];
+      [title, price, image, id, preperationTime, piece, tableId, status, menu];
 
   Order copyWith({
     String? title,
@@ -38,6 +49,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
     int? preperationTime,
     String? tableId,
     String? status,
+    Menu? menu,
   }) {
     return Order(
       title: title ?? this.title,
@@ -48,6 +60,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       tableId: tableId ?? this.tableId,
       status: status ?? this.status,
       id: id,
+      menu: menu ?? this.menu,
     );
   }
 
@@ -60,6 +73,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       'preperationTime': preperationTime,
       'tableId': tableId,
       'status': status,
+      'menu': menu?.toJson(),
     };
   }
 
@@ -70,10 +84,15 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       price: json['price'] != null ? json['price'] as int : null,
       image: json['image'] as String?,
       piece: json['piece'] as String?,
-      preperationTime: json['preperationTime'] != null ? json['preperationTime'] as int : null,
+      preperationTime: json['preperationTime'] != null
+          ? (json['preperationTime'] as int) * 60
+          : null,
       tableId: json['tableId'] as String?,
       status: json['status'] as String?,
       id: json['id'] as String?,
+      menu: json['menu'] != null
+          ? Menu.fromJson(json['menu'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

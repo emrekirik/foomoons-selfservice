@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+
 final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>((ref) {
   return GlobalKey<NavigatorState>();
 });
@@ -13,11 +14,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerWidget  {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -25,13 +26,13 @@ class MyApp extends ConsumerWidget  {
     final navigatorKey = ref.read(navigatorKeyProvider);
     return MaterialApp(
       navigatorKey: navigatorKey,
-      home: TabView(),
+      home: const TabView(),
     );
   }
 }
 
 //TODO:
-//Panel'de rapor kısmının UI'ını yap  - 04
+//Panel'de rapor kısmının UI'ını yap  - 04  +
 //Sipariş adet ve süresini firebase'e bağla ve dinamikleştir - 04
 //Müşteri tarafında berfin'in attığı kodları entegre et - 05
 //Panel tarafında ürün eklerken min süre 06

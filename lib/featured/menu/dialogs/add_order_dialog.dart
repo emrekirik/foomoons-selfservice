@@ -12,8 +12,8 @@ void showAddOrderDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Ürün Seç'),
-        content: Container(
+        title: const Text('Ürün Seç'),
+        content: SizedBox(
           width: double.maxFinite,
           child: Row(
             children: [
@@ -62,7 +62,7 @@ void showAddOrderDialog(
                                 subtitle: Text(
                                     '${item.price ?? 0} TL'), // Fiyat null ise 0 olarak göster
                                 trailing: IconButton(
-                                  icon: Icon(Icons.remove_circle_outline),
+                                  icon: const Icon(Icons.remove_circle_outline),
                                   onPressed: () {
                                     // Adisyondan ürünü çıkarma işlemi
                                     ref
@@ -74,12 +74,12 @@ void showAddOrderDialog(
                             },
                           ),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
                             'Toplam: ${tableBill.fold(0, (sum, item) => sum + (item.price ?? 0))} TL', // Fiyat null ise 0 olarak topla
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -93,7 +93,7 @@ void showAddOrderDialog(
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('Kapat'),
+            child: const Text('Kapat'),
             onPressed: () {
               Navigator.of(context).pop();
             },

@@ -1,6 +1,6 @@
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:circle_nav_bar/circle_nav_bar.dart';
 import 'package:altmisdokuzapp/featured/admin/admin_view.dart';
 import 'package:altmisdokuzapp/featured/menu/menu_view.dart';
 import 'package:altmisdokuzapp/featured/reports/reports_view.dart';
@@ -25,7 +25,7 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
   void _onTabChanged(int index) {
     setState(() {
       _tabIndex = index;
-      _pageController.jumpToPage(_tabIndex);
+      _pageController.animateToPage(_tabIndex,duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     });
   }
 
@@ -34,71 +34,90 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
     return Scaffold(
       backgroundColor: ColorConstants.appbackgroundColor.withOpacity(0.15),
       extendBody: true,
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 30,
+        ),
+        child: CustomPaint(
+          painter: SideShadowPainter(),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30), // Köşe yuvarlama için
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: CurvedNavigationBar(
+                index: _tabIndex,
+                animationCurve: Curves.linear,
+                height: 75,
+                items: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Icon(
+                        Icons.menu_book,
+                        size: 30,
+                      ),
+                      if (_tabIndex != 0) const Text('Menü'),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Icon(
+                        Icons.home,
+                        size: 30,
+                      ),
+                      if (_tabIndex != 1) const Text('Anasayfa'),
+                    ],
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Icon(
+                        Icons.report,
+                        size: 30,
+                      ),
+                      if (_tabIndex != 2) const Text('Raporlar'),
+                    ],
+                  ),
+                ],
+                backgroundColor:
+                    ColorConstants.appbackgroundColor.withOpacity(0.15),
+                onTap: (index) {
+                  _onTabChanged(index);
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(70.0),
         child: _CustomAppbar(),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _tabIndex = index;
-                });
-              },
-              children: const [
-                MenuView(),
-                AdminView(),
-                ReportsView(),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 34),
-            child: CircleNavBar(
-              activeIcons: const [
-                Padding(
-                  padding: EdgeInsets.only(right: 20),
-                  child: Icon(Icons.menu_book, color: ColorConstants.appbackgroundColor),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(right: 200),
-                  child: Icon(Icons.home, color: ColorConstants.appbackgroundColor),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(right: 100),
-                  child: Icon(Icons.settings, color: ColorConstants.appbackgroundColor),
-                ),
-              ],
-              inactiveIcons: const [
-                Text("Menü"),
-                Text("Siparişler"),
-                Text("Raporlar"),
-              ],
-              color: Colors.white,
-              height: 60,
-              circleWidth: 60,
-              activeIndex: _tabIndex,
-              onTap: _onTabChanged,
-              cornerRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-                bottomRight: Radius.circular(24),
-                bottomLeft: Radius.circular(24),
-              ),
-              shadowColor: ColorConstants.black.withOpacity(0.5),
-              elevation: 10,
-            ),
-          ),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() {
+              _tabIndex = index;
+            });
+          },
+          children: const [
+            MenuView(),
+            AdminView(),
+            ReportsView(),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _CustomAppbar extends StatelessWidget  {
+class _CustomAppbar extends StatelessWidget {
   const _CustomAppbar();
 
   @override
@@ -106,7 +125,8 @@ class _CustomAppbar extends StatelessWidget  {
     return AppBar(
       automaticallyImplyLeading: false,
       flexibleSpace: Container(
-        margin: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.20),
+        margin: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: const BorderRadius.only(
@@ -118,7 +138,7 @@ class _CustomAppbar extends StatelessWidget  {
               color: Colors.grey.withOpacity(0.5),
               spreadRadius: 5,
               blurRadius: 7,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -135,5 +155,31 @@ class _CustomAppbar extends StatelessWidget  {
       backgroundColor: Colors.transparent,
       elevation: 0,
     );
+  }
+}
+
+class SideShadowPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.withOpacity(0.5)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7);
+
+    // Sol gölge
+    canvas.drawRect(
+      Rect.fromLTRB(-7, 0, 0, size.height),
+      paint,
+    );
+
+    // Sağ gölge
+    canvas.drawRect(
+      Rect.fromLTRB(size.width, 0, size.width + 7, size.height),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
   }
 }

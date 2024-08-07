@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:equatable/equatable.dart';
+import 'dart:async';
 
 final adminProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
   return AdminNotifier(ref);
@@ -22,12 +23,13 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
 
   String? _selectedValue;
   String? get selectedValue => _selectedValue;
+  Timer? _centralTimer;
 
   Future<void> fetchOrder() async {
     final orderCollectionReference = FirebaseCollections.checkOrder.reference;
     final response = await orderCollectionReference.withConverter<app.Order>(
       fromFirestore: (snapshot, options) {
-        return app.Order().fromFirebase(snapshot);
+        return const app.Order().fromFirebase(snapshot);
       },
       toFirestore: (value, options) {
         return value.toJson();
@@ -58,7 +60,8 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
   void fetchOrdersStream() {
     FirebaseCollections.checkOrder.reference.snapshots().listen((snapshot) {
       final values = snapshot.docs.map((doc) {
-        return const app.Order().fromFirebase(doc as DocumentSnapshot<Map<String, dynamic>>);
+        return const app.Order()
+            .fromFirebase(doc as DocumentSnapshot<Map<String, dynamic>>);
       }).toList();
 
       if (!_isFirstLoad) {
@@ -71,8 +74,30 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
 
       _previousOrders = values;
       state = state.copyWith(orders: values);
+
+      _startCentralCountdown();
     });
   }
+
+void _startCentralCountdown() {
+  _centralTimer?.cancel();
+  _centralTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    final updatedOrders = state.orders?.map((order) {
+      final effectiveTime = order.effectivePreparationTime;
+      if (order.status == 'hazırlanıyor' && effectiveTime != null && effectiveTime > 0) {
+        return order.copyWith(preperationTime: effectiveTime - 1);
+      }
+      return order;
+    }).toList();
+
+    state = state.copyWith(orders: updatedOrders);
+
+    if (updatedOrders?.every((order) => order.effectivePreparationTime == null || order.effectivePreparationTime == 0) ?? true) {
+      timer.cancel();
+    }
+  });
+}
+  
 
   Future<void> updateOrderStatus(String orderId, String status) async {
     final orderCollectionReference = FirebaseCollections.checkOrder.reference;
