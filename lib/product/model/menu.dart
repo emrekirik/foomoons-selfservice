@@ -24,7 +24,8 @@ class Menu with EquatableMixin, IdModel {
   });
 
   @override
-  List<Object?> get props => [title, price, image, id, status, preparationTime, category];
+  List<Object?> get props =>
+      [title, price, image, id, status, preparationTime, category];
 
   Menu copyWith({
     String? title,
@@ -65,7 +66,9 @@ class Menu with EquatableMixin, IdModel {
       image: json['image'] as String?,
       id: json['id'] as String?,
       status: json['status'] as String?,
-      preparationTime: _parseToInt(json['preparationTime']),
+      preparationTime: json['preparationTime'] != null
+          ? (json['preparationTime'] as int) * 60
+          : null,
       category: json['category'] as String?,
     );
   }

@@ -1,5 +1,6 @@
 import 'package:altmisdokuzapp/featured/admin/admin_notifier.dart' as admin;
 import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart' as menu;
+import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -37,14 +38,14 @@ class _AdminViewState extends ConsumerState<AdminView> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildOrderColumn(
-                context, 'Yeni Siparişler', newOrders, 'hazırlanıyor', menus),
+            _buildOrderColumn(context, 'Yeni Siparişler', newOrders,
+                'hazırlanıyor', menus, 'yeni'),
             const SizedBox(width: 16),
-            _buildOrderColumn(
-                context, 'Hazırlanıyor', preparingOrders, 'hazır', menus),
+            _buildOrderColumn(context, 'Hazırlanıyor', preparingOrders,
+                'teslim edildi', menus, 'hazırlanıyor'),
             const SizedBox(width: 16),
             _buildOrderColumn(context, 'Geçmiş Siparişler', pastOrders,
-                'teslim edildi', menus),
+                'teslim edildi', menus, 'hazır'),
           ],
         ),
       ),
@@ -52,7 +53,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
   }
 
   Expanded _buildOrderColumn(BuildContext context, String title, List orders,
-      String nextStatus, List menus) {
+      String nextStatus, List menus, String status) {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -87,13 +88,13 @@ class _AdminViewState extends ConsumerState<AdminView> {
                   itemCount: orders.length,
                   itemBuilder: (context, index) {
                     final item = orders[index];
-                    final menuItem = menus.firstWhere(
-                      (menu) => menu.title == item.title,
-                      orElse: () => null, // Doğru şekilde lambda fonksiyonunu kullan
-                    );
-
+                    final menuItems =
+                        menus.where((menu) => menu.title == item.title);
+                    final menuItem =
+                        menuItems.isNotEmpty ? menuItems.first : null;
                     final effectivePreparationTime =
                         item.preperationTime ?? menuItem?.preparationTime;
+
                     return Card(
                       color: Colors.white,
                       margin: const EdgeInsets.symmetric(
@@ -113,16 +114,18 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                 runSpacing: 4.0,
                                 children: [
                                   _buildOrderDetail(item.title ?? ''),
-                                  _buildOrderDetail(item.piece ?? ''),
-                                  _buildOrderDetailWithTime(
-                                      effectivePreparationTime),
+                                  _buildOrderDetail('${item.piece} adet' ?? ''),
+                                  status == 'hazır'
+                                      ? SizedBox()
+                                      : _buildOrderDetailWithTime(
+                                          effectivePreparationTime),
                                   _buildOrderDetail(item.tableId ?? ''),
                                   _buildOrderDetail(item.price != null
                                       ? '${item.price} ₺'
                                       : 'Fiyat Yok'),
                                   Center(
-                                    child:
-                                        _buildActionButtons(item, nextStatus),
+                                    child: _buildActionButtons(
+                                        item, nextStatus, status),
                                   ),
                                 ],
                               ),
@@ -151,11 +154,13 @@ class _AdminViewState extends ConsumerState<AdminView> {
     );
   }
 
-    Widget _buildOrderDetailWithTime(int? preparationTime) {
+  Widget _buildOrderDetailWithTime(int? preparationTime) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Text(
-        preparationTime != null ? formatDuration(preparationTime * 60) : 'Süre Yok', // Dakikayı saniyeye çevir
+        preparationTime != null
+            ? formatDuration(preparationTime)
+            : 'Süre Yok', // Dakikayı saniyeye çevir
         overflow: TextOverflow.visible,
       ),
     );
@@ -169,36 +174,57 @@ class _AdminViewState extends ConsumerState<AdminView> {
     return '$formattedMinutes:$formattedSeconds';
   }
 
-  Widget _buildActionButtons(item, String nextStatus) {
+  Widget _buildActionButtons(item, String nextStatus, String status) {
     return Wrap(
       spacing: 8.0,
       children: [
-        IconButton(
-          icon: const Icon(
-            Icons.check,
-            size: 17,
-          ),
-          onPressed: () {
-            if (item.id != null) {
-              ref
-                  .read(_adminProvider.notifier)
-                  .updateOrderStatus(item.id!, nextStatus);
-            }
-          },
-        ),
-        IconButton(
-          icon: const Icon(
-            Icons.close,
-            size: 17,
-          ),
-          onPressed: () {
-            if (item.id != null) {
-              ref
-                  .read(_adminProvider.notifier)
-                  .updateOrderStatus(item.id!, 'iptal edildi');
-            }
-          },
-        ),
+        status != 'yeni'
+            ? SizedBox()
+            : IconButton(
+                icon: const Icon(
+                  Icons.check,
+                  size: 17,
+                ),
+                onPressed: () {
+                  if (item.id != null) {
+                    ref
+                        .read(_adminProvider.notifier)
+                        .updateOrderStatus(item.id!, nextStatus);
+                  }
+                },
+              ),
+        status  != 'yeni'
+            ? SizedBox()
+            : IconButton(
+                icon: const Icon(
+                  Icons.close,
+                  size: 17,
+                ),
+                onPressed: () {
+                  if (item.id != null) {
+                    ref
+                        .read(_adminProvider.notifier)
+                        .updateOrderStatus(item.id!, 'iptal edildi');
+                  }
+                },
+              ),
+        nextStatus == 'teslim edildi' && item.preperationTime == 0
+            ? TextButton(
+                onPressed: () {
+                  if (item.preperationTime == 0) {
+                    ref
+                        .read(_adminProvider.notifier)
+                        .updateOrderStatus(item.id!, nextStatus);
+                  }
+                },
+                child: const Text(
+                  'Tamamlandı',
+                  style: TextStyle(
+                    color: Colors.green,
+                  ),
+                ),
+              )
+            : SizedBox(),
       ],
     );
   }

@@ -19,6 +19,7 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
 
   AdminNotifier(this._ref) : super(const HomeState()) {
     fetchOrdersStream();
+    _startCentralCountdown();
   }
 
   String? _selectedValue;
@@ -79,29 +80,55 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
     });
   }
 
-void _startCentralCountdown() {
-  _centralTimer?.cancel();
-  _centralTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-    final updatedOrders = state.orders?.map((order) {
-      final effectiveTime = order.effectivePreparationTime;
-      if (order.status == 'hazırlanıyor' && effectiveTime != null && effectiveTime > 0) {
-        return order.copyWith(preperationTime: effectiveTime - 1);
+  void _startCentralCountdown() {
+    _centralTimer?.cancel();
+    _centralTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final updatedOrders = state.orders?.map((order) {
+        if (order.status == 'hazırlanıyor' &&
+            order.preperationTime != null &&
+            order.preperationTime! > 0) {
+          // Update Firebase with the new preparation time
+          if (order.id != null && order.id!.isNotEmpty) {
+            _updateOrderPreparationTime(order.id!, order.preperationTime! - 1);
+            return order.copyWith(preperationTime: order.preperationTime! - 1);
+          } else {
+            print('Order ID is null or empty');
+          }
+        }
+        return order;
+      }).toList();
+
+      state = state.copyWith(orders: updatedOrders);
+
+      if (updatedOrders?.every((order) =>
+              order.preperationTime == null || order.preperationTime == 0) ??
+          true) {
+        timer.cancel();
       }
-      return order;
-    }).toList();
+    });
+  }
 
-    state = state.copyWith(orders: updatedOrders);
-
-    if (updatedOrders?.every((order) => order.effectivePreparationTime == null || order.effectivePreparationTime == 0) ?? true) {
-      timer.cancel();
+  Future<void> _updateOrderPreparationTime(String orderId, int newTime) async {
+    final orderCollectionReference = FirebaseCollections.checkOrder.reference;
+    try {
+      final newTimeInMinutes = newTime;
+      await orderCollectionReference
+          .doc(orderId)
+          .update({'preperationTime': newTimeInMinutes});
+      print('Preparation time updated for orderId: $orderId');
+    } catch (e) {
+      print('Failed to update preparation time for orderId: $orderId: $e');
     }
-  });
-}
-  
+  }
 
   Future<void> updateOrderStatus(String orderId, String status) async {
     final orderCollectionReference = FirebaseCollections.checkOrder.reference;
-    await orderCollectionReference.doc(orderId).update({'status': status});
+    try {
+      await orderCollectionReference.doc(orderId).update({'status': status});
+      print('Order status updated for orderId: $orderId');
+    } catch (e) {
+      print('Failed to update order status for orderId: $orderId: $e');
+    }
   }
 
   void setSelectedValue(String? value) {
