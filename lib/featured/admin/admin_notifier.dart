@@ -58,6 +58,7 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
     );
   }
 
+
   void fetchOrdersStream() {
     FirebaseCollections.checkOrder.reference.snapshots().listen((snapshot) {
       final values = snapshot.docs.map((doc) {

@@ -70,7 +70,7 @@ void showAddProductDialog(BuildContext context, MenuNotifier menuNotifier,
                   title: titleController.text,
                   price: int.tryParse(priceController.text),
                   image: imageController.text,
-                  preparationTime: int.tryParse(prepTimeController.text),
+                  preparationTime: int.tryParse(prepTimeController.text)! * 60,
                   category: categoryController.text,
                 );
                 menuNotifier.addProduct(newProduct);

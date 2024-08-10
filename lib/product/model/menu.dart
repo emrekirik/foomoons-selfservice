@@ -24,35 +24,42 @@ class Menu with EquatableMixin, IdModel {
   });
 
   @override
-  List<Object?> get props =>
-      [title, price, image, id, status, preparationTime, category];
+  List<Object?> get props => [
+        title,
+        price,
+        image,
+        status,
+        preparationTime,
+        category,
+        id,
+      ];
 
   Menu copyWith({
     String? title,
     int? price,
     String? image,
-    String? id,
     String? status,
     int? preparationTime,
     String? category,
+    String? id,
   }) {
     return Menu(
       title: title ?? this.title,
       price: price ?? this.price,
       image: image ?? this.image,
-      id: id ?? this.id,
       status: status ?? this.status,
       preparationTime: preparationTime ?? this.preparationTime,
       category: category ?? this.category,
+      id: id,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id, // Include id here
       'title': title,
       'price': price,
       'image': image,
-      'id': id,
       'status': status,
       'preparationTime': preparationTime,
       'category': category,
@@ -61,10 +68,10 @@ class Menu with EquatableMixin, IdModel {
 
   static Menu fromJson(Map<String, dynamic> json) {
     return Menu(
+      id: json['id'] as String?,
       title: json['title'] as String?,
       price: _parseToInt(json['price']),
       image: json['image'] as String?,
-      id: json['id'] as String?,
       status: json['status'] as String?,
       preparationTime: json['preparationTime'] != null
           ? (json['preparationTime'] as int) * 60

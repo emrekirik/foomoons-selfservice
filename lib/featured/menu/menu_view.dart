@@ -1,3 +1,4 @@
+import 'package:altmisdokuzapp/featured/menu/dialogs/add_category_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/dialogs/add_order_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/dialogs/add_product_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/dialogs/add_table_dialog.dart';
@@ -11,7 +12,8 @@ final _menuProvider =
     StateNotifierProvider<MenuNotifier, MenuState>((ref) => MenuNotifier());
 
 class MenuView extends ConsumerWidget {
-  const MenuView({super.key});
+  final String? successMessage;
+  const MenuView({this.successMessage, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -109,23 +111,37 @@ class MenuView extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                                Container(
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.grey.shade100,
-                                  ),
-                                  child: IconButton(
-                                    onPressed: () {
-                                      showAddProductDialog(
-                                          context, menuNotifier, categories);
-                                    },
-                                    icon: const Icon(
-                                      Icons.add,
-                                      color: Colors.black,
-                                    ),
-                                  ),
+                                PopupMenuButton<String>(
+                                  onSelected: (String value) {
+                                    switch (value) {
+                                      case 'Kategori Ekle':
+                                        // Kategori ekleme işlemi
+                                        showAddCategoryDialog(
+                                            context, menuNotifier);
+                                        break;
+                                      case 'Ürün Ekle':
+                                        // Ürün ekleme işlemi
+                                        showAddProductDialog(
+                                            context, menuNotifier, categories);
+                                        break;
+                                      default:
+                                        // Diğer işlemler veya varsayılan durum
+                                        break;
+                                    }
+                                  },
+                                  itemBuilder: (BuildContext context) {
+                                    return [
+                                      const PopupMenuItem<String>(
+                                        value: 'Kategori Ekle',
+                                        child: Text('Kategori Ekle'),
+                                      ),
+                                      const PopupMenuItem<String>(
+                                        value: 'Ürün Ekle',
+                                        child: Text('Ürün Ekle'),
+                                      ),
+                                    ];
+                                  },
+                                  icon: const Icon(Icons.more_vert),
                                 ),
                               ],
                             ),
@@ -147,7 +163,10 @@ class MenuView extends ConsumerWidget {
                               itemBuilder: (context, index) {
                                 final item = filteredItems[index];
                                 return MenuCard(
-                                    item: item, menuNotifier: menuNotifier);
+                                  item: item,
+                                  menuNotifier: menuNotifier,
+                                  categories: categories,
+                                );
                               },
                             ),
                           ),
@@ -338,7 +357,11 @@ class MenuView extends ConsumerWidget {
                       itemCount: filteredItems.length,
                       itemBuilder: (context, index) {
                         final item = filteredItems[index];
-                        return MenuCard(item: item, menuNotifier: menuNotifier);
+                        return MenuCard(
+                          item: item,
+                          menuNotifier: menuNotifier,
+                          categories: categories,
+                        );
                       },
                     ),
                     Padding(

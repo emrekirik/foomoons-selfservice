@@ -32,12 +32,11 @@ class MyApp extends ConsumerWidget  {
 }
 
 //TODO:
-//Panel'de rapor kısmının UI'ını yap  - 04  +
-//Sipariş adet ve süresini firebase'e bağla ve dinamikleştir - 04
-//Müşteri tarafında berfin'in attığı kodları entegre et - 05
-//Panel tarafında ürün eklerken min süre 06
-//Panel'de ürün ekleme sayfasının ui'ını yap 06
-//Panelde ürüne tıkladığında ürün bilgileri gelecek ve güncellenebilecek 07
-//Panelde ürüne girilen min süreyi müşteri tarafına gönderme 07  
-//Iyzico'yu entegre et 08
-//QR code sistemini yap 09 +2 gün sarkabilir....
+//Panel'de rapor kısmının UI'ını yap : yapıldı
+//Sipariş minimum süresini menu'ye çek firebase'den : yapıldı‚
+//Kategori ekleme : yapıldı
+//Müşteri tarafında berfin'in attığı kodları entegre et
+//Panel'de ürün ekleme sayfasının ui'ını yap
+//Panelde ürüne tıkladığında ürün bilgileri gelecek ve güncellenebilecek
+//Iyzico'yu entegre et
+//QR code sistemini yap

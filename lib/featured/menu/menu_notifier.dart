@@ -3,13 +3,12 @@ import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
 import 'package:altmisdokuzapp/product/utility/firebase/firebase_collections.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 
 final menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
   return MenuNotifier();
 });
-
 
 class MenuNotifier extends StateNotifier<MenuState> {
   static const String allCategories = 'Tüm Kategoriler';
@@ -25,7 +24,9 @@ class MenuNotifier extends StateNotifier<MenuState> {
       final orderCollectionReference = FirebaseCollections.order.reference;
       final response = await orderCollectionReference.withConverter<Menu>(
         fromFirestore: (snapshot, options) {
-          return Menu.fromJson(snapshot.data()!);
+          final menu = Menu.fromJson(snapshot.data()!);
+          return menu.copyWith(
+              id: snapshot.id); // Burada id'yi snapshot'tan alıyoruz
         },
         toFirestore: (value, options) {
           return value.toJson();
@@ -92,6 +93,16 @@ class MenuNotifier extends StateNotifier<MenuState> {
     }
   }
 
+  Future<void> addCategory(Category category) async {
+    try {
+      final categoryCollectionReference =
+          FirebaseCollections.category.reference;
+      await categoryCollectionReference.add(category.toJson());
+    } catch (e) {
+      _handleError(e, 'Kategory Ekleme Hatası');
+    }
+  }
+
   Future<void> addProduct(Menu newProduct) async {
     try {
       final orderCollectionReference = FirebaseCollections.order.reference;
@@ -140,6 +151,59 @@ class MenuNotifier extends StateNotifier<MenuState> {
       });
     } catch (e) {
       _handleError(e, 'Hesaba ürün ekleme hatası');
+    }
+  }
+
+  Future<void> updateProduct(
+      String productId, Menu updatedMenu, BuildContext context) async {
+    try {
+      final orderCollectionReference = FirebaseCollections.order.reference;
+
+      // Güncellemek istediğiniz ürün belgesi referansı
+      final productDocumentReference = orderCollectionReference.doc(productId);
+
+      // Ürün belgesini yeni verilerle güncelle
+      await productDocumentReference.update(updatedMenu.toJson());
+
+      // Güncellenen verilerin state'te yansımasını sağlamak için siparişleri yeniden çek
+      await fetchOrder();
+
+      // Güncelleme başarılı olduğunda kullanıcıyı yeni sayfaya yönlendir ve mesajı ilet
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ürün başarıyla Güncellendi')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _handleError(e, 'Ürünü güncelleme hatası');
+      }
+    }
+  }
+
+  Future<void> deleteProduct(String productId, BuildContext context) async {
+    try {
+      final orderCollectionReference = FirebaseCollections.order.reference;
+
+      // Silmek istediğiniz ürün belgesi referansı
+      final productDocumentReference = orderCollectionReference.doc(productId);
+
+      // Ürün belgesini Firestore'dan sil
+      await productDocumentReference.delete();
+
+      // Silme işlemi sonrasında sipariş listesini güncellemek için fetchOrder'ı çağırın
+      await fetchOrder();
+
+      // Silme başarılı olduğunda kullanıcıya bir mesaj gösterin
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ürün başarıyla silindi')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _handleError(e, 'Ürünü silme hatası');
+      }
     }
   }
 
@@ -195,13 +259,17 @@ class MenuNotifier extends StateNotifier<MenuState> {
     }
   }
 
+  Menu? getProductById(String productId) {
+    return state.orders?.firstWhere((menu) => menu.id == productId);
+  }
+
   void selectCategory(String? categoryName) {
     state = state.copyWith(selectedValue: categoryName);
   }
 
   void _handleError(Object e, String message) {
     // Hatanızı kayıt hizmetine loglayın
-   
+
     // Gerekirse hatayı yansıtmak için durumu güncelleyin
     // state = state.copyWith(errorMessage: '$message: $e');
   }
@@ -221,7 +289,6 @@ class MenuState extends Equatable {
   final String? selectedValue;
   final List<CoffeTable>? tables;
   final Map<int, List<Menu>> tableBills;
-
   @override
   List<Object?> get props =>
       [orders, categories, selectedValue, tables, tableBills];
@@ -239,6 +306,7 @@ class MenuState extends Equatable {
       selectedValue: selectedValue ?? this.selectedValue,
       tables: tables ?? this.tables,
       tableBills: tableBills ?? this.tableBills,
+
     );
   }
 

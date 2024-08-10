@@ -179,7 +179,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
       spacing: 8.0,
       children: [
         status != 'yeni'
-            ? SizedBox()
+            ? const SizedBox()
             : IconButton(
                 icon: const Icon(
                   Icons.check,
@@ -194,7 +194,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                 },
               ),
         status  != 'yeni'
-            ? SizedBox()
+            ? const SizedBox()
             : IconButton(
                 icon: const Icon(
                   Icons.close,
@@ -224,7 +224,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                   ),
                 ),
               )
-            : SizedBox(),
+            : const SizedBox(),
       ],
     );
   }
