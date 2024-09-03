@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
@@ -25,6 +26,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
       final response = await orderCollectionReference.withConverter<Menu>(
         fromFirestore: (snapshot, options) {
           final menu = Menu.fromJson(snapshot.data()!);
+
           return menu.copyWith(
               id: snapshot.id); // Burada id'yi snapshot'tan alıyoruz
         },
@@ -35,6 +37,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
       if (response.docs.isNotEmpty) {
         final values = response.docs.map((e) => e.data()).toList();
+
         state = state.copyWith(orders: values);
       } else {
         state = state.copyWith(orders: []);
@@ -43,6 +46,25 @@ class MenuNotifier extends StateNotifier<MenuState> {
       _handleError(e, 'Siparişleri getirme hatası');
     }
   }
+
+// Menu orders listesini güncelleyen method
+  void updateMenuOrders(List<Menu> updatedOrders) {
+    state = state.copyWith(orders: updatedOrders);
+  }
+
+    String generateQRCode(int tableId) {
+    final String token = base64Encode(utf8.encode('tableId:$tableId'));
+    final Uri menuUrl = Uri(
+      scheme: 'http',
+      host: '192.168.1.123', // veya IP adresi
+      port: 8080, // yerel sunucunuzun port numarası
+    );
+    final String finalUrl = menuUrl.toString() + '#/table?token=$token';
+    return finalUrl;
+  }
+
+
+
 
   Future<void> fetchTable() async {
     try {
@@ -92,12 +114,17 @@ class MenuNotifier extends StateNotifier<MenuState> {
       _handleError(e, 'Kategorileri getirme hatası');
     }
   }
+  
 
   Future<void> addCategory(Category category) async {
     try {
       final categoryCollectionReference =
           FirebaseCollections.category.reference;
       await categoryCollectionReference.add(category.toJson());
+      // ID'yi ayarla ve yeni kategoriye ekle
+
+      // Yeni kategoriyi mevcut listeye ekleyin ve state'i güncelleyin
+      state = state.copyWith(categories: [...?state.categories, category]);
     } catch (e) {
       _handleError(e, 'Kategory Ekleme Hatası');
     }
@@ -163,6 +190,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
       final productDocumentReference = orderCollectionReference.doc(productId);
 
       // Ürün belgesini yeni verilerle güncelle
+
       await productDocumentReference.update(updatedMenu.toJson());
 
       // Güncellenen verilerin state'te yansımasını sağlamak için siparişleri yeniden çek
@@ -306,7 +334,6 @@ class MenuState extends Equatable {
       selectedValue: selectedValue ?? this.selectedValue,
       tables: tables ?? this.tables,
       tableBills: tableBills ?? this.tableBills,
-
     );
   }
 

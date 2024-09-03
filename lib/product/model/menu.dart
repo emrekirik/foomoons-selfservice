@@ -74,7 +74,7 @@ class Menu with EquatableMixin, IdModel {
       image: json['image'] as String?,
       status: json['status'] as String?,
       preparationTime: json['preparationTime'] != null
-          ? (json['preparationTime'] as int) * 60
+          ? (json['preparationTime'] as int)
           : null,
       category: json['category'] as String?,
     );

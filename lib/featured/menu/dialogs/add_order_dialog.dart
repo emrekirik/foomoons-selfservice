@@ -2,12 +2,17 @@ import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 void showAddOrderDialog(
-    BuildContext context, WidgetRef ref, int tableId, List<Menu> orderItems) {
+  BuildContext context,
+  WidgetRef ref,
+  int tableId,
+  List<Menu> orderItems,
+  String? qrUrl,
+) {
   // Adisyonu fetch etmek için fonksiyonu çağırın
   ref.read(menuProvider.notifier).fetchTableBill(tableId);
-
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -18,27 +23,44 @@ void showAddOrderDialog(
           child: Row(
             children: [
               // Sol taraf: Ürün listesi
-              Expanded(
-                child: ListView.builder(
-                  itemCount: orderItems.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final item = orderItems[index];
-                    return ListTile(
-                      title: Text(item.title ?? ''),
-                      subtitle: Text(
-                          '${item.price ?? 0} TL'), // Fiyat null ise 0 olarak göster
-                      onTap: () {
-                        // Ürün seçimi işlemi
-                        // Ürünü masanın adisyonuna ekle
-                        ref
-                            .read(menuProvider.notifier)
-                            .addItemToBill(tableId, item);
-                      },
-                    );
-                  },
+              Flexible(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: orderItems.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final item = orderItems[index];
+                          return ListTile(
+                            title: Text(item.title ?? ''),
+                            subtitle: Text(
+                                '${item.price ?? 0} TL'), // Fiyat null ise 0 olarak göster
+                            onTap: () {
+                              // Ürün seçimi işlemi
+                              // Ürünü masanın adisyonuna ekle
+                              ref
+                                  .read(menuProvider.notifier)
+                                  .addItemToBill(tableId, item);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    qrUrl != null
+                        ? SizedBox(
+                            child: QrImageView(
+                              data: qrUrl,
+                              version: QrVersions.auto,
+                              size: 100.0,
+                            ),
+                          )
+                        : const SizedBox(),
+                  ],
                 ),
               ),
-              // Sağ taraf: Masanın adisyonu
+
               Expanded(
                 child: Consumer(
                   builder: (context, ref, child) {

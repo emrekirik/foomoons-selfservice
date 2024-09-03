@@ -35,8 +35,8 @@ class MyApp extends ConsumerWidget  {
 //Panel'de rapor kısmının UI'ını yap : yapıldı
 //Sipariş minimum süresini menu'ye çek firebase'den : yapıldı‚
 //Kategori ekleme : yapıldı
-//Müşteri tarafında berfin'in attığı kodları entegre et
+//Panelde ürüne tıkladığında ürün bilgileri gelecek ve güncellenebilecek : yapıldı
 //Panel'de ürün ekleme sayfasının ui'ını yap
-//Panelde ürüne tıkladığında ürün bilgileri gelecek ve güncellenebilecek
+//Stok sayfası
 //Iyzico'yu entegre et
 //QR code sistemini yap

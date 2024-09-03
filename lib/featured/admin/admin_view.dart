@@ -1,6 +1,5 @@
 import 'package:altmisdokuzapp/featured/admin/admin_notifier.dart' as admin;
 import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart' as menu;
-import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -93,7 +92,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                     final menuItem =
                         menuItems.isNotEmpty ? menuItems.first : null;
                     final effectivePreparationTime =
-                        item.preperationTime ?? menuItem?.preparationTime;
+                        item.preperationTime ?? menuItem?.preparationTime ?? 60;
 
                     return Card(
                       color: Colors.white,
@@ -114,7 +113,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                 runSpacing: 4.0,
                                 children: [
                                   _buildOrderDetail(item.title ?? ''),
-                                  _buildOrderDetail('${item.piece} adet' ?? ''),
+                                  _buildOrderDetail('${item.piece} adet'),
                                   status == 'hazır'
                                       ? SizedBox()
                                       : _buildOrderDetailWithTime(
@@ -193,7 +192,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                   }
                 },
               ),
-        status  != 'yeni'
+        status != 'yeni'
             ? const SizedBox()
             : IconButton(
                 icon: const Icon(
