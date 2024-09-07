@@ -1,4 +1,4 @@
-import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart';
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

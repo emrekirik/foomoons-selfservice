@@ -2,27 +2,58 @@ import 'package:altmisdokuzapp/featured/menu/dialogs/add_category_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/dialogs/add_order_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/dialogs/add_product_dialog.dart';
 import 'package:altmisdokuzapp/featured/menu/dialogs/add_table_dialog.dart';
-import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart';
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:altmisdokuzapp/product/widget/menu_card.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final _menuProvider =
-    StateNotifierProvider<MenuNotifier, MenuState>((ref) => MenuNotifier());
+/// Firebase AuthState Provider
+final authStateProvider = StreamProvider<User?>((ref) {
+  return FirebaseAuth.instance.authStateChanges();
+});
 
+/// Menu Provider
+final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
+  // Kullanıcı oturum değişikliklerini izleyin
+  final authStateChanges = ref.watch(authStateProvider);
+
+  // AsyncValue olduğu için asData ile kontrol edin
+  if (authStateChanges.asData?.value == null) {
+    // Eğer kullanıcı çıkış yapmışsa state'i sıfırla
+    ref.read(menuProvider.notifier).resetState();
+  } else {
+    // Kullanıcı giriş yaptıysa verileri tekrar çek
+    ref.read(menuProvider.notifier).fetchProducts();
+    ref.read(menuProvider.notifier).fetchCategories();
+    ref.read(menuProvider.notifier).fetchTable();
+  }
+
+  return MenuNotifier();
+});
+
+/// MenuView Widget
 class MenuView extends ConsumerWidget {
   final String? successMessage;
   const MenuView({this.successMessage, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
     final menuNotifier = ref.watch(_menuProvider.notifier);
     final orderItem = ref.watch(_menuProvider).orders ?? [];
     final categories = ref.watch(_menuProvider).categories ?? [];
     final selectedCategory = ref.watch(_menuProvider).selectedValue;
     final tables = ref.watch(_menuProvider).tables ?? [];
     double deviceWidth = MediaQuery.of(context).size.width;
+
+    // Eğer kullanıcı giriş yapmamışsa, "Giriş yapmadı" mesajı gösterin
+    if (authState.asData?.value == null) {
+      return const Center(
+        child: Text('Kullanıcı Giriş Yapmadı'),
+      );
+    }
 
     // Seçili kategoriye göre ürünleri filtrele
     final filteredItems = selectedCategory == null ||
@@ -35,6 +66,7 @@ class MenuView extends ConsumerWidget {
         return Center(
           child: Row(
             children: [
+              // Kategoriler ve Ürünler
               Padding(
                 padding: const EdgeInsets.only(left: 30, bottom: 20, top: 20),
                 child: Container(
@@ -55,6 +87,7 @@ class MenuView extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 20),
                     child: Column(
                       children: [
+                        // Kategori Seçici ve Popup Menü
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Row(
@@ -65,39 +98,32 @@ class MenuView extends ConsumerWidget {
                                   height: 35,
                                   child: ListView.builder(
                                     scrollDirection: Axis.horizontal,
-                                    itemCount: categories.length +
-                                        1, // Tüm Ürünler butonu için +1
+                                    itemCount: categories.length + 1,
                                     itemBuilder: (context, index) {
                                       if (index == 0) {
                                         return Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0),
+                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
                                           child: OutlinedButton(
                                             onPressed: () {
-                                              menuNotifier.selectCategory(
-                                                  MenuNotifier.allCategories);
+                                              menuNotifier.selectCategory(MenuNotifier.allCategories);
                                             },
                                             child: const Text(
                                               'Tüm ürünler',
-                                              style: TextStyle(
-                                                  color: ColorConstants.black),
+                                              style: TextStyle(color: ColorConstants.black),
                                             ),
                                           ),
                                         );
                                       } else {
                                         final category = categories[index - 1];
                                         return Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0),
+                                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
                                           child: OutlinedButton(
                                             onPressed: () {
-                                              menuNotifier.selectCategory(
-                                                  category.name);
+                                              menuNotifier.selectCategory(category.name);
                                             },
                                             child: Text(
                                               category.name ?? '',
-                                              style: const TextStyle(
-                                                  color: ColorConstants.black),
+                                              style: const TextStyle(color: ColorConstants.black),
                                             ),
                                           ),
                                         );
@@ -106,21 +132,17 @@ class MenuView extends ConsumerWidget {
                                   ),
                                 ),
                               ),
+                              // Popup Menü
                               PopupMenuButton<String>(
                                 onSelected: (String value) {
                                   switch (value) {
                                     case 'Kategori Ekle':
-                                      // Kategori ekleme işlemi
-                                      showAddCategoryDialog(
-                                          context, menuNotifier);
+                                      showAddCategoryDialog(context, menuNotifier);
                                       break;
                                     case 'Ürün Ekle':
-                                      // Ürün ekleme işlemi
-                                      showAddProductDialog(
-                                          context, menuNotifier, categories);
+                                      showAddProductDialog(context, menuNotifier, categories);
                                       break;
                                     default:
-                                      // Diğer işlemler veya varsayılan durum
                                       break;
                                   }
                                 },
@@ -141,17 +163,14 @@ class MenuView extends ConsumerWidget {
                             ],
                           ),
                         ),
+                        // Ürün Listesi
                         Expanded(
                           child: GridView.builder(
                             padding: const EdgeInsets.all(10),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: (constraints.maxWidth / 400)
-                                  .floor(), // Sütun sayısını ayarla
-                              crossAxisSpacing:
-                                  10, // Öğeler arasındaki yatay boşluk
-                              mainAxisSpacing:
-                                  10, // Öğeler arasındaki dikey boşluk
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: (constraints.maxWidth / 400).floor(),
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
                               childAspectRatio: 0.7,
                             ),
                             itemCount: filteredItems.length,
@@ -170,9 +189,8 @@ class MenuView extends ConsumerWidget {
                   ),
                 ),
               ),
-              SizedBox(
-                width: deviceWidth * 0.01,
-              ),
+              SizedBox(width: deviceWidth * 0.01),
+              // Masalar
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, top: 20),
                 child: Container(
@@ -193,9 +211,7 @@ class MenuView extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       children: [
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        const SizedBox(height: 20),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: Row(
@@ -204,17 +220,16 @@ class MenuView extends ConsumerWidget {
                                 flex: 8,
                                 child: Text(
                                   'Masalar',
-                                  style: TextStyle(
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                                 ),
                               ),
                               Container(
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(60)),
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(60),
+                                ),
                                 child: IconButton(
                                   onPressed: () {
                                     showAddTableDialog(context, menuNotifier);
@@ -228,15 +243,12 @@ class MenuView extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(
-                          height: 15,
-                        ),
+                        const SizedBox(height: 15),
+                        // Masaların Listesi
                         Expanded(
                           child: GridView.builder(
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: (constraints.maxWidth / 250)
-                                  .floor(), // Burada sütun sayısını ayarlayabilirsiniz
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: (constraints.maxWidth / 250).floor(),
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
                               childAspectRatio: 1.0,
@@ -248,20 +260,17 @@ class MenuView extends ConsumerWidget {
                                   final tableId = tables[index].tableId;
                                   final tableQrUrl = tables[index].qrUrl;
                                   if (tableId != null) {
-                                    showAddOrderDialog(context, ref, tableId,
-                                        orderItem, tableQrUrl);
-                                  } else {
-                                    // Masa ID'si null ise yapılacak işlemler
+                                    showAddOrderDialog(context, ref, tableId, orderItem, tableQrUrl);
                                   }
                                 },
                                 child: Container(
                                   decoration: const BoxDecoration(
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(20)),
-                                      image: DecorationImage(
-                                          image: AssetImage(
-                                              "assets/images/table_icon.png"),
-                                          fit: BoxFit.cover)),
+                                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                                    image: DecorationImage(
+                                      image: AssetImage("assets/images/table_icon.png"),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                                   child: Padding(
                                     padding: const EdgeInsets.only(top: 70),
                                     child: Center(
@@ -292,167 +301,3 @@ class MenuView extends ConsumerWidget {
     );
   }
 }
-
-
-
-    // (constraints.maxWidth > 600) 
-    //       // Geniş ekran düzeni
-
-
-
-// else {
-//           // Dar ekran düzeni
-//           return Scaffold(
-//             backgroundColor: Colors.white,
-//             body: SafeArea(
-//               child: SingleChildScrollView(
-//                 child: Column(
-//                   children: [
-//                     const SizedBox(height: 20),
-//                     SizedBox(
-//                       height: 50,
-//                       child: ListView.builder(
-//                         scrollDirection: Axis.horizontal,
-//                         itemCount:
-//                             categories.length + 1, // Tüm Ürünler butonu için +1
-//                         itemBuilder: (context, index) {
-//                           if (index == 0) {
-//                             return Padding(
-//                               padding:
-//                                   const EdgeInsets.symmetric(horizontal: 8.0),
-//                               child: OutlinedButton(
-//                                 onPressed: () {
-//                                   menuNotifier.selectCategory(
-//                                       MenuNotifier.allCategories);
-//                                 },
-//                                 child: const Text(
-//                                   'Tüm ürünler',
-//                                   style: TextStyle(color: ColorConstants.black),
-//                                 ),
-//                               ),
-//                             );
-//                           } else {
-//                             final category = categories[index - 1];
-//                             return Padding(
-//                               padding:
-//                                   const EdgeInsets.symmetric(horizontal: 8.0),
-//                               child: OutlinedButton(
-//                                 onPressed: () {
-//                                   menuNotifier.selectCategory(category.name);
-//                                 },
-//                                 child: Text(
-//                                   category.name ?? '',
-//                                   style: const TextStyle(
-//                                       color: ColorConstants.black),
-//                                 ),
-//                               ),
-//                             );
-//                           }
-//                         },
-//                       ),
-//                     ),
-//                     GridView.builder(
-//                       shrinkWrap: true,
-//                       physics: const NeverScrollableScrollPhysics(),
-//                       padding: const EdgeInsets.all(10),
-//                       gridDelegate:
-//                           const SliverGridDelegateWithFixedCrossAxisCount(
-//                         crossAxisCount: 4, // Sütun sayısını ayarla
-//                         crossAxisSpacing: 10, // Öğeler arasındaki yatay boşluk
-//                         mainAxisSpacing: 10, // Öğeler arasındaki dikey boşluk
-//                         childAspectRatio: 0.7,
-//                       ),
-//                       itemCount: filteredItems.length,
-//                       itemBuilder: (context, index) {
-//                         final item = filteredItems[index];
-//                         return MenuCard(
-//                           item: item,
-//                           menuNotifier: menuNotifier,
-//                           categories: categories,
-//                         );
-//                       },
-//                     ),
-//                     Padding(
-//                       padding: const EdgeInsets.only(left: 310, bottom: 20),
-//                       child: FloatingActionButton(
-//                         backgroundColor:
-//                             ColorConstants.floatingActionButtonColor,
-//                         onPressed: () {
-//                           showAddProductDialog(context, menuNotifier,
-//                               categories); // Yeni fonksiyonu kullanın
-//                         },
-//                         child: const Icon(
-//                           Icons.add,
-//                           color: Colors.white,
-//                         ),
-//                       ),
-//                     ),
-//                     const Divider(),
-//                     const Padding(
-//                       padding: EdgeInsets.only(top: 20, bottom: 20),
-//                       child: Text(
-//                         'Masalar',
-//                         style: TextStyle(
-//                             fontSize: 30, fontWeight: FontWeight.bold),
-//                       ),
-//                     ),
-//                     GridView.builder(
-//                       shrinkWrap: true,
-//                       physics: const NeverScrollableScrollPhysics(),
-//                       padding: const EdgeInsets.all(8.0),
-//                       gridDelegate:
-//                           const SliverGridDelegateWithFixedCrossAxisCount(
-//                         crossAxisCount:
-//                             4, // Burada sütun sayısını ayarlayabilirsiniz
-//                         crossAxisSpacing: 10,
-//                         mainAxisSpacing: 10,
-//                         childAspectRatio: 1.0,
-//                       ),
-//                       itemCount: tables.length,
-//                       itemBuilder: (BuildContext context, int index) {
-//                         return InkWell(
-//                           onTap: () {
-//                             final tableId = tables[index].tableId;
-//                             if (tableId != null) {
-//                               showAddOrderDialog(
-//                                   context, ref, tableId, orderItem);
-//                             } else {
-//                               // Masa ID'si null ise yapılacak işlemler
-//                             }
-//                           },
-//                           child: Card(
-//                             color: ColorConstants.appbackgroundColor,
-//                             child: Center(
-//                               child: Text(
-//                                 'Masa ${tables[index].tableId}',
-//                                 style: const TextStyle(
-//                                   fontSize: 20.0,
-//                                   color: Colors.white,
-//                                   fontWeight: FontWeight.bold,
-//                                 ),
-//                               ),
-//                             ),
-//                           ),
-//                         );
-//                       },
-//                     ),
-//                     Padding(
-//                       padding: const EdgeInsets.only(left: 310, bottom: 20),
-//                       child: FloatingActionButton(
-//                         backgroundColor:
-//                             ColorConstants.floatingActionButtonColor,
-//                         onPressed: () {
-//                           showAddTableDialog(context, menuNotifier);
-//                         },
-//                         child: const Icon(
-//                           Icons.add,
-//                           color: Colors.white,
-//                         ),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           );
-//         }

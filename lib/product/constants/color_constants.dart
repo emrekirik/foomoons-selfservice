@@ -13,4 +13,13 @@ class ColorConstants {
   static const Color floatingActionButtonColor = Color(0xff0A0A0A);
   static const Color contentColorCyan = Color(0xFF50E4FF);
   static const Color contentColorBlue = Color(0xFF2196F3);
+
+  //login
+  static const Color loginCardBackgroundColorr = Color(0xFF7c9da6);
+  static const Color secondColor = Color(0xFF2596be);
+  static const Color thirdColor = Color(0xFFf2f4f7);
+
+  //profile
+  static const Color titleContainerColor = Color(0xFF60757f);
+  static const Color titleContainerColorSecond = Color(0xFF121223);
 }

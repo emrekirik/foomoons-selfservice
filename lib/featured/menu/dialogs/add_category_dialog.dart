@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
-import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart';
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 
 void showAddCategoryDialog(BuildContext context, MenuNotifier menuNotifier) {
   final TextEditingController controller = TextEditingController();

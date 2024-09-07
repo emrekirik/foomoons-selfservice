@@ -11,13 +11,15 @@ class Category with EquatableMixin, IdModel {
   Category({this.name, this.id});
 
   @override
-  List<Object?> get props => [name];
+  List<Object?> get props => [name, id];
 
   Category copyWith({
     String? name,
+    String? id, // Added the id to the copyWith method
   }) {
     return Category(
       name: name ?? this.name,
+      id: id ?? this.id, // Ensure the id is copied as well
     );
   }
 
@@ -30,6 +32,7 @@ class Category with EquatableMixin, IdModel {
   static Category fromJson(Map<String, dynamic> json) {
     return Category(
       name: json['name'] as String?,
+      id: json['id'] as String?, // Ensure the id is parsed from JSON
     );
   }
 }

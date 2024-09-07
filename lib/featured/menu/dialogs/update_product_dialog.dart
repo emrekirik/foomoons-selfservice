@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
-import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart';
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 
 void showUpdateProductDialog(BuildContext context, MenuNotifier menuNotifier,
     List<Category> categories, String productId) {

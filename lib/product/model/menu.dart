@@ -34,6 +34,7 @@ class Menu with EquatableMixin, IdModel {
         id,
       ];
 
+  /// Copy this instance with new values, while preserving existing ones if not provided
   Menu copyWith({
     String? title,
     int? price,
@@ -50,13 +51,14 @@ class Menu with EquatableMixin, IdModel {
       status: status ?? this.status,
       preparationTime: preparationTime ?? this.preparationTime,
       category: category ?? this.category,
-      id: id,
+      id: id ?? this.id, // Ensure id is also copied correctly
     );
   }
 
+  /// Convert this Menu instance to a JSON map
   Map<String, dynamic> toJson() {
     return {
-      'id': id, // Include id here
+      'id': id, // Ensure the id is included in the JSON
       'title': title,
       'price': price,
       'image': image,
@@ -66,6 +68,7 @@ class Menu with EquatableMixin, IdModel {
     };
   }
 
+  /// Create a Menu instance from a JSON map
   static Menu fromJson(Map<String, dynamic> json) {
     return Menu(
       id: json['id'] as String?,
@@ -80,6 +83,7 @@ class Menu with EquatableMixin, IdModel {
     );
   }
 
+  /// Helper method to safely parse price values to int
   static int? _parseToInt(dynamic value) {
     if (value is int) {
       return value;

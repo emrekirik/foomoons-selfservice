@@ -3,9 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 enum FirebaseCollections {
   category,
   table,
-  order,
+  product,
   tableBill,
-  checkOrder;
+  order,
+  token;
 
   CollectionReference get reference =>
       FirebaseFirestore.instance.collection(name);

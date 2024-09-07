@@ -1,10 +1,27 @@
-import 'package:altmisdokuzapp/featured/admin/admin_notifier.dart' as admin;
-import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart' as menu;
+import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart' as admin;
+import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart' as menu;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+
+final authStateProvider = StreamProvider<User?>((ref) {
+  return FirebaseAuth.instance.authStateChanges();
+});
+
 final _adminProvider =
     StateNotifierProvider<admin.AdminNotifier, admin.HomeState>((ref) {
+ final authStateChanges = ref.watch(authStateProvider);
+   // AsyncValue olduğu için asData ile kontrol edin
+  if (authStateChanges.asData?.value == null) {
+    // Eğer kullanıcı çıkış yapmışsa state'i sıfırla
+    ref.read(adminProvider.notifier).resetState();
+  } else {
+    // Kullanıcı giriş yaptıysa verileri tekrar çek
+    ref.read(adminProvider.notifier).fetchOrdersStream();
+  }
+
   return admin.AdminNotifier(ref);
 });
 
@@ -118,7 +135,9 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                       ? SizedBox()
                                       : _buildOrderDetailWithTime(
                                           effectivePreparationTime),
-                                  _buildOrderDetail(item.tableId ?? ''),
+                                  _buildOrderDetail(item.tableId != null
+                                      ? 'Masa ${item.tableId}'
+                                      : 'Masa bilgisi bilinmiyor.'),
                                   _buildOrderDetail(item.price != null
                                       ? '${item.price} ₺'
                                       : 'Fiyat Yok'),

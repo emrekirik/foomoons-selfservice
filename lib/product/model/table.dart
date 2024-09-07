@@ -14,9 +14,10 @@ class CoffeTable with EquatableMixin, IdModel {
   CoffeTable({this.tableId, this.billItems, this.id, this.qrUrl});
 
   @override
-  List<Object?> get props => [tableId, billItems, id, this.qrUrl];
+  List<Object?> get props => [tableId, billItems, id, qrUrl];
 
   CoffeTable copyWith({
+    String? id,
     int? tableId,
     List<Menu>? billItems,
     String? qrUrl,

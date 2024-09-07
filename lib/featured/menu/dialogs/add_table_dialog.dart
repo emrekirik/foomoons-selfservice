@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
-import 'package:altmisdokuzapp/featured/menu/menu_notifier.dart';
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Make sure to import the correct package
 
 void showAddTableDialog(BuildContext context, MenuNotifier menuNotifier) {

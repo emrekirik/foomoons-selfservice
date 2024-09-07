@@ -1,18 +1,24 @@
+import 'package:altmisdokuzapp/featured/providers/login_notifier.dart';
+import 'package:altmisdokuzapp/featured/auth/login_view.dart';
+import 'package:altmisdokuzapp/featured/profile/profile_view.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:altmisdokuzapp/featured/admin/admin_view.dart';
 import 'package:altmisdokuzapp/featured/menu/menu_view.dart';
 import 'package:altmisdokuzapp/featured/reports/reports_view.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TabView extends StatefulWidget {
+class TabView extends ConsumerStatefulWidget {
   const TabView({super.key});
 
   @override
-  State<TabView> createState() => _TabViewState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _TabViewState();
 }
 
-class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
+class _TabViewState extends ConsumerState<TabView>
+    with SingleTickerProviderStateMixin {
   int _tabIndex = 1; // Başlangıç sekmesi
   late PageController _pageController;
 
@@ -25,12 +31,14 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
   void _onTabChanged(int index) {
     setState(() {
       _tabIndex = index;
-      _pageController.animateToPage(_tabIndex,duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      _pageController.animateToPage(_tabIndex,
+          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       backgroundColor: ColorConstants.appbackgroundColor.withOpacity(0.15),
       extendBody: true,
@@ -95,7 +103,7 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
       ),
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(70.0),
-        child: _CustomAppbar(),
+        child: CustomAppbar(showBackButton: false,),
       ),
       body: Padding(
         padding: const EdgeInsets.only(bottom: 80),
@@ -117,46 +125,9 @@ class _TabViewState extends State<TabView> with SingleTickerProviderStateMixin {
   }
 }
 
-class _CustomAppbar extends StatelessWidget {
-  const _CustomAppbar();
 
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      flexibleSpace: Container(
-        margin: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(70),
-            bottomRight: Radius.circular(70),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-      ),
-      title: Padding(
-        padding: const EdgeInsets.only(top: 7),
-        child: Image.asset(
-          'assets/images/logo.png',
-          width: 80,
-          height: 80,
-          fit: BoxFit.cover,
-        ),
-      ),
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-    );
-  }
-}
+
+
 
 class SideShadowPainter extends CustomPainter {
   @override

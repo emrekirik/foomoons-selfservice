@@ -1,9 +1,8 @@
-import 'package:altmisdokuzapp/featured/tab/tab_view.dart';
+import 'package:altmisdokuzapp/featured/auth/auth_wrapper.dart';
 import 'package:altmisdokuzapp/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 
 final navigatorKeyProvider = Provider<GlobalKey<NavigatorState>>((ref) {
   return GlobalKey<NavigatorState>();
@@ -17,7 +16,7 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget  {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
@@ -26,7 +25,7 @@ class MyApp extends ConsumerWidget  {
     final navigatorKey = ref.read(navigatorKeyProvider);
     return MaterialApp(
       navigatorKey: navigatorKey,
-      home: const TabView(),
+      home: const AuthWrapper(),
     );
   }
 }
@@ -39,4 +38,4 @@ class MyApp extends ConsumerWidget  {
 //Panel'de ürün ekleme sayfasının ui'ını yap
 //Stok sayfası
 //Iyzico'yu entegre et
-//QR code sistemini yap
+//QR code sistemini yap  yapıldı
