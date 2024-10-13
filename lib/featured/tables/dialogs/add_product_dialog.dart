@@ -141,8 +141,7 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
   }
 }
 
-void showAddProductDialog(
-    BuildContext context, WidgetRef ref, List<Category> categories) {
+void showAddProductDialog(BuildContext context, List<Category> categories) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
