@@ -36,18 +36,30 @@ class _UpdateProductDialogState extends ConsumerState<UpdateProductDialog> {
     super.initState();
 
     // Mevcut ürünü dolduruyoruz
-    final initialPrepTimeInMinutes = (widget.existingProduct.preparationTime ?? 0) / 60;
+    final initialPrepTimeInMinutes =
+        (widget.existingProduct.preparationTime ?? 0) / 60;
     titleController = TextEditingController(text: widget.existingProduct.title);
-    priceController = TextEditingController(text: widget.existingProduct.price?.toString());
-    prepTimeController = TextEditingController(text: initialPrepTimeInMinutes.toStringAsFixed(0));
-    categoryController = TextEditingController(text: widget.existingProduct.category);
-    stockController = TextEditingController(text: widget.existingProduct.stock?.toString() ?? 'Stok Girişi Yok');
+    priceController =
+        TextEditingController(text: widget.existingProduct.price?.toString());
+    prepTimeController = TextEditingController(
+        text: initialPrepTimeInMinutes.toStringAsFixed(0));
+    categoryController =
+        TextEditingController(text: widget.existingProduct.category);
+    stockController = TextEditingController(
+        text: widget.existingProduct.stock?.toString() ?? 'Stok Girişi Yok');
   }
 
   @override
   Widget build(BuildContext context) {
     final menuState = ref.watch(_menuProvider);
     final menuNotifier = ref.read(_menuProvider.notifier);
+
+    // Listen for photoURL changes and update UI
+    ref.listen<MenuState>(_menuProvider, (previous, next) {
+      if (previous?.photoURL != next.photoURL) {
+        setState(() {}); // photoURL değiştiğinde UI'ı güncelle
+      }
+    });
 
     return AlertDialog(
       title: const Text('Ürün Güncelle'),
@@ -58,16 +70,20 @@ class _UpdateProductDialogState extends ConsumerState<UpdateProductDialog> {
             GestureDetector(
               onTap: () async {
                 await menuNotifier.pickAndUploadImage();
-                setState(() {}); // Fotoğraf yüklendikten sonra UI güncellenir
               },
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   CircleAvatar(
                     radius: 100,
-                    backgroundImage: menuState.photoURL != null
+                    backgroundImage: (menuState.photoURL != null &&
+                            menuState.photoURL!.isNotEmpty)
                         ? NetworkImage(menuState.photoURL!)
-                        : const NetworkImage('assets/images/food_placeholder.png'),
+                        : (widget.existingProduct.image != null
+                            ? NetworkImage(widget.existingProduct.image!)
+                            : const AssetImage(
+                                    'assets/images/food_placeholder.png')
+                                as ImageProvider),
                   ),
                   if (menuState.isUploading)
                     const CircularProgressIndicator(
@@ -87,7 +103,8 @@ class _UpdateProductDialogState extends ConsumerState<UpdateProductDialog> {
             ),
             TextField(
               controller: prepTimeController,
-              decoration: const InputDecoration(labelText: 'Ürün Min Hazırlanma Süresi'),
+              decoration: const InputDecoration(
+                  labelText: 'Ürün Min Hazırlanma Süresi'),
               keyboardType: TextInputType.number,
             ),
             TextField(
@@ -126,11 +143,13 @@ class _UpdateProductDialogState extends ConsumerState<UpdateProductDialog> {
                     title: titleController.text,
                     price: int.tryParse(priceController.text),
                     image: menuState.photoURL,
-                    preparationTime: int.tryParse(prepTimeController.text)! * 60,
+                    preparationTime:
+                        int.tryParse(prepTimeController.text)! * 60,
                     category: categoryController.text,
                     stock: int.tryParse(stockController.text),
                   );
-                  await menuNotifier.updateProduct(widget.productId, updatedProduct, context);
+                  await menuNotifier.updateProduct(
+                      widget.productId, updatedProduct, context);
                   await menuNotifier.fetchProducts();
                   Navigator.of(context).pop();
                 },
@@ -142,11 +161,11 @@ class _UpdateProductDialogState extends ConsumerState<UpdateProductDialog> {
 }
 
 void showUpdateProductDialog(
-    BuildContext context,
-    WidgetRef ref,
-    List<Category> categories,
-    String productId,
-    Menu item,
+  BuildContext context,
+  WidgetRef ref,
+  List<Category> categories,
+  String productId,
+  Menu item,
 ) {
   showDialog(
     context: context,
@@ -158,4 +177,6 @@ void showUpdateProductDialog(
       );
     },
   );
+  // Dialog kapandıktan sonra verileri yeniden yükle
+  ref.read(_menuProvider.notifier).fetchProducts();
 }

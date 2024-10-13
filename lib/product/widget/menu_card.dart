@@ -1,29 +1,20 @@
-import 'package:altmisdokuzapp/featured/providers/profile_notifier.dart';
 import 'package:altmisdokuzapp/featured/tables/dialogs/update_product_dialog.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
-  return MenuNotifier(ref);
-});
 
 class MenuCard extends ConsumerWidget {
   final Menu item;
-  final MenuNotifier menuNotifier;
   final List<Category> categories;
   const MenuCard(
       {required this.item,
       required this.categories,
-      required this.menuNotifier,
       super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final menuState = ref.watch(_menuProvider);
-    final photoUrl = menuState.photoURL;
     return InkWell(
       onTap: () {
         final productId = item.id;

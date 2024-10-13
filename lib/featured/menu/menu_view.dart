@@ -317,7 +317,6 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                   ? const SizedBox()
                                   : MenuCard(
                                       item: item,
-                                      menuNotifier: menuNotifier,
                                       categories: categories,
                                     );
                             },
