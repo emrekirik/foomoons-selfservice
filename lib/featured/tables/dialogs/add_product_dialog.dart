@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
@@ -10,18 +10,35 @@ final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
 
 class AddProductDialog extends ConsumerStatefulWidget {
   final List<Category> categories;
-  const AddProductDialog({Key? key, required this.categories})
-      : super(key: key);
+  const AddProductDialog({super.key, required this.categories});
 
   @override
   _AddProductDialogState createState() => _AddProductDialogState();
 }
 
 class _AddProductDialogState extends ConsumerState<AddProductDialog> {
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
-  final TextEditingController prepTimeController = TextEditingController();
-  final TextEditingController categoryController = TextEditingController();
+  late TextEditingController titleController;
+  late TextEditingController priceController;
+  late TextEditingController prepTimeController;
+  late TextEditingController categoryController;
+
+  @override
+  void initState() {
+    super.initState();
+    titleController = TextEditingController();
+    priceController = TextEditingController();
+    prepTimeController = TextEditingController();
+    categoryController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    titleController.dispose();
+    priceController.dispose();
+    prepTimeController.dispose();
+    categoryController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
