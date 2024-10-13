@@ -1,6 +1,6 @@
 {
-    "name": "altmisdokuzapp",
-    "short_name": "altmisdokuzapp",
+    "name": "FooMoons",
+    "short_name": "FooMoons",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

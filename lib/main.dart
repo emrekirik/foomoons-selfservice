@@ -25,6 +25,7 @@ class MyApp extends ConsumerWidget {
     final navigatorKey = ref.read(navigatorKeyProvider);
     return MaterialApp(
       navigatorKey: navigatorKey,
+      title: 'FooMoons',
       home: const AuthWrapper(),
     );
   }
