@@ -39,7 +39,8 @@ class PersonalCardItem extends StatelessWidget {
               child: CircleAvatar(
                 backgroundImage: profileImage.isNotEmpty
                     ? NetworkImage(profileImage)
-                    : AssetImage('assets/images/personal_placeholder.png'),
+                    : const AssetImage(
+                        'assets/images/personal_placeholder.png'),
                 radius: 70,
               ),
             ),
@@ -70,10 +71,15 @@ class PersonalCardItem extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(name, style: TextStyle(fontSize: 18)),
+                  Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18),
+                  ),
                   Text(
                     position,
-                    style: TextStyle(
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
                       fontSize: 14,
                     ),
                   ),
