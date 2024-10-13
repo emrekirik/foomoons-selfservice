@@ -1,7 +1,7 @@
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/featured/tables/dialogs/add_category_dialog.dart';
 import 'package:altmisdokuzapp/featured/tables/dialogs/add_product_dialog.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:altmisdokuzapp/product/widget/menu_card.dart';
 import 'package:flutter/material.dart';
@@ -114,97 +114,101 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                   offset: const Offset(4, 0)),
                             ],
                           ),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: double.maxFinite,
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: selected == 0
-                                        ? const BorderSide(
-                                            color: Colors.orange, width: 5)
-                                        : const BorderSide(
-                                            color: Colors.black12,
-                                            width: 1,
-                                          ),
-                                  ),
-                                ),
-                                child: TextButton(
-                                  style: TextButton.styleFrom(
-                                      overlayColor: Colors.grey,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8))),
-                                  onPressed: () {
-                                    setState(() {
-                                      selected = 0;
-                                    });
-                                    menuNotifier.selectCategory(
-                                        MenuNotifier.allCategories);
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 19),
-                                    child: Text(
-                                      'Tüm ürünler',
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: ColorConstants.black),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: double.maxFinite,
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: selected == 0
+                                          ? const BorderSide(
+                                              color: Colors.orange, width: 5)
+                                          : const BorderSide(
+                                              color: Colors.black12,
+                                              width: 1,
+                                            ),
                                     ),
                                   ),
-                                ),
-                              ),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                padding: EdgeInsets.zero,
-                                scrollDirection: Axis.vertical,
-                                itemCount: categories.length,
-                                itemBuilder: (context, index) {
-                                  index++;
-                                  final category = categories[index - 1];
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: selected == index
-                                            ? const BorderSide(
-                                                color: Colors.orange, width: 5)
-                                            : const BorderSide(
-                                                color: Colors.black12,
-                                                width: 1,
-                                              ),
-                                      ),
-                                    ),
-                                    child: TextButton(
-                                      style: TextButton.styleFrom(
+                                  child: TextButton(
+                                    style: TextButton.styleFrom(
                                         overlayColor: Colors.grey,
-                                        surfaceTintColor: Colors.blue,
-                                        padding: EdgeInsets.zero,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          selected = index;
-                                        });
-                                        menuNotifier
-                                            .selectCategory(category.name);
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 19),
-                                        child: Text(
-                                          category.name ?? '',
-                                          style: const TextStyle(
-                                              fontSize: 20,
-                                              color: ColorConstants.black),
-                                        ),
+                                            borderRadius:
+                                                BorderRadius.circular(8))),
+                                    onPressed: () {
+                                      setState(() {
+                                        selected = 0;
+                                      });
+                                      menuNotifier.selectCategory(
+                                          MenuNotifier.allCategories);
+                                    },
+                                    child: const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 19),
+                                      child: Text(
+                                        'Tüm ürünler',
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            color: ColorConstants.black),
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
-                            ],
+                                  ),
+                                ),
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  padding: EdgeInsets.zero,
+                                  scrollDirection: Axis.vertical,
+                                  itemCount: categories.length,
+                                  itemBuilder: (context, index) {
+                                    index++;
+                                    final category = categories[index - 1];
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: selected == index
+                                              ? const BorderSide(
+                                                  color: Colors.orange,
+                                                  width: 5)
+                                              : const BorderSide(
+                                                  color: Colors.black12,
+                                                  width: 1,
+                                                ),
+                                        ),
+                                      ),
+                                      child: TextButton(
+                                        style: TextButton.styleFrom(
+                                          overlayColor: Colors.grey,
+                                          surfaceTintColor: Colors.blue,
+                                          padding: EdgeInsets.zero,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            selected = index;
+                                          });
+                                          menuNotifier
+                                              .selectCategory(category.name);
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 19),
+                                          child: Text(
+                                            category.name ?? '',
+                                            style: const TextStyle(
+                                                fontSize: 20,
+                                                color: ColorConstants.black),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                   Expanded(
@@ -214,7 +218,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
                         Container(
                           height: 68,
                           decoration: BoxDecoration(
-                              borderRadius: BorderRadius.only(
+                              borderRadius: const BorderRadius.only(
                                   topRight: Radius.circular(12)),
                               color: Colors.white,
                               border: const Border(
@@ -243,7 +247,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                     controller: searchContoller,
                                     decoration: InputDecoration(
                                       hintText: 'Ara...',
-                                      prefixIcon: Icon(Icons.search),
+                                      prefixIcon: const Icon(Icons.search),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
