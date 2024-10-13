@@ -1,6 +1,5 @@
-import 'package:altmisdokuzapp/featured/providers/profile_notifier.dart';
-import 'package:altmisdokuzapp/featured/tables/dialogs/update_product_dialog.dart';
 import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
+import 'package:altmisdokuzapp/featured/tables/dialogs/update_product_dialog.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';

@@ -24,6 +24,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final navigatorKey = ref.read(navigatorKeyProvider);
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       title: 'FooMoons',
       home: const AuthWrapper(),

@@ -295,7 +295,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
       }
 
       // Lokal durumu güncelle
-      state =state.copyWith(photoURL: photoURL);
+      state = state.copyWith(photoURL: photoURL);
     } catch (e) {
       print('Profil fotoğrafı güncellenirken hata oluştu: $e');
     }
