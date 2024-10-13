@@ -54,7 +54,6 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
             GestureDetector(
               onTap: () async {
                 await menuNotifier.pickAndUploadImage();
-                setState(() {}); // Fotoğraf yüklendikten sonra UI güncellenir
               },
               child: Stack(
                 alignment: Alignment.center,
@@ -63,7 +62,7 @@ class _AddProductDialogState extends ConsumerState<AddProductDialog> {
                     radius: 100,
                     backgroundImage: menuState.photoURL != null
                         ? NetworkImage(menuState.photoURL!)
-                        : const NetworkImage(
+                        : const AssetImage(
                             'assets/images/food_placeholder.png'),
                   ),
                   if (menuState.isUploading)
