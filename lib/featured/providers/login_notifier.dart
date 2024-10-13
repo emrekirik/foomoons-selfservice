@@ -1,17 +1,15 @@
-import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+
 class LoginNotifier extends StateNotifier<LoginState> {
   final FirebaseAuth _auth;
-  final Ref _ref; // Change Reader to Ref
+// Change Reader to Ref
 
   LoginNotifier({
     FirebaseAuth? auth,
     required Ref ref, // Change Reader to Ref
   })  : _auth = auth ?? FirebaseAuth.instance,
-        _ref = ref,
         super(LoginState());
 
   Future<String?> login({
@@ -23,6 +21,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
         email: email,
         password: password,
       );
+
+
       return 'Success';
     } on FirebaseAuthException catch (e) {
       if (email.isEmpty || password.isEmpty) {
@@ -49,13 +49,6 @@ class LoginNotifier extends StateNotifier<LoginState> {
 
   Future<void> signOut() async {
     await _auth.signOut();
-    _resetAppState(); // Reset all the application state after signing out
-  }
-
-  void _resetAppState() {
-    // Reset the state of other notifiers (e.g., menuNotifier)
-    _ref.read(menuProvider.notifier).resetState();
-    _ref.read(adminProvider.notifier).resetState();
   }
 
   void toggleObscureText() {
@@ -83,7 +76,3 @@ class LoginState {
     );
   }
 }
-
-final loginProvider = StateNotifierProvider<LoginNotifier, LoginState>((ref) {
-  return LoginNotifier(ref: ref);
-});

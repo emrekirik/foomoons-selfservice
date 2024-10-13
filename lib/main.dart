@@ -35,7 +35,15 @@ class MyApp extends ConsumerWidget {
 //Sipariş minimum süresini menu'ye çek firebase'den : yapıldı‚
 //Kategori ekleme : yapıldı
 //Panelde ürüne tıkladığında ürün bilgileri gelecek ve güncellenebilecek : yapıldı
-//Panel'de ürün ekleme sayfasının ui'ını yap
-//Stok sayfası
+//Stok sayfası  : yapıldı
+//QR code sistemini yap : yapıldı
+//adisyon kısmının tasarımını yap, kategoriler, arama : yapıldı
+//masalar kısmında bilgileri göster : yapıldı
+//menü ekleme sayfasının tasarımını düzelt : yapıldı
+
+//Panel'de ürün ekleme sayfasının ui'ını yap : yapıldı küçük eksiklikler var
 //Iyzico'yu entegre et
-//QR code sistemini yap  yapıldı
+// personel eklemeyi düzelt
+//kart nakit seçeneklerini ekle 
+//stok sayfasının tasarımını düzelt
+//masa id'sini string yap ve aynı masa ismi girilmesini engelle, bide bölüm ekleme

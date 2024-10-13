@@ -12,6 +12,8 @@ class Menu with EquatableMixin, IdModel {
   final String? status;
   final int? preparationTime;
   final String? category;
+  final int? stock;
+  final int? piece; // Yeni eklenen özellik
 
   const Menu({
     this.title,
@@ -21,6 +23,8 @@ class Menu with EquatableMixin, IdModel {
     this.status = 'yeni',
     this.preparationTime,
     this.category,
+    this.stock,
+    this.piece, // Constructor'a ekleyin
   });
 
   @override
@@ -32,7 +36,38 @@ class Menu with EquatableMixin, IdModel {
         preparationTime,
         category,
         id,
+        stock,
+        piece, // Listeye ekleyin
       ];
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Menu) return false;
+
+    return other.title == title &&
+        other.price == price &&
+        other.image == image &&
+        other.status == status &&
+        other.preparationTime == preparationTime &&
+        other.category == category &&
+        other.id == id &&
+        other.stock == stock &&
+        other.piece == piece; // Eşitlik kontrolüne ekleyin
+  }
+
+  @override
+  int get hashCode {
+    return title.hashCode ^
+        price.hashCode ^
+        image.hashCode ^
+        status.hashCode ^
+        preparationTime.hashCode ^
+        category.hashCode ^
+        id.hashCode ^
+        stock.hashCode ^
+        piece.hashCode; // HashCode'a ekleyin
+  }
 
   /// Copy this instance with new values, while preserving existing ones if not provided
   Menu copyWith({
@@ -43,6 +78,8 @@ class Menu with EquatableMixin, IdModel {
     int? preparationTime,
     String? category,
     String? id,
+    int? stock,
+    int? piece, // copyWith methoduna ekleyin
   }) {
     return Menu(
       title: title ?? this.title,
@@ -51,20 +88,24 @@ class Menu with EquatableMixin, IdModel {
       status: status ?? this.status,
       preparationTime: preparationTime ?? this.preparationTime,
       category: category ?? this.category,
-      id: id ?? this.id, // Ensure id is also copied correctly
+      id: id ?? this.id,
+      stock: stock ?? this.stock,
+      piece: piece ?? this.piece, // Değer atama yapın
     );
   }
 
   /// Convert this Menu instance to a JSON map
   Map<String, dynamic> toJson() {
     return {
-      'id': id, // Ensure the id is included in the JSON
+      'id': id,
       'title': title,
       'price': price,
       'image': image,
       'status': status,
       'preparationTime': preparationTime,
       'category': category,
+      'stock': stock,
+      'piece': piece, // JSON dönüşümüne ekleyin
     };
   }
 
@@ -80,6 +121,8 @@ class Menu with EquatableMixin, IdModel {
           ? (json['preparationTime'] as int)
           : null,
       category: json['category'] as String?,
+      stock: _parseToInt(json['stock']),
+      piece: _parseToInt(json['piece']), // JSON'dan `piece` değerini alın
     );
   }
 

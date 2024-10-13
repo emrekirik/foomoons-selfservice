@@ -4,6 +4,13 @@ import 'package:altmisdokuzapp/featured/providers/login_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+
+
+final _loginProvider = StateNotifierProvider<LoginNotifier, LoginState>((ref) {
+  return LoginNotifier(ref: ref);
+});
+
+
 class CustomAppbar extends ConsumerWidget {
   final bool showBackButton;
   const CustomAppbar({super.key, required this.showBackButton});
@@ -61,7 +68,7 @@ class CustomAppbar extends ConsumerWidget {
                     builder: (context) => ProfileView(),
                   ));
                 } else if (value == 'Logout') {
-                  await ref.watch(loginProvider.notifier).signOut();
+                  await ref.watch(_loginProvider.notifier).signOut();
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
                       builder: (context) => LoginView(),

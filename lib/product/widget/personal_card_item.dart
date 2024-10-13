@@ -2,10 +2,19 @@ import 'package:altmisdokuzapp/featured/reports/dialogs/update_personal_dailog.d
 import 'package:flutter/material.dart';
 
 class PersonalCardItem extends StatelessWidget {
-  const PersonalCardItem({super.key});
+  final String name;
+  final String position;
+  final String profileImage;
+  const PersonalCardItem(
+      {super.key,
+      required this.name,
+      required this.position,
+      required this.profileImage});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -27,9 +36,10 @@ class PersonalCardItem extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const CircleAvatar(
-                backgroundImage:
-                    AssetImage('assets/images/personal_placeholder.png'),
+              child: CircleAvatar(
+                backgroundImage: profileImage.isNotEmpty
+                    ? NetworkImage(profileImage)
+                    : AssetImage('assets/images/personal_placeholder.png'),
                 radius: 70,
               ),
             ),
@@ -57,12 +67,12 @@ class PersonalCardItem extends StatelessWidget {
                     ),
                   ],
                   borderRadius: BorderRadius.circular(30)),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('İsim Soyisim', style: TextStyle(fontSize: 18)),
+                  Text(name, style: TextStyle(fontSize: 18)),
                   Text(
-                    'ÜNVAN',
+                    position,
                     style: TextStyle(
                       fontSize: 14,
                     ),

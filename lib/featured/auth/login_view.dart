@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+final _loginProvider = StateNotifierProvider<LoginNotifier, LoginState>((ref) {
+  return LoginNotifier(ref: ref);
+});
+
 class LoginView extends ConsumerWidget {
   LoginView({super.key});
 
@@ -14,7 +18,8 @@ class LoginView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     double deviceWidth = MediaQuery.of(context).size.width;
     double deviceHeight = MediaQuery.of(context).size.height;
-    final loginNotifier = ref.watch(loginProvider.notifier);
+    final loginNotifier = ref.watch(_loginProvider.notifier);
+    final showPassword = ValueNotifier(false);
     return Scaffold(
         backgroundColor: ColorConstants.thirdColor,
         body: Center(
@@ -22,15 +27,7 @@ class LoginView extends ConsumerWidget {
             width: deviceWidth * 0.4,
             height: deviceHeight * 0.85,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Colors.white,
-                  ColorConstants.white,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              color: ColorConstants.loginCardBackgroundColorr,
+              color: ColorConstants.white,
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
@@ -97,7 +94,7 @@ class LoginView extends ConsumerWidget {
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             contentPadding:
-                                const EdgeInsets.symmetric(vertical: 20.0),
+                                const EdgeInsets.symmetric(vertical: 24.0),
                             hintText: 'Enter your email',
                             fillColor: Colors.white, // Arka plan rengi
                             filled: true,
@@ -132,48 +129,63 @@ class LoginView extends ConsumerWidget {
                         ),
                       ),
                       Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 5,
-                              blurRadius: 7,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: passwordController,
-                          keyboardType: TextInputType.text,
-                          decoration: InputDecoration(
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 20.0),
-                            hintText: 'Enter your password',
-                            fillColor: Colors.white, // Arka plan rengi
-                            filled: true,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                              borderSide: const BorderSide(
-                                color: Colors
-                                    .white, // Normalde (aktifken) çerçeve rengi
-                                width: 2.0,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: const Offset(0, 3),
                               ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                              borderSide: const BorderSide(
-                                color: Colors
-                                    .white, // Odaklanıldığında çerçeve rengi
-                                width: 2.0,
-                              ),
-                            ),
-                            prefixIcon: const Icon(Icons.password),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                            ],
                           ),
-                        ),
-                      ),
+                          child: ValueListenableBuilder(
+                            valueListenable: showPassword,
+                            builder: (context, value, child) {
+                              return TextField(
+                                controller: passwordController,
+                                obscureText: !value,
+                                keyboardType: TextInputType.text,
+                                decoration: InputDecoration(
+                                  contentPadding: const EdgeInsets.only(
+                                      bottom: 28, right: 4, top: 12),
+                                  hintText: 'Enter your password',
+                                  fillColor: Colors.white, // Arka plan rengi
+                                  filled: true,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: const BorderSide(
+                                      color: Colors
+                                          .white, // Normalde (aktifken) çerçeve rengi
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: const BorderSide(
+                                      color: Colors
+                                          .white, // Odaklanıldığında çerçeve rengi
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                  prefixIcon: const Icon(Icons.password),
+                                  suffix: InkWell(
+                                    onTap: () {
+                                      showPassword.value = !showPassword.value;
+                                    },
+                                    child: Icon(
+                                      value
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                    ),
+                                  ),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                              );
+                            },
+                          )),
                       SizedBox(
                         height: deviceHeight * 0.07,
                       ),

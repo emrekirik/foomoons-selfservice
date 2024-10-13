@@ -1,9 +1,15 @@
+import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Make sure to import the correct package
 
-void showAddTableDialog(BuildContext context, MenuNotifier menuNotifier) {
+final _tablesProvider =
+    StateNotifierProvider<TablesNotifier, TablesState>((ref) {
+  return TablesNotifier(ref);
+});
+
+void showAddTableDialog(BuildContext context, TablesNotifier tablesNotifier) {
   final TextEditingController tableIdController = TextEditingController();
   String? qrData;
 
@@ -50,7 +56,8 @@ void showAddTableDialog(BuildContext context, MenuNotifier menuNotifier) {
                   final tableIdText = tableIdController.text;
                   if (tableIdText.isNotEmpty) {
                     final tableId = int.parse(tableIdText);
-                    final String qrCode = menuNotifier.generateQRCode(tableId);
+                    final String qrCode =
+                        tablesNotifier.generateQRCode(tableId);
                     setState(() {
                       qrData = qrCode;
                     });
@@ -65,7 +72,7 @@ void showAddTableDialog(BuildContext context, MenuNotifier menuNotifier) {
                     final tableId = int.parse(tableIdText);
                     final newTable =
                         CoffeTable(tableId: tableId, qrUrl: qrData);
-                    menuNotifier.addTable(newTable);
+                    tablesNotifier.addTable(newTable);
                   }
                   Navigator.of(context).pop();
                 },

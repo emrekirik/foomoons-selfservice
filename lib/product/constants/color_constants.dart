@@ -22,4 +22,11 @@ class ColorConstants {
   //profile
   static const Color titleContainerColor = Color(0xFF60757f);
   static const Color titleContainerColorSecond = Color(0xFF121223);
+
+  //table
+  static const Color tableItemColor = Color(0xFFf0cac7);
+  static const Color tableItemPaymentColor = Color(0xFF66bb6a);
+  static const Color tablePageBackgroundColor = Color(0xFFf6f6f6);
+  static const Color billCloseButtonColor = Color(0xFFd3302f);
+  static const Color buttonGreyColor = Color(0xFFf2f2f2);
 }

@@ -12,6 +12,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
   final int? preperationTime;
   final String? tableId;
   final String? status;
+  final String? productId;
 
   @override
   final String? id;
@@ -25,6 +26,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
     this.preperationTime,
     this.tableId,
     this.status = 'yeni',
+    this.productId,
   });
 
   @override
@@ -37,7 +39,39 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
         piece,
         tableId,
         status,
+        productId,
       ];
+
+  /// Eşitlik operatörünü manuel olarak override ediyoruz
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Order) return false;
+
+    return other.title == title &&
+        other.price == price &&
+        other.image == image &&
+        other.id == id &&
+        other.piece == piece &&
+        other.preperationTime == preperationTime &&
+        other.tableId == tableId &&
+        other.status == status &&
+        other.productId == productId;
+  }
+
+  /// hashCode fonksiyonunu manuel olarak override ediyoruz
+  @override
+  int get hashCode {
+    return title.hashCode ^
+        price.hashCode ^
+        image.hashCode ^
+        id.hashCode ^
+        piece.hashCode ^
+        preperationTime.hashCode ^
+        tableId.hashCode ^
+        status.hashCode ^
+        productId.hashCode;
+  }
 
   Order copyWith({
     String? title,
@@ -48,6 +82,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
     String? tableId,
     String? status,
     Menu? menu,
+    String? productId,
   }) {
     return Order(
       title: title ?? this.title,
@@ -58,6 +93,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       tableId: tableId ?? this.tableId,
       status: status ?? this.status,
       id: id,
+      productId: productId ?? this.productId,
     );
   }
 
@@ -70,6 +106,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       'preperationTime': preperationTime,
       'tableId': tableId,
       'status': status,
+      'productId': productId,
     };
   }
 
@@ -86,6 +123,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       tableId: json['tableId'] as String?,
       status: json['status'] as String?,
       id: json['id'] as String?,
+      productId: json['productId'] as String?,
     );
   }
 }

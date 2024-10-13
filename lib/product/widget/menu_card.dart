@@ -1,9 +1,14 @@
-import 'package:altmisdokuzapp/featured/menu/dialogs/update_product_dialog.dart';
+import 'package:altmisdokuzapp/featured/providers/profile_notifier.dart';
+import 'package:altmisdokuzapp/featured/tables/dialogs/update_product_dialog.dart';
 import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
+  return MenuNotifier(ref);
+});
 
 class MenuCard extends ConsumerWidget {
   final Menu item;
@@ -17,6 +22,8 @@ class MenuCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final menuState = ref.watch(_menuProvider);
+    final photoUrl = menuState.photoURL;
     return InkWell(
       onTap: () {
         final productId = item.id;
@@ -25,7 +32,13 @@ class MenuCard extends ConsumerWidget {
           print('Menu Item: ${item.title}, ID: ${item.id}');
         } else {
           print('Menu Item: ${item.title}, ID: ${item.id}');
-          showUpdateProductDialog(context, menuNotifier, categories, productId);
+          showUpdateProductDialog(
+            context,
+            ref,
+            categories,
+            productId,
+            item,
+          );
         }
       },
       child: Card(
@@ -42,15 +55,15 @@ class MenuCard extends ConsumerWidget {
                 child: FadeInImage.assetNetwork(
                   placeholder:
                       'assets/images/food_placeholder.png', // Geçici resim yolu
-                  image: item.image ?? 'assets/images/placeholder.png',
+                  image: item.image ?? 'assets/images/food_placeholder.png',
                   width: double.infinity,
-                  height: 150,
+                  height: 130,
                   fit: BoxFit.cover,
                   imageErrorBuilder: (context, error, stackTrace) {
                     return Image.asset(
                       'assets/images/food_placeholder.png', // Placeholder image path
                       width: double.infinity,
-                      height: 150,
+                      height: 120,
                       fit: BoxFit.cover,
                     );
                   },
@@ -62,7 +75,7 @@ class MenuCard extends ConsumerWidget {
               child: Text(
                 item.title ?? '',
                 style: const TextStyle(
-                  fontSize: 10,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -70,7 +83,7 @@ class MenuCard extends ConsumerWidget {
             Text(
               item.price != null ? '${item.price} ₺' : 'Fiyat Yok',
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 16,
                 color: Colors.grey[600],
               ),
             ),

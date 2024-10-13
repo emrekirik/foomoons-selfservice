@@ -1,16 +1,26 @@
+import 'package:altmisdokuzapp/featured/providers/reports_notifier.dart';
+import 'package:altmisdokuzapp/featured/reports/dialogs/add_personal_dialog.dart';
 import 'package:altmisdokuzapp/product/widget/personal_card_item.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PersonSection extends StatelessWidget {
-  const PersonSection({super.key});
+final _reportsProvider =
+    StateNotifierProvider<ReportsNotifier, ReportsState>((ref) {
+  return ReportsNotifier(ref);
+});
+
+class PersonSection extends ConsumerWidget {
+  final List<Map<String, dynamic>> employees;
+  const PersonSection({super.key, required this.employees});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Çalışanları alıyoruz
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.5),
@@ -51,7 +61,10 @@ class PersonSection extends StatelessWidget {
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(60)),
                     child: IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        addPersonalDialog(
+                            context, ref.read(_reportsProvider.notifier));
+                      },
                       icon: const Icon(
                         Icons.add,
                         color: Colors.black,
@@ -62,26 +75,33 @@ class PersonSection extends StatelessWidget {
               ),
               Expanded(
                 flex: 8,
-                child: Container(
-                  color: Colors.white,
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(10),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4, // Sütun sayısını ayarla
-                      crossAxisSpacing: 10, // Öğeler arasındaki yatay boşluk
-                      mainAxisSpacing: 10, // Öğeler arasındaki dikey boşluk
-                      childAspectRatio: 0.7,
-                    ),
-                    itemCount: 8,
-                    itemBuilder: (context, index) {
-                      return const PersonalCardItem();
-                    },
-                  ),
-                ),
-              ),
+                child: employees.isNotEmpty // Çalışanlar varsa göster
+                    ? GridView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.all(10),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4, // Sütun sayısını ayarla
+                          crossAxisSpacing:
+                              10, // Öğeler arasındaki yatay boşluk
+                          mainAxisSpacing: 10, // Öğeler arasındaki dikey boşluk
+                          childAspectRatio: 0.7,
+                        ),
+                        itemCount: employees.length,
+                        itemBuilder: (context, index) {
+                          final employee = employees[index];
+                          return PersonalCardItem(
+                            name: employee['name'] ?? 'Bilinmiyor',
+                            position: employee['position'] ?? 'Bilinmiyor',
+                            profileImage: employee['profileImage'] ??
+                                '', // varsayılan bir resim ekleyebilirsiniz
+                          );
+                        },
+                      )
+                    : const Center(
+                        child: Text('Henüz personel bilgisi yok'),
+                      ),
+              )
             ],
           ),
         ),

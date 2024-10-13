@@ -6,7 +6,8 @@ enum FirebaseCollections {
   product,
   tableBill,
   order,
-  token;
+  token,
+  pastOrders;
 
   CollectionReference get reference =>
       FirebaseFirestore.instance.collection(name);
