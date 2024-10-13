@@ -276,7 +276,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                             break;
                                           case 'Ürün Ekle':
                                             showAddProductDialog(
-                                                context, ref, categories);
+                                                context, categories);
                                             break;
                                           default:
                                             break;
