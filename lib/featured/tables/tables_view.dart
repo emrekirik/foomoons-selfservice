@@ -134,7 +134,7 @@ class _TablesViewState extends ConsumerState<TablesView> {
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount:
-                                (constraints.maxWidth / 200).floor(),
+                                (constraints.maxWidth / 180).floor(),
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 10,
                             childAspectRatio: 1.0,

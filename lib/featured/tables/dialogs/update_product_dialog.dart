@@ -177,6 +177,9 @@ void showUpdateProductDialog(
       );
     },
   );
+
+  // Debugging için print ekleyelim
+  print('Dialog kapatıldı, fetchAndload çağrılıyor');
   // Dialog kapandıktan sonra verileri yeniden yükle
   ref.read(_menuProvider.notifier).fetchProducts();
 }

@@ -1,8 +1,13 @@
+import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/featured/tables/dialogs/update_product_dialog.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
+  return MenuNotifier(ref);
+});
 
 
 class MenuCard extends ConsumerWidget {
@@ -16,7 +21,7 @@ class MenuCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
         final productId = item.id;
         if (productId == null) {
           print('id null geliyor');
@@ -31,6 +36,9 @@ class MenuCard extends ConsumerWidget {
             item,
           );
         }
+
+        // Güncellemeden sonra verilerin yeniden yüklenmesini sağla
+          await ref.read(_menuProvider.notifier).fetchAndload();
       },
       child: Card(
         color: Colors.white,

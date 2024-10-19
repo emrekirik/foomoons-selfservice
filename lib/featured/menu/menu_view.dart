@@ -53,6 +53,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
     final productItem = menuState.products ?? [];
     final categories = menuState.categories ?? [];
     final selectedCategory = menuState.selectedValue;
+      double deviceWidth = MediaQuery.of(context).size.width;
 
     // Filter items based on the search query, ignoring the selected category during search
     final filteredItems = productItem.where((item) {
@@ -88,7 +89,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
               ),
               child: Row(
                 children: [
-                  searchQuery.isNotEmpty
+                  searchQuery.isNotEmpty || deviceWidth < 600 
                       ? const SizedBox()
                       : Container(
                           width: 240,
@@ -114,101 +115,97 @@ class _MenuViewState extends ConsumerState<MenuView> {
                                   offset: const Offset(4, 0)),
                             ],
                           ),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: double.maxFinite,
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: selected == 0
-                                          ? const BorderSide(
-                                              color: Colors.orange, width: 5)
-                                          : const BorderSide(
-                                              color: Colors.black12,
-                                              width: 1,
-                                            ),
-                                    ),
-                                  ),
-                                  child: TextButton(
-                                    style: TextButton.styleFrom(
-                                        overlayColor: Colors.grey,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8))),
-                                    onPressed: () {
-                                      setState(() {
-                                        selected = 0;
-                                      });
-                                      menuNotifier.selectCategory(
-                                          MenuNotifier.allCategories);
-                                    },
-                                    child: const Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 19),
-                                      child: Text(
-                                        'Tüm ürünler',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            color: ColorConstants.black),
-                                      ),
-                                    ),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: double.maxFinite,
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: selected == 0
+                                        ? const BorderSide(
+                                            color: Colors.orange, width: 5)
+                                        : const BorderSide(
+                                            color: Colors.black12,
+                                            width: 1,
+                                          ),
                                   ),
                                 ),
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  padding: EdgeInsets.zero,
-                                  scrollDirection: Axis.vertical,
-                                  itemCount: categories.length,
-                                  itemBuilder: (context, index) {
-                                    index++;
-                                    final category = categories[index - 1];
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: selected == index
-                                              ? const BorderSide(
-                                                  color: Colors.orange,
-                                                  width: 5)
-                                              : const BorderSide(
-                                                  color: Colors.black12,
-                                                  width: 1,
-                                                ),
-                                        ),
-                                      ),
-                                      child: TextButton(
-                                        style: TextButton.styleFrom(
-                                          overlayColor: Colors.grey,
-                                          surfaceTintColor: Colors.blue,
-                                          padding: EdgeInsets.zero,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            selected = index;
-                                          });
-                                          menuNotifier
-                                              .selectCategory(category.name);
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 19),
-                                          child: Text(
-                                            category.name ?? '',
-                                            style: const TextStyle(
-                                                fontSize: 20,
-                                                color: ColorConstants.black),
-                                          ),
-                                        ),
-                                      ),
-                                    );
+                                child: TextButton(
+                                  style: TextButton.styleFrom(
+                                      overlayColor: Colors.grey,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8))),
+                                  onPressed: () {
+                                    setState(() {
+                                      selected = 0;
+                                    });
+                                    menuNotifier.selectCategory(
+                                        MenuNotifier.allCategories);
                                   },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 19),
+                                    child: Text(
+                                      'Tüm ürünler',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: ColorConstants.black),
+                                    ),
+                                  ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                padding: EdgeInsets.zero,
+                                scrollDirection: Axis.vertical,
+                                itemCount: categories.length,
+                                itemBuilder: (context, index) {
+                                  index++;
+                                  final category = categories[index - 1];
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: selected == index
+                                            ? const BorderSide(
+                                                color: Colors.orange, width: 5)
+                                            : const BorderSide(
+                                                color: Colors.black12,
+                                                width: 1,
+                                              ),
+                                      ),
+                                    ),
+                                    child: TextButton(
+                                      style: TextButton.styleFrom(
+                                        overlayColor: Colors.grey,
+                                        surfaceTintColor: Colors.blue,
+                                        padding: EdgeInsets.zero,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          selected = index;
+                                        });
+                                        menuNotifier
+                                            .selectCategory(category.name);
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 19),
+                                        child: Text(
+                                          category.name ?? '',
+                                          style: const TextStyle(
+                                              fontSize: 20,
+                                              color: ColorConstants.black),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
                   Expanded(
@@ -239,7 +236,7 @@ class _MenuViewState extends ConsumerState<MenuView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               SizedBox(
-                                width: 400,
+                                width: deviceWidth < 750 ? 200: 400,
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8.0),

@@ -115,7 +115,7 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
             final menuNotifier = _ref.read(_menuProvider.notifier);
             await menuNotifier.reduceProductStock(
               order.id!,
-              int.parse(order.piece!),
+              order.piece!,
               _ref.read(navigatorKeyProvider).currentContext!,
             );
             print('Stok güncellemesi başarılı: productId: ${order.id}');
@@ -146,7 +146,7 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
               preparationTime: order.preperationTime,
               id: uniqueItemId,
               status: order.status,
-              piece: int.tryParse(order.piece ?? '1'),
+              piece: order.piece ?? 1,
             );
             currentBillItems.add(menuItem);
 

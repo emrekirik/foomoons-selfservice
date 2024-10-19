@@ -22,220 +22,229 @@ class LoginView extends ConsumerWidget {
     final showPassword = ValueNotifier(false);
     return Scaffold(
         backgroundColor: ColorConstants.thirdColor,
-        body: Center(
-          child: Container(
-            width: deviceWidth * 0.4,
-            height: deviceHeight * 0.85,
-            decoration: BoxDecoration(
-              color: ColorConstants.white,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(
-                  height: 30,
-                ),
-                Center(
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    "FOO Moons'da oturum aç",
-                    style: GoogleFonts.ubuntu(
-                      textStyle: const TextStyle(
-                          fontSize: 30, fontWeight: FontWeight.bold),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 60),
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: 16 / 20,
+              child: Container(
+                height: deviceWidth < 600 ? double.infinity : null,
+                decoration: BoxDecoration(
+                  color: ColorConstants.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: const Offset(0, 3),
                     ),
-                  ),
+                  ],
                 ),
-                SizedBox(
-                  height: deviceWidth * 0.03,
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: deviceWidth * 0.1),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Email',
-                        style: GoogleFonts.ubuntu(
-                          textStyle: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 5,
-                              blurRadius: 7,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 24.0),
-                            hintText: 'Enter your email',
-                            fillColor: Colors.white, // Arka plan rengi
-                            filled: true,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                              borderSide: const BorderSide(
-                                color: Colors
-                                    .white, // Normalde (aktifken) çerçeve rengi
-                                width: 2.0,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                              borderSide: const BorderSide(
-                                color: Colors
-                                    .white, // Odaklanıldığında çerçeve rengi
-                                width: 2.0,
-                              ),
-                            ),
-                            prefixIcon: const Icon(Icons.email),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Text(
-                        'Şifre',
-                        style: GoogleFonts.ubuntu(
-                          textStyle: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: ValueListenableBuilder(
-                            valueListenable: showPassword,
-                            builder: (context, value, child) {
-                              return TextField(
-                                controller: passwordController,
-                                obscureText: !value,
-                                keyboardType: TextInputType.text,
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.only(
-                                      bottom: 28, right: 4, top: 12),
-                                  hintText: 'Enter your password',
-                                  fillColor: Colors.white, // Arka plan rengi
-                                  filled: true,
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: const BorderSide(
-                                      color: Colors
-                                          .white, // Normalde (aktifken) çerçeve rengi
-                                      width: 2.0,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: const BorderSide(
-                                      color: Colors
-                                          .white, // Odaklanıldığında çerçeve rengi
-                                      width: 2.0,
-                                    ),
-                                  ),
-                                  prefixIcon: const Icon(Icons.password),
-                                  suffix: InkWell(
-                                    onTap: () {
-                                      showPassword.value = !showPassword.value;
-                                    },
-                                    child: Icon(
-                                      value
-                                          ? Icons.visibility_off
-                                          : Icons.visibility,
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                ),
-                              );
-                            },
-                          )),
-                      SizedBox(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    Center(
+                      child: Image.asset(
+                        'assets/images/logo.png',
                         height: deviceHeight * 0.07,
+                        fit: BoxFit.cover,
                       ),
-                      Center(
-                        child: Container(
-                          width: double.infinity,
-                          height: deviceHeight * 0.05,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 5,
-                                blurRadius: 7,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: ColorConstants.secondColor,
-                            ),
-                            onPressed: () async {
-                              final message = await loginNotifier.login(
-                                email: emailController.text,
-                                password: passwordController.text,
-                              );
-                              if (message!.contains('Success')) {
-                                Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                        builder: (context) => const TabView()));
-                              }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(message),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Giriş Yap',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 20),
-                            ),
-                          ),
+                    ),
+                    Center(
+                      child: Text(
+                        "FOO Moons'da oturum aç",
+                        style: GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                              fontSize: deviceWidth < 600 ? 24 : 30,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
-                    ],
-                  ),
-                )
-              ],
+                    ),
+                    SizedBox(
+                      height: deviceWidth * 0.03,
+                    ),
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: deviceWidth * 0.1),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Email',
+                            style: GoogleFonts.ubuntu(
+                              textStyle: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 5,
+                                  blurRadius: 7,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: TextField(
+                              controller: emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    const EdgeInsets.symmetric(vertical: 24.0),
+                                hintText: 'Enter your email',
+                                fillColor: Colors.white, // Arka plan rengi
+                                filled: true,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  borderSide: const BorderSide(
+                                    color: Colors
+                                        .white, // Normalde (aktifken) çerçeve rengi
+                                    width: 2.0,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  borderSide: const BorderSide(
+                                    color: Colors
+                                        .white, // Odaklanıldığında çerçeve rengi
+                                    width: 2.0,
+                                  ),
+                                ),
+                                prefixIcon: const Icon(Icons.email),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          Text(
+                            'Şifre',
+                            style: GoogleFonts.ubuntu(
+                              textStyle: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: ValueListenableBuilder(
+                                valueListenable: showPassword,
+                                builder: (context, value, child) {
+                                  return TextField(
+                                    controller: passwordController,
+                                    obscureText: !value,
+                                    keyboardType: TextInputType.text,
+                                    decoration: InputDecoration(
+                                      contentPadding: const EdgeInsets.only(
+                                          bottom: 28, right: 4, top: 12),
+                                      hintText: 'Enter your password',
+                                      fillColor: Colors.white, // Arka plan rengi
+                                      filled: true,
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderSide: const BorderSide(
+                                          color: Colors
+                                              .white, // Normalde (aktifken) çerçeve rengi
+                                          width: 2.0,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderSide: const BorderSide(
+                                          color: Colors
+                                              .white, // Odaklanıldığında çerçeve rengi
+                                          width: 2.0,
+                                        ),
+                                      ),
+                                      prefixIcon: const Icon(Icons.password),
+                                      suffix: InkWell(
+                                        onTap: () {
+                                          showPassword.value =
+                                              !showPassword.value;
+                                        },
+                                        child: Icon(
+                                          value
+                                              ? Icons.visibility_off
+                                              : Icons.visibility,
+                                        ),
+                                      ),
+                                      border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                    ),
+                                  );
+                                },
+                              )),
+                          SizedBox(
+                            height: deviceHeight * 0.04,
+                          ),
+                          Center(
+                            child: Container(
+                              width: double.infinity,
+                              height: deviceHeight * 0.05,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 5,
+                                    blurRadius: 7,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: ColorConstants.secondColor,
+                                ),
+                                onPressed: () async {
+                                  final message = await loginNotifier.login(
+                                    email: emailController.text,
+                                    password: passwordController.text,
+                                  );
+                                  if (message!.contains('Success')) {
+                                    Navigator.of(context).pushReplacement(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const TabView()));
+                                  }
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(message),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Giriş Yap',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 20),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
             ),
           ),
         ));

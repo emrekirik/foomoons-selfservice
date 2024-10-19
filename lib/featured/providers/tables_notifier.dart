@@ -238,7 +238,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
 
     final Uri menuUrl = Uri(
       scheme: 'http',
-      host: '192.168.1.150', // veya IP adresi
+      host: '172.2.3.65', // veya IP adresi
       port: 8080, // yerel sunucunuzun port numarası
     );
     final String finalUrl = '$menuUrl#/table?token=$token';

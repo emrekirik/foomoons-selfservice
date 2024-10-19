@@ -21,7 +21,6 @@ class _TabViewState extends ConsumerState<TabView>
     with SingleTickerProviderStateMixin {
   int _tabIndex = 2; // Başlangıç sekmesi
   late PageController _pageController;
-
   @override
   void initState() {
     super.initState();
@@ -40,6 +39,8 @@ class _TabViewState extends ConsumerState<TabView>
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
+    double deviceWidth = MediaQuery.of(context).size.width;
+    double deviceHeight = MediaQuery.of(context).size.height;
     return Column(
       children: [
         if (isLoading)
@@ -67,57 +68,57 @@ class _TabViewState extends ConsumerState<TabView>
                   child: CurvedNavigationBar(
                     index: _tabIndex,
                     animationCurve: Curves.fastLinearToSlowEaseIn,
-                    animationDuration: Duration(milliseconds: 800),
+                    animationDuration: const Duration(milliseconds: 800),
                     height: 75,
                     items: [
                       Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.restaurant_menu,
                             size: 30,
                           ),
-                          if (_tabIndex != 0) const Text('Menu'),
+                          if (_tabIndex != 0) deviceWidth < 600 ? const SizedBox() : const Text('Menu'),
                         ],
                       ),
                       Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.monitor_rounded,
                             size: 30,
                           ),
-                          if (_tabIndex != 1) const Text('Siparişler'),
+                          if (_tabIndex != 1)deviceWidth < 600 ? const SizedBox() : const Text('Siparişler'),
                         ],
                       ),
                       Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.table_bar_outlined,
                             size: 30,
                           ),
-                          if (_tabIndex != 2) const Text('Adisyonlar'),
+                          if (_tabIndex != 2) deviceWidth < 600 ? const SizedBox() :const Text('Adisyonlar'),
                         ],
                       ),
                       Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.article_outlined,
                             size: 30,
                           ),
-                          if (_tabIndex != 3) const Text('Stok'),
+                          if (_tabIndex != 3)deviceWidth < 600 ? const SizedBox() : const Text('Stok'),
                         ],
                       ),
                       Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.insert_chart_outlined_rounded,
                             size: 30,
                           ),
-                          if (_tabIndex != 4) const Text('Raporlar'),
+                          if (_tabIndex != 4)deviceWidth < 600 ? const SizedBox() : const Text('Raporlar'),
                         ],
                       ),
                     ],

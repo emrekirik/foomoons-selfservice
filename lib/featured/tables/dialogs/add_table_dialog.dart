@@ -1,13 +1,8 @@
 import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Make sure to import the correct package
 
-final _tablesProvider =
-    StateNotifierProvider<TablesNotifier, TablesState>((ref) {
-  return TablesNotifier(ref);
-});
 
 void showAddTableDialog(BuildContext context, TablesNotifier tablesNotifier) {
   final TextEditingController tableIdController = TextEditingController();

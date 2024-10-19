@@ -8,7 +8,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
   final String? title;
   final int? price;
   final String? image;
-  final String? piece;
+  final int? piece;
   final int? preperationTime;
   final String? tableId;
   final String? status;
@@ -77,7 +77,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
     String? title,
     int? price,
     String? image,
-    String? piece,
+    int? piece,
     int? preperationTime,
     String? tableId,
     String? status,
@@ -116,7 +116,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       title: json['title'] as String?,
       price: json['price'] != null ? json['price'] as int : null,
       image: json['image'] as String?,
-      piece: json['piece'] as String?,
+      piece: json['piece'] as int?,
       preperationTime: json['preperationTime'] != null
           ? (json['preperationTime'] as int)
           : null,
