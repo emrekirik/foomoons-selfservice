@@ -40,7 +40,6 @@ class _TabViewState extends ConsumerState<TabView>
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
     double deviceWidth = MediaQuery.of(context).size.width;
-    double deviceHeight = MediaQuery.of(context).size.height;
     return Column(
       children: [
         if (isLoading)

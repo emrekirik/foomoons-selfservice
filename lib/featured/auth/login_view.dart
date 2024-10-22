@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 final _loginProvider = StateNotifierProvider<LoginNotifier, LoginState>((ref) {
-  return LoginNotifier(ref: ref);
+  return LoginNotifier();
 });
 
 class LoginView extends ConsumerWidget {
@@ -155,10 +155,12 @@ class LoginView extends ConsumerWidget {
                                       contentPadding: const EdgeInsets.only(
                                           bottom: 28, right: 4, top: 12),
                                       hintText: 'Enter your password',
-                                      fillColor: Colors.white, // Arka plan rengi
+                                      fillColor:
+                                          Colors.white, // Arka plan rengi
                                       filled: true,
                                       enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
                                         borderSide: const BorderSide(
                                           color: Colors
                                               .white, // Normalde (aktifken) çerçeve rengi
@@ -166,7 +168,8 @@ class LoginView extends ConsumerWidget {
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
                                         borderSide: const BorderSide(
                                           color: Colors
                                               .white, // Odaklanıldığında çerçeve rengi
@@ -214,23 +217,28 @@ class LoginView extends ConsumerWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: ColorConstants.secondColor,
                                 ),
-                                onPressed: () async {
-                                  final message = await loginNotifier.login(
-                                    email: emailController.text,
-                                    password: passwordController.text,
-                                  );
-                                  if (message!.contains('Success')) {
-                                    Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const TabView()));
-                                  }
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(message),
-                                    ),
-                                  );
-                                },
+                                onPressed: ref.watch(_loginProvider).isLoading
+                                    ? null
+                                    : () async {
+                                        final message =
+                                            await loginNotifier.login(
+                                          email: emailController.text,
+                                          password: passwordController.text,
+                                        );
+
+                                        if (message!.contains('Success')) {
+                                          Navigator.of(context).pushReplacement(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const TabView()));
+                                        }
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(message),
+                                          ),
+                                        );
+                                      },
                                 child: const Text(
                                   'Giriş Yap',
                                   style: TextStyle(

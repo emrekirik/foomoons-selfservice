@@ -251,7 +251,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
         // Seçilen dosya File değil, XFile olduğu için web'de direkt XFile'dan yükleme yapıyoruz
         final String fileName =
-            'profile_pictures/${currentUser.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+            'product_pictures/${currentUser.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
         // Firebase Storage'a dosyayı yüklüyoruz
         UploadTask uploadTask = FirebaseStorage.instance
@@ -295,7 +295,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
       }
 
       // Lokal durumu güncelle
-      state =state.copyWith(photoURL: photoURL);
+      state = state.copyWith(photoURL: photoURL);
     } catch (e) {
       print('Profil fotoğrafı güncellenirken hata oluştu: $e');
     }
@@ -314,6 +314,10 @@ class MenuNotifier extends StateNotifier<MenuState> {
 
   void resetState() {
     state = const MenuState(); // Reset to the initial state
+  }
+
+  void resetPhotoUrl() {
+    state = state.copyWith(photoURL: null);
   }
 }
 

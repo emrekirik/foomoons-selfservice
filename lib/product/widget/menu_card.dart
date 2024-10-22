@@ -1,5 +1,4 @@
 import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
-import 'package:altmisdokuzapp/featured/tables/dialogs/update_product_dialog.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
@@ -9,17 +8,14 @@ final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
   return MenuNotifier(ref);
 });
 
-
 class MenuCard extends ConsumerWidget {
   final Menu item;
   final List<Category> categories;
-  const MenuCard(
-      {required this.item,
-      required this.categories,
-      super.key});
+  const MenuCard({required this.item, required this.categories, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    bool isUploading = false;
     return InkWell(
       onTap: () async {
         final productId = item.id;
@@ -28,17 +24,152 @@ class MenuCard extends ConsumerWidget {
           print('Menu Item: ${item.title}, ID: ${item.id}');
         } else {
           print('Menu Item: ${item.title}, ID: ${item.id}');
-          showUpdateProductDialog(
-            context,
-            ref,
-            categories,
-            productId,
-            item,
-          );
-        }
 
-        // Güncellemeden sonra verilerin yeniden yüklenmesini sağla
-          await ref.read(_menuProvider.notifier).fetchAndload();
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              late TextEditingController titleController;
+              late TextEditingController priceController;
+              late TextEditingController prepTimeController;
+              late TextEditingController categoryController;
+              late TextEditingController stockController;
+              // Mevcut ürünü dolduruyoruz
+              final initialPrepTimeInMinutes = (item.preparationTime ?? 0) / 60;
+              titleController = TextEditingController(text: item.title);
+              priceController =
+                  TextEditingController(text: item.price?.toString());
+              prepTimeController = TextEditingController(
+                  text: initialPrepTimeInMinutes.toStringAsFixed(0));
+              categoryController = TextEditingController(text: item.category);
+              stockController = TextEditingController(
+                  text: item.stock?.toString() ?? 'Stok Girişi Yok');
+
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  return AlertDialog(
+                    title: const Text('Ürün Güncelle'),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          GestureDetector(
+                            onTap: () async {
+                              setState(() {
+                                isUploading = true;
+                              });
+                              await ref
+                                  .read(_menuProvider.notifier)
+                                  .pickAndUploadImage();
+                              setState(() {
+                                isUploading = false;
+                              });
+                            },
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: 100,
+                                  backgroundImage: (ref
+                                                  .watch(_menuProvider)
+                                                  .photoURL !=
+                                              null &&
+                                          ref
+                                              .watch(_menuProvider)
+                                              .photoURL!
+                                              .isNotEmpty)
+                                      ? NetworkImage(
+                                          ref.watch(_menuProvider).photoURL!)
+                                      : (item.image != null
+                                          ? NetworkImage(item.image!)
+                                          : const AssetImage(
+                                                  'assets/images/food_placeholder.png')
+                                              as ImageProvider),
+                                ),
+                                if (isUploading)
+                                  const CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          TextField(
+                            controller: titleController,
+                            decoration:
+                                const InputDecoration(labelText: 'Ürün İsmi'),
+                          ),
+                          TextField(
+                            controller: priceController,
+                            decoration:
+                                const InputDecoration(labelText: 'Ürün Fiyatı'),
+                            keyboardType: TextInputType.number,
+                          ),
+                          TextField(
+                            controller: prepTimeController,
+                            decoration: const InputDecoration(
+                                labelText: 'Ürün Min Hazırlanma Süresi'),
+                            keyboardType: TextInputType.number,
+                          ),
+                          TextField(
+                            controller: stockController,
+                            decoration:
+                                const InputDecoration(labelText: 'Stok'),
+                            keyboardType: TextInputType.number,
+                          ),
+                          DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                                labelText: 'Ürün Kategorisi'),
+                            items: categories.map((category) {
+                              return DropdownMenuItem<String>(
+                                value: category.name,
+                                child: Text(category.name ?? ''),
+                              );
+                            }).toList(),
+                            value: item.category,
+                            onChanged: (value) {
+                              categoryController.text = value ?? '';
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('İptal'),
+                      ),
+                      ElevatedButton(
+                        onPressed: isUploading
+                            ? null // Eğer hala resim yükleniyorsa butonu devre dışı bırak
+                            : () async {
+                                final updatedProduct = Menu(
+                                  title: titleController.text,
+                                  price: int.tryParse(priceController.text),
+                                  image: ref.watch(_menuProvider).photoURL,
+                                  preparationTime:
+                                      int.tryParse(prepTimeController.text)! *
+                                          60,
+                                  category: categoryController.text,
+                                  stock: int.tryParse(stockController.text),
+                                );
+                                await ref
+                                    .read(_menuProvider.notifier)
+                                    .updateProduct(
+                                        productId, updatedProduct, context);
+                                Navigator.of(context).pop();
+                              },
+                        child: const Text('Kaydet'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          );
+          
+        }
       },
       child: Card(
         color: Colors.white,

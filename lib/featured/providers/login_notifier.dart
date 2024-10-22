@@ -1,14 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class LoginNotifier extends StateNotifier<LoginState> {
   final FirebaseAuth _auth;
-// Change Reader to Ref
-
   LoginNotifier({
     FirebaseAuth? auth,
-    required Ref ref, // Change Reader to Ref
   })  : _auth = auth ?? FirebaseAuth.instance,
         super(LoginState());
 
@@ -16,12 +12,12 @@ class LoginNotifier extends StateNotifier<LoginState> {
     required String email,
     required String password,
   }) async {
+    state = state.copyWith(isLoading: true);
     try {
       await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-
 
       return 'Success';
     } on FirebaseAuthException catch (e) {
@@ -44,6 +40,8 @@ class LoginNotifier extends StateNotifier<LoginState> {
       }
     } catch (e) {
       return e.toString();
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 

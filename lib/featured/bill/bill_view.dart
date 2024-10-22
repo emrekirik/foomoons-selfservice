@@ -1,4 +1,3 @@
-import 'package:altmisdokuzapp/featured/admin/admin_view.dart';
 import 'package:altmisdokuzapp/featured/bill/payment_showdialog.dart';
 import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
@@ -7,7 +6,6 @@ import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';

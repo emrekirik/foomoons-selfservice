@@ -182,12 +182,8 @@ class _BusinessDataSection extends StatelessWidget {
                 radius: deviceWidth * 0.05,
                 backgroundImage: profileState.photoURL != null
                     ? NetworkImage(profileState.photoURL!)
-                    : null, // Eğer URL varsa, NetworkImage kullanıyoruz
-                child:
-                    profileState.photoURL == null && !profileState.isUploading
-                        ? const Icon(Icons.person,
-                            size: 60) // Eğer resim yoksa ikon göster
-                        : null,
+                    : const AssetImage(
+                        'assets/images/personal_placeholder.png'), // Eğer URL varsa, NetworkImage kullanıyoruz
               ),
               if (profileState.isUploading)
                 const CircularProgressIndicator(

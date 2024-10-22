@@ -80,7 +80,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
     String status,
   ) {
     final isLoading = ref.watch(loadingProvider);
-    final stockWarning = ref.watch(_menuProvider).stockWarning;
+    // final stockWarning = ref.watch(_menuProvider).stockWarning;
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
