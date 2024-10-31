@@ -162,7 +162,7 @@ class _TabViewState extends ConsumerState<TabView>
             appBar: const PreferredSize(
               preferredSize: Size.fromHeight(70.0),
               child: CustomAppbar(
-                showDrawer: true,
+                showDrawer: false,
                 showBackButton: false,
               ),
             ),
@@ -181,9 +181,9 @@ class _TabViewState extends ConsumerState<TabView>
                   const AdminView(),
                   const TablesView(),
                   const StockView(),
-                  // deviceWidth < 800
-                  //     ? const ReportsMobileView()
-                  //     : const ReportsView()
+                  deviceWidth < 800
+                      ? const ReportsMobileView()
+                      : const ReportsView()
                 ],
               ),
             ),

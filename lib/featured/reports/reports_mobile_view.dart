@@ -1,10 +1,7 @@
 import 'package:altmisdokuzapp/featured/providers/reports_notifier.dart';
-import 'package:altmisdokuzapp/product/widget/analysis_card.dart';
 import 'package:altmisdokuzapp/product/widget/analysys_card_mobile.dart';
 import 'package:altmisdokuzapp/product/widget/chart_mobile_section.dart';
-import 'package:altmisdokuzapp/product/widget/chart_section.dart';
 import 'package:altmisdokuzapp/product/widget/person_mobile_section.dart';
-import 'package:altmisdokuzapp/product/widget/person_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

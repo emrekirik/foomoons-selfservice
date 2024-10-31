@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
 
 class ChartSection extends StatefulWidget {
-  const ChartSection({super.key});
+  final String selectedPeriod;
+  final ValueChanged<String> onPeriodChanged;
+  final Map<String, int> dailySales;
+  const ChartSection(
+      {required this.dailySales,
+      required this.onPeriodChanged,
+      required this.selectedPeriod,
+      super.key});
 
   @override
   State<ChartSection> createState() => _ChartSectionState();
 }
 
 class _ChartSectionState extends State<ChartSection> {
+  late String dropdownValue;
+
+  @override
+  void initState() {
+    super.initState();
+    dropdownValue = widget.selectedPeriod;
+  }
+
   @override
   Widget build(BuildContext context) {
-    String dropdownValue = 'Aylık';
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -72,9 +86,10 @@ class _ChartSectionState extends State<ChartSection> {
                             elevation: 16,
                             style: const TextStyle(color: Colors.black),
                             onChanged: (String? newValue) {
-                              setState(() {
-                                dropdownValue = newValue!;
-                              });
+                          setState(() {
+                          dropdownValue = newValue!;
+                        });
+                        widget.onPeriodChanged(newValue!);
                             },
                             items: <String>['Aylık', 'Haftalık', 'Günlük']
                                 .map<DropdownMenuItem<String>>((String value) {
