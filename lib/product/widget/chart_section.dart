@@ -45,12 +45,12 @@ class _ChartSectionState extends State<ChartSection> {
                             style: TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
-                          subtitle:
-                              Text('Lorem ipsum dolar sit amet, consectetur'),
-                          subtitleTextStyle: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w300),
+                          // subtitle:
+                          //     Text('Lorem ipsum dolar sit amet, consectetur'),
+                          // subtitleTextStyle: TextStyle(
+                          //     fontSize: 15,
+                          //     color: Colors.grey,
+                          //     fontWeight: FontWeight.w300),
                         ),
                       ),
                       Expanded(

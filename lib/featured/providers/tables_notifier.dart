@@ -238,7 +238,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
 
     final Uri menuUrl = Uri(
       scheme: 'http',
-      host: '172.2.3.65', // veya IP adresi
+      host: '192.168.1.121', // veya IP adresi
       port: 8080, // yerel sunucunuzun port numarası
     );
     final String finalUrl = '$menuUrl#/table?token=$token';
@@ -324,7 +324,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
           'tableId': tableId,
           'billItems': currentBillItems.map((item) => item.toJson()).toList(),
           'closedAtDate':
-              DateTime.now().toIso8601String(), // Hesabı kapama tarihi
+              Timestamp.fromDate(DateTime.now()), // Hesabı kapama tarihi
           'uniqueId': uniqueId, // Ekstra olarak belge ID'sini de kaydediyoruz
           'totalPrice': totalPrice, // Adisyonun toplam tutarını kaydediyoruz
         });

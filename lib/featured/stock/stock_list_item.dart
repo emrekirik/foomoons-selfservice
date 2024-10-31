@@ -18,16 +18,14 @@ class StockListItem extends ConsumerWidget {
           padding: const EdgeInsets.all(15.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // İlk Text genişliğini sabitleyerek hizalama
-              Expanded(
-                child: Text(
-                  item.title ?? '',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+              Text(
+                item.title ?? '',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               // Stok bilgisi için Expanded kullanımı

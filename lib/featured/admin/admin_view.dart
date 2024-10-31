@@ -113,69 +113,73 @@ class _AdminViewState extends ConsumerState<AdminView> {
                   endIndent: 100,
                 ),
                 Expanded(
-                  child: ListView.separated(
-                    itemCount: orders.length,
-                    separatorBuilder: (context, index) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final item = orders[index];
-                      final menuItems =
-                          menus.where((menu) => menu.title == item.title);
-                      final menuItem =
-                          menuItems.isNotEmpty ? menuItems.first : null;
-                      final effectivePreparationTime = item.preperationTime ??
-                          menuItem?.preparationTime ??
-                          60;
+                  child: orders.isEmpty
+                      ? const Center(child: Text('Şu anda siparişiniz yok'))
+                      : ListView.separated(
+                          itemCount: orders.length,
+                          separatorBuilder: (context, index) => const Divider(),
+                          itemBuilder: (context, index) {
+                            final item = orders[index];
+                            final menuItems =
+                                menus.where((menu) => menu.title == item.title);
+                            final menuItem =
+                                menuItems.isNotEmpty ? menuItems.first : null;
+                            final effectivePreparationTime =
+                                item.preperationTime ??
+                                    menuItem?.preparationTime ??
+                                    60;
 
-                      return Card(
-                        color: Colors.white,
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              // final isLargeScreen = constraints.maxWidth > 200;
-                              return SingleChildScrollView(
-                                child: isLoading
-                                    ? const SizedBox()
-                                    : Column(
-                                        children: [
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            // direction: isLargeScreen
-                                            //     ? Axis.horizontal
-                                            //     : Axis.vertical,
-                                            // spacing: 8.0,
-                                            // runSpacing: 4.0,
-                                            children: [
-                                              _buildOrderDetail(
-                                                  item.title ?? ''),
-                                              _buildOrderDetail(
-                                                  '${item.piece} adet'),
-                                              status == 'hazır'
-                                                  ? const SizedBox()
-                                                  : _buildOrderDetailWithTime(
-                                                      effectivePreparationTime),
-                                              _buildOrderDetail(item.tableId !=
-                                                      null
-                                                  ? 'Masa ${item.tableId}'
-                                                  : 'Masa bilgisi bilinmiyor.'),
-                                              _buildActionButtons(
-                                                  item, nextStatus, status),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                              );
-                            },
-                          ),
+                            return Card(
+                              color: Colors.white,
+                              elevation: 0,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    // final isLargeScreen = constraints.maxWidth > 200;
+                                    return SingleChildScrollView(
+                                      child: isLoading
+                                          ? const SizedBox()
+                                          : Column(
+                                              children: [
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  // direction: isLargeScreen
+                                                  //     ? Axis.horizontal
+                                                  //     : Axis.vertical,
+                                                  // spacing: 8.0,
+                                                  // runSpacing: 4.0,
+                                                  children: [
+                                                    _buildOrderDetail(
+                                                        item.title ?? ''),
+                                                    _buildOrderDetail(
+                                                        '${item.piece} adet'),
+                                                    status == 'hazır'
+                                                        ? const SizedBox()
+                                                        : _buildOrderDetailWithTime(
+                                                            effectivePreparationTime),
+                                                    _buildOrderDetail(item
+                                                                .tableId !=
+                                                            null
+                                                        ? 'Masa ${item.tableId}'
+                                                        : 'Masa bilgisi bilinmiyor.'),
+                                                    _buildActionButtons(item,
+                                                        nextStatus, status),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               ],
             ),
@@ -250,8 +254,8 @@ class _AdminViewState extends ConsumerState<AdminView> {
                 ),
           nextStatus == 'teslim edildi'
               ? TextButton(
-                  onPressed: () {
-                    ref
+                  onPressed: () async {
+                    await ref
                         .read(_adminProvider.notifier)
                         .updateOrderStatus(item.id!, nextStatus);
                   },

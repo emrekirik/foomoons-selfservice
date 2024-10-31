@@ -31,6 +31,7 @@ class _StockViewState extends ConsumerState<StockView> {
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
     final menuNotifier = ref.watch(_menuProvider.notifier);
+    double deviceWidth = MediaQuery.of(context).size.width;
     final orderItem = ref
             .watch(_menuProvider)
             .products
@@ -42,7 +43,7 @@ class _StockViewState extends ConsumerState<StockView> {
       builder: (context, constraints) {
         return Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -57,7 +58,8 @@ class _StockViewState extends ConsumerState<StockView> {
                 ],
               ),
               child: Padding(
-                padding: const EdgeInsets.only(top: 20, right: 300, left: 300),
+                padding: EdgeInsets.only(
+                    top: 20, right: deviceWidth * 0.2, left: deviceWidth * 0.2),
                 child: Column(
                   children: [
                     const Padding(

@@ -11,11 +11,13 @@ final _reportsProvider =
 
 class PersonSection extends ConsumerWidget {
   final List<Map<String, dynamic>> employees;
-  const PersonSection({super.key, required this.employees});
+  final BoxConstraints constraints;
+  const PersonSection(
+      {super.key, required this.employees, required this.constraints});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Çalışanları alıyoruz
+    final deviceWidth = MediaQuery.of(context).size.width;
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -47,16 +49,16 @@ class PersonSection extends ConsumerWidget {
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text('Lorem ipsum dolar sit amet, consectetur'),
-                      subtitleTextStyle: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w300),
+                      // subtitle: Text('Lorem ipsum dolar sit amet, consectetur'),
+                      // subtitleTextStyle: TextStyle(
+                      //     fontSize: 15,
+                      //     color: Colors.grey,
+                      //     fontWeight: FontWeight.w300),
                     ),
                   ),
                   Container(
-                    width: 50,
-                    height: 50,
+                    width: deviceWidth < 950 ? 40 : 50,
+                    height: deviceWidth < 950 ? 40 : 50,
                     decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(60)),
@@ -79,9 +81,9 @@ class PersonSection extends ConsumerWidget {
                     ? GridView.builder(
                         shrinkWrap: true,
                         padding: const EdgeInsets.all(10),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4, // Sütun sayısını ayarla
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: (constraints.maxWidth / 300)
+                              .floor(), //sütun sayısı
                           crossAxisSpacing:
                               10, // Öğeler arasındaki yatay boşluk
                           mainAxisSpacing: 10, // Öğeler arasındaki dikey boşluk

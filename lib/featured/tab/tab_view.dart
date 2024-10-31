@@ -1,6 +1,10 @@
+import 'package:altmisdokuzapp/featured/menu/menu_mobile_view.dart';
 import 'package:altmisdokuzapp/featured/menu/menu_view.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
+import 'package:altmisdokuzapp/featured/reports/reports_mobile_view.dart';
+import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
 import 'package:altmisdokuzapp/featured/stock/stock_view.dart';
+import 'package:altmisdokuzapp/featured/tables/tables_mobile_view.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -71,53 +75,78 @@ class _TabViewState extends ConsumerState<TabView>
                     height: 75,
                     items: [
                       Column(
-                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
+                        mainAxisAlignment: deviceWidth < 600
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.restaurant_menu,
                             size: 30,
                           ),
-                          if (_tabIndex != 0) deviceWidth < 600 ? const SizedBox() : const Text('Menu'),
+                          if (_tabIndex != 0)
+                            deviceWidth < 600
+                                ? const SizedBox()
+                                : const Text('Menu'),
                         ],
                       ),
                       Column(
-                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
+                        mainAxisAlignment: deviceWidth < 600
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.monitor_rounded,
                             size: 30,
                           ),
-                          if (_tabIndex != 1)deviceWidth < 600 ? const SizedBox() : const Text('Siparişler'),
+                          if (_tabIndex != 1)
+                            deviceWidth < 600
+                                ? const SizedBox()
+                                : const Text('Siparişler'),
                         ],
                       ),
                       Column(
-                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
+                        mainAxisAlignment: deviceWidth < 600
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.table_bar_outlined,
                             size: 30,
                           ),
-                          if (_tabIndex != 2) deviceWidth < 600 ? const SizedBox() :const Text('Adisyonlar'),
+                          if (_tabIndex != 2)
+                            deviceWidth < 600
+                                ? const SizedBox()
+                                : const Text('Adisyonlar'),
                         ],
                       ),
                       Column(
-                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
+                        mainAxisAlignment: deviceWidth < 600
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.article_outlined,
                             size: 30,
                           ),
-                          if (_tabIndex != 3)deviceWidth < 600 ? const SizedBox() : const Text('Stok'),
+                          if (_tabIndex != 3)
+                            deviceWidth < 600
+                                ? const SizedBox()
+                                : const Text('Stok'),
                         ],
                       ),
                       Column(
-                        mainAxisAlignment:deviceWidth < 600 ? MainAxisAlignment.center: MainAxisAlignment.end,
+                        mainAxisAlignment: deviceWidth < 600
+                            ? MainAxisAlignment.center
+                            : MainAxisAlignment.end,
                         children: [
                           const Icon(
                             Icons.insert_chart_outlined_rounded,
                             size: 30,
                           ),
-                          if (_tabIndex != 4)deviceWidth < 600 ? const SizedBox() : const Text('Raporlar'),
+                          if (_tabIndex != 4)
+                            deviceWidth < 600
+                                ? const SizedBox()
+                                : const Text('Raporlar'),
                         ],
                       ),
                     ],
@@ -133,6 +162,7 @@ class _TabViewState extends ConsumerState<TabView>
             appBar: const PreferredSize(
               preferredSize: Size.fromHeight(70.0),
               child: CustomAppbar(
+                showDrawer: true,
                 showBackButton: false,
               ),
             ),
@@ -146,12 +176,14 @@ class _TabViewState extends ConsumerState<TabView>
                     _tabIndex = index;
                   });
                 },
-                children: const [
-                  MenuView(),
-                  AdminView(),
-                  TablesView(),
-                  StockView(),
-                  ReportsView(),
+                children: [
+                  const MenuView(),
+                  const AdminView(),
+                  const TablesView(),
+                  const StockView(),
+                  // deviceWidth < 800
+                  //     ? const ReportsMobileView()
+                  //     : const ReportsView()
                 ],
               ),
             ),

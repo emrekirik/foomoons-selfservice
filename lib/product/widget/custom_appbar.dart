@@ -1,6 +1,8 @@
 import 'package:altmisdokuzapp/featured/auth/login_view.dart';
+import 'package:altmisdokuzapp/featured/profile/profile_mobile_view.dart';
 import 'package:altmisdokuzapp/featured/profile/profile_view.dart';
 import 'package:altmisdokuzapp/featured/providers/login_notifier.dart';
+import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,7 +12,9 @@ final _loginProvider = StateNotifierProvider<LoginNotifier, LoginState>((ref) {
 
 class CustomAppbar extends ConsumerWidget {
   final bool showBackButton;
-  const CustomAppbar({super.key, required this.showBackButton});
+  final bool showDrawer;
+  const CustomAppbar(
+      {super.key, required this.showBackButton, required this.showDrawer});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,11 +42,26 @@ class CustomAppbar extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            showBackButton ? IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.arrow_back_ios_new)): const SizedBox(),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                showDrawer == false
+                    ? const SizedBox()
+                    : IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () {
+                          Scaffold.of(context).openDrawer(); // Drawer'ı aç
+                        },
+                      ),
+                showBackButton
+                    ? IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(Icons.arrow_back_ios_new))
+                    : const SizedBox(),
+              ],
+            ),
             Image.asset(
               'assets/images/logo.png',
               width: 60,
@@ -57,7 +76,9 @@ class CustomAppbar extends ConsumerWidget {
                   // Seçilen değere göre yapılacak işlemler
                   if (value == 'Profile') {
                     Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => ProfileView(),
+                      builder: (context) => const ResponsiveLayout(
+                          desktopBody: ProfileView(),
+                          mobileBody: ProfileMobileView()),
                     ));
                   } else if (value == 'Logout') {
                     await ref.watch(_loginProvider.notifier).signOut();

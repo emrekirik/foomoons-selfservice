@@ -12,14 +12,15 @@ final _profileProvider =
   return ProfileNotifier(ref);
 });
 
-class ProfileView extends ConsumerStatefulWidget {
-  const ProfileView({super.key});
+class ProfileMobileView extends ConsumerStatefulWidget {
+  const ProfileMobileView({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _ProfileViewState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _ProfileMobileViewState();
 }
 
-class _ProfileViewState extends ConsumerState<ProfileView> {
+class _ProfileMobileViewState extends ConsumerState<ProfileMobileView> {
   final TextEditingController profileImageController = TextEditingController();
 
   final TextEditingController nameController = TextEditingController();
@@ -68,82 +69,38 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 showBackButton: true,
               ),
             ),
-            backgroundColor:
-                ColorConstants.appbackgroundColor.withOpacity(0.15),
-            body: Center(
-              child: AspectRatio(
-                aspectRatio: 16 / 20,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Colors.white,
-                        ColorConstants.white,
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    color: ColorConstants.loginCardBackgroundColorr,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 5,
-                        blurRadius: 7,
-                        offset: const Offset(0, 3),
+            backgroundColor: Colors.white,
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: !isLoading
+                  ? SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _ProfilePhotoSection(deviceWidth: deviceWidth),
+                          Divider(
+                            indent: deviceWidth * 0.04,
+                            endIndent: deviceWidth * 0.04,
+                          ),
+                          _PermissionsSection(
+                              deviceWidth: deviceWidth,
+                              deviceHeight: deviceHeight,
+                              icons: icons),
+                          _UserDataSection(
+                              deviceHeight: deviceHeight,
+                              profileState: profileState,
+                              profileNotifier: profileNotifier),
+                          _BusinessDataSection(
+                              deviceHeight: deviceHeight,
+                              deviceWidth: deviceWidth,
+                              profileState: profileState,
+                              profileNotifier: profileNotifier),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: !isLoading
-                      ? Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  _ProfilePhotoSection(
-                                      deviceWidth: deviceWidth),
-                                  Divider(
-                                    indent: deviceWidth * 0.04,
-                                    endIndent: deviceWidth * 0.04,
-                                  ),
-                                  _PermissionsSection(
-                                      deviceWidth: deviceWidth,
-                                      deviceHeight: deviceHeight,
-                                      icons: icons),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: deviceWidth * 0.035,
-                                  vertical: deviceWidth * 0.02,
-                                ),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _UserDataSection(
-                                          deviceHeight: deviceHeight,
-                                          profileState: profileState,
-                                          profileNotifier: profileNotifier),
-                                      _BusinessDataSection(
-                                          deviceHeight: deviceHeight,
-                                          deviceWidth: deviceWidth,
-                                          profileState: profileState,
-                                          profileNotifier: profileNotifier),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : const SizedBox(),
-                ),
-              ),
+                    )
+                  : const SizedBox(),
             ),
           ),
         ),
@@ -311,45 +268,45 @@ class _PermissionsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: deviceWidth * 0.035, vertical: deviceHeight * 0.02),
-        child: Column(
-          children: [
-            _CustomTitle(
-              deviceHeight: deviceHeight,
-              title: 'YETKİLER',
-            ),
-            SizedBox(height: deviceHeight * 0.05),
-            Expanded(
-              child: GridView.builder(
-                physics:
-                    const NeverScrollableScrollPhysics(), // Bu, kaydırmayı devre dışı bırakır
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 30,
-                  mainAxisSpacing: 30,
-                ),
-                itemCount: icons.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey.shade300,
-                      border: Border.all(color: Colors.black, width: 2),
-                    ),
-                    child: Icon(
-                      icons[index],
-                      size: 30, // Boyutu 10'dan 30'a çıkarıldı
-                      color: Colors.black,
-                    ),
-                  );
-                },
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: deviceWidth * 0.035, vertical: deviceHeight * 0.02),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _CustomTitle(
+            deviceHeight: deviceHeight,
+            title: 'YETKİLER',
+          ),
+          SizedBox(height: deviceHeight * 0.05),
+          Flexible(
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics:
+                  const NeverScrollableScrollPhysics(), // Bu, kaydırmayı devre dışı bırakır
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 30,
+                mainAxisSpacing: 30,
               ),
+              itemCount: icons.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey.shade300,
+                    border: Border.all(color: Colors.black, width: 2),
+                  ),
+                  child: Icon(
+                    icons[index],
+                    size: 30, // Boyutu 10'dan 30'a çıkarıldı
+                    color: Colors.black,
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -364,7 +321,7 @@ class _ProfilePhotoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Expanded(
+    return const Center(
       child: CircleAvatar(
         radius: 160,
         backgroundImage: NetworkImage('assets/images/personal_placeholder.png'),

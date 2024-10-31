@@ -1,8 +1,10 @@
+import 'package:altmisdokuzapp/featured/bill/bill_mobile_view.dart';
 import 'package:altmisdokuzapp/featured/bill/bill_view.dart';
 import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
+import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
 import 'package:altmisdokuzapp/featured/tables/dialogs/add_table_dialog.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:flutter/material.dart';
@@ -64,6 +66,7 @@ class _TablesViewState extends ConsumerState<TablesView> {
     final tablesNotifier = ref.read(_tablesProvider.notifier);
     final productItem = ref.watch(_menuProvider).products ?? [];
     final tables = ref.watch(_tablesProvider).tables ?? [];
+    final deviceWidth = MediaQuery.of(context).size.width;
 
     // // Eğer kullanıcı giriş yapmamışsa, "Giriş yapmadı" mesajı gösterin
     // if (authState.asData?.value == null) {
@@ -155,11 +158,17 @@ class _TablesViewState extends ConsumerState<TablesView> {
                                 final tableQrUrl = tables[index].qrUrl;
                                 if (tableId != null) {
                                   Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => BillView(
+                                      builder: (context) => ResponsiveLayout(
+                                          desktopBody: BillView(
+                                            tableId: tableId,
                                             orderItems: productItem,
                                             qrUrl: tableQrUrl,
+                                          ),
+                                          mobileBody: BillMobileView(
                                             tableId: tableId,
-                                          )));
+                                            orderItems: productItem,
+                                            qrUrl: tableQrUrl,
+                                          ))));
                                 }
                               },
                               child: Container(

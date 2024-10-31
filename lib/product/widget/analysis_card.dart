@@ -20,6 +20,7 @@ class AnalysisCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoading = ref.watch(loadingProvider);
+    final deviceWidth = MediaQuery.of(context).size.width;
     return Expanded(
       child: Container(
         decoration: BoxDecoration(boxShadow: [
@@ -36,42 +37,44 @@ class AnalysisCard extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Expanded(
-                child: Center(
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundImage: AssetImage(assetImage),
-                    backgroundColor: Colors.white,
-                  ),
-                ),
-              ),
-              Expanded(
-                  child: isLoading
-                      ? const SizedBox()
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              cardPiece,
-                              style: const TextStyle(
-                                  fontSize: 40, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              cardTitle,
-                              style: const TextStyle(fontSize: 18),
-                            ),
-                            ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: subTitleIcon,
-                                title: Text(
-                                  cardSubtitle,
-                                  style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w300),
-                                )),
-                          ],
-                        ))
+              deviceWidth < 850
+                  ? const SizedBox()
+                  : Expanded(
+                      child: Center(
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundImage: AssetImage(assetImage),
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+              isLoading
+                  ? const SizedBox()
+                  : Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cardPiece,
+                            style: const TextStyle(
+                                fontSize: 40, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            cardTitle,
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                          ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: subTitleIcon,
+                              title: Text(
+                                cardSubtitle,
+                                style: const TextStyle(
+                                    fontSize: 10, fontWeight: FontWeight.w300),
+                              )),
+                        ],
+                      ),
+                    )
             ],
           ),
         ),

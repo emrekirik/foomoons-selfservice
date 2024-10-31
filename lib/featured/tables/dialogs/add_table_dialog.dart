@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Make sure to import the correct package
 
-
 void showAddTableDialog(BuildContext context, TablesNotifier tablesNotifier) {
   final TextEditingController tableIdController = TextEditingController();
   String? qrData;
@@ -61,16 +60,18 @@ void showAddTableDialog(BuildContext context, TablesNotifier tablesNotifier) {
               ),
               TextButton(
                 child: const Text('Masa Ekle'),
-                onPressed: () {
-                  final tableIdText = tableIdController.text;
-                  if (tableIdText.isNotEmpty) {
-                    final tableId = int.parse(tableIdText);
-                    final newTable =
-                        CoffeTable(tableId: tableId, qrUrl: qrData);
-                    tablesNotifier.addTable(newTable);
-                  }
-                  Navigator.of(context).pop();
-                },
+                onPressed: qrData == null
+                    ? null
+                    : () {
+                        final tableIdText = tableIdController.text;
+                        if (tableIdText.isNotEmpty) {
+                          final tableId = int.parse(tableIdText);
+                          final newTable =
+                              CoffeTable(tableId: tableId, qrUrl: qrData);
+                          tablesNotifier.addTable(newTable);
+                        }
+                        Navigator.of(context).pop();
+                      },
               ),
             ],
           );

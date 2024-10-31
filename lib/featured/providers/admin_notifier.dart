@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:async';
-
+import 'dart:html' as html;
 import 'package:uuid/uuid.dart';
 
 final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
@@ -173,20 +173,30 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
     state = state.copyWith(selectedValue: value);
   }
 
-  void showOrderAlert() {
-    final context = _ref.read(navigatorKeyProvider).currentContext;
-    if (context != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Yeni bir sipariş var.'),
-          action: SnackBarAction(
-            label: 'Tamam',
-            onPressed: () {},
-          ),
+
+void playNotificationSound() {
+  final audio = html.AudioElement('assets/sounds/notification.mp3');
+  audio.play();
+}
+
+void showOrderAlert() {
+  final context = _ref.read(navigatorKeyProvider).currentContext;
+  if (context != null) {
+    playNotificationSound();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Yeni bir sipariş var.'),
+        action: SnackBarAction(
+          label: 'Tamam',
+          onPressed: () {},
         ),
-      );
-    }
+      ),
+    );
   }
+}
+
+  
 
 //   void startCentralCountdown() {
 //     _centralTimer?.cancel();
