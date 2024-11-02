@@ -5,6 +5,7 @@ import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
 import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
+import 'package:altmisdokuzapp/featured/tables/dialogs/add_areas_dialog.dart';
 import 'package:altmisdokuzapp/featured/tables/dialogs/add_table_dialog.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +55,13 @@ class _TablesViewState extends ConsumerState<TablesView> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(_tablesProvider.notifier).fetchAndLoad();
+      ref.read(_tablesProvider.notifier).fetchAndLoad().then((_) {
+        // İlk bölge seçimini yapıyoruz
+        final areas = ref.read(_tablesProvider).areas;
+        if (areas != null && areas.isNotEmpty) {
+          ref.read(_tablesProvider.notifier).selectArea(areas.first.name);
+        }
+      });
       ref.read(_menuProvider.notifier).fetchAndload();
     });
   }
@@ -67,13 +74,16 @@ class _TablesViewState extends ConsumerState<TablesView> {
     final productItem = ref.watch(_menuProvider).products ?? [];
     final tables = ref.watch(_tablesProvider).tables ?? [];
     final deviceWidth = MediaQuery.of(context).size.width;
+    final areas = ref.watch(_tablesProvider).areas ?? [];
+    final selectedArea = ref.watch(_tablesProvider).selectedValue;
 
-    // // Eğer kullanıcı giriş yapmamışsa, "Giriş yapmadı" mesajı gösterin
-    // if (authState.asData?.value == null) {
-    //   return const Center(
-    //     child: Text('Kullanıcı Giriş Yapmadı'),
-    //   );
-    // }
+    // Filter items based on the search query, ignoring the selected category during search
+    final filteredTables = tables.where((item) {
+      // If search query is empty, filter based on the selected category
+      final isAreaMatch = item.area == selectedArea;
+      return isAreaMatch;
+    }).toList();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Center(
@@ -100,31 +110,81 @@ class _TablesViewState extends ConsumerState<TablesView> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Expanded(
-                            flex: 8,
-                            child: Text(
-                              'Masalar',
-                              style: TextStyle(
-                                  fontSize: 30, fontWeight: FontWeight.bold),
+                          Expanded(
+                            child: SizedBox(
+                              height: 50,
+                              child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (context, index) {
+                                    final area = areas[index];
+                                    return Container(
+                                      width: 180,
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          left: const BorderSide(
+                                              color: Colors.black12, width: 1),
+                                          bottom: BorderSide(
+                                            color: selectedArea == area.name
+                                                ? Colors.orange
+                                                : Colors
+                                                    .transparent, // Seçili kategori altına çizgi ekle
+                                            width: 5, // Çizginin kalınlığı
+                                          ),
+                                        ),
+                                      ),
+                                      child: Material(
+                                        color: Colors.white,
+                                        child: InkWell(
+                                          splashColor:
+                                              Colors.orange.withOpacity(0.6),
+                                          onTap: () {
+                                            tablesNotifier
+                                                .selectArea(area.name);
+                                          },
+                                          child: Center(
+                                            child: Text(
+                                              area.name ?? '',
+                                              style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  itemCount: areas.length),
                             ),
                           ),
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(60),
-                            ),
-                            child: IconButton(
-                              onPressed: () {
-                                showAddTableDialog(context, tablesNotifier);
-                              },
-                              icon: const Icon(
-                                Icons.add,
-                                color: Colors.black,
-                              ),
-                            ),
+                          PopupMenuButton<String>(
+                            onSelected: (String value) {
+                              switch (value) {
+                                case 'Masa Ekle':
+                                  showAddTableDialog(
+                                      context, tablesNotifier, selectedArea!);
+                                  break;
+                                case 'Bölge Ekle':
+                                  showAddAreaDialog(context, tablesNotifier);
+                                  break;
+                                default:
+                                  break;
+                              }
+                            },
+                            itemBuilder: (BuildContext context) {
+                              return [
+                                const PopupMenuItem<String>(
+                                  value: 'Masa Ekle',
+                                  child: Text('Masa Ekle'),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'Bölge Ekle',
+                                  child: Text('Bölge Ekle'),
+                                ),
+                              ];
+                            },
+                            icon: const Icon(Icons.more_vert),
                           ),
                         ],
                       ),
@@ -142,20 +202,20 @@ class _TablesViewState extends ConsumerState<TablesView> {
                             mainAxisSpacing: 10,
                             childAspectRatio: 1.0,
                           ),
-                          itemCount: tables.length,
+                          itemCount: filteredTables.length,
                           itemBuilder: (BuildContext context, int index) {
                             ref
                                 .read(_tablesProvider.notifier)
-                                .fetchTableBill(tables[index].tableId!);
+                                .fetchTableBill(filteredTables[index].tableId!);
                             final tableBill = ref.watch(_tablesProvider.select(
-                                (state) => state
-                                    .getTableBill(tables[index].tableId!)));
+                                (state) => state.getTableBill(
+                                    filteredTables[index].tableId!)));
                             bool allItemsPaid = tableBill
                                 .every((item) => item.status == 'ödendi');
                             return InkWell(
                               onTap: () async {
-                                final tableId = tables[index].tableId;
-                                final tableQrUrl = tables[index].qrUrl;
+                                final tableId = filteredTables[index].tableId;
+                                final tableQrUrl = filteredTables[index].qrUrl;
                                 if (tableId != null) {
                                   Navigator.of(context).push(MaterialPageRoute(
                                       builder: (context) => ResponsiveLayout(
@@ -219,7 +279,7 @@ class _TablesViewState extends ConsumerState<TablesView> {
                                                 MainAxisAlignment.spaceAround,
                                             children: [
                                               Text(
-                                                'Masa ${tables[index].tableId}',
+                                                '${filteredTables[index].tableId}',
                                                 style: const TextStyle(
                                                   fontSize: 16.0,
                                                 ),
@@ -249,7 +309,7 @@ class _TablesViewState extends ConsumerState<TablesView> {
                                             children: [
                                               const SizedBox(),
                                               Text(
-                                                'Masa ${tables[index].tableId}',
+                                                '${filteredTables[index].tableId}',
                                                 style: const TextStyle(
                                                     fontSize: 24.0,
                                                     fontWeight:

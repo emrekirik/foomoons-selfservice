@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
+import 'package:altmisdokuzapp/product/model/area.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
@@ -24,6 +25,7 @@ final _tablesProvider =
 
 class TablesNotifier extends StateNotifier<TablesState> {
   static const String allCategories = 'Tüm Kategoriler';
+  static const String allTables = 'Masalar';
   final UserFirestoreHelper _firestoreHelper = UserFirestoreHelper();
   final Ref ref; // Ref instance to manage the global provider
   final uuid = const Uuid();
@@ -62,6 +64,21 @@ class TablesNotifier extends StateNotifier<TablesState> {
     }
   }
 
+  Future<void> fetchArea() async {
+    try {
+      final areaCollection = _firestoreHelper.getUserCollection('areas');
+      final response = await areaCollection
+          .withConverter<Area>(
+            fromFirestore: (snapshot, options) =>
+                Area.fromJson(snapshot.data()!),
+            toFirestore: (value, options) => value.toJson(),
+          )
+          .get();
+      final areas = response.docs.map((e) => e.data()).toList();
+      state = state.copyWith(areas: areas);
+    } catch (e) {}
+  }
+
   /// Kullanıcıya özel sipariş akışını takip eder
   void fetchOrdersStream() {
     final currentUser =
@@ -94,7 +111,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
     });
   }
 
-  Future<void> fetchTableBill(int tableId) async {
+  Future<void> fetchTableBill(String tableId) async {
     try {
       // 'bills' koleksiyonundaki ilgili masanın adisyonunu çekiyoruz
       final billDocument =
@@ -127,6 +144,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
     try {
       await Future.wait([
         fetchTable(),
+        fetchArea(),
       ]);
     } catch (e) {
       _handleError(e, 'Veri yükleme hatası');
@@ -135,20 +153,36 @@ class TablesNotifier extends StateNotifier<TablesState> {
     }
   }
 
-  /// Masa ekleme işlemi
-  Future<void> addTable(CoffeTable table) async {
+  Future<bool> addTable(CoffeTable table) async {
     try {
       final tableCollection = _firestoreHelper.getUserCollection('tables');
+
+      // Aynı ID'ye sahip bir masa var mı kontrol et
+      final querySnapshot =
+          await tableCollection.where('tableId', isEqualTo: table.tableId).get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Aynı ID’ye sahip masa varsa `false` döndür
+        return false;
+      }
+
+      // Masa ekle
       final docRef = await tableCollection.add(table.toJson());
       final newTableWithId = table.copyWith(id: docRef.id);
       state = state.copyWith(tables: [...?state.tables, newTableWithId]);
+      return true; // Başarıyla eklenirse `true` döndür
     } catch (e) {
       _handleError(e, 'Masa ekleme hatası');
+      return false;
     }
   }
 
+  void selectArea(String? areaName) {
+    state = state.copyWith(selectedValue: areaName);
+  }
+
   /// Hesaba ürün ekleme işlemi
-  Future<void> addItemToBill(int tableId, Menu item) async {
+  Future<void> addItemToBill(String tableId, Menu item) async {
     state = state.copyWith(isLoading: true);
     try {
       final billDocument =
@@ -186,7 +220,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
   }
 
   /// Hesaptan ürün çıkarma işlemi
-  Future<void> removeItemFromBill(int tableId, String itemId) async {
+  Future<void> removeItemFromBill(String tableId, String itemId) async {
     state = state.copyWith(isLoading: true);
     try {
       final billDocument =
@@ -222,7 +256,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
     }
   }
 
-  String generateQRCode(int tableId) {
+  String generateQRCode(String tableId) {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
@@ -238,15 +272,36 @@ class TablesNotifier extends StateNotifier<TablesState> {
 
     final Uri menuUrl = Uri(
       scheme: 'http',
-      host: '192.168.1.121', // veya IP adresi
+      host: '192.168.1.137', // veya IP adresi
       port: 8080, // yerel sunucunuzun port numarası
     );
     final String finalUrl = '$menuUrl#/table?token=$token';
     return finalUrl;
   }
 
+  /// Yeni bir bölgeyi Firebase'e eklemek için fonksiyon
+  Future<void> addAreaToFirebase(String areaName) async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception('Kullanıcı oturum açmamış');
+      }
+
+      // Mevcut kullanıcının `tables` koleksiyonuna ulaş
+      final tablesCollection = _firestoreHelper.getUserCollection('areas');
+
+      // `areas` adında bir alt koleksiyon oluştur ve yeni bölgeyi ekle
+      await tablesCollection.add({'name': areaName});
+      fetchArea();
+
+      print('Yeni bölge Firebase\'e başarıyla eklendi: $areaName');
+    } catch (e) {
+      print('Bölge ekleme hatası: $e');
+    }
+  }
+
   /// Bill öğesinin `status` alanını günceller
-  Future<void> updateBillItemStatus(int tableId, Menu updatedItem) async {
+  Future<void> updateBillItemStatus(String tableId, Menu updatedItem) async {
     try {
       final billDocument =
           _firestoreHelper.getUserDocument('bills', tableId.toString());
@@ -284,12 +339,11 @@ class TablesNotifier extends StateNotifier<TablesState> {
     }
   }
 
-  Future<bool> hesabiKapat(int tableId) async {
+  Future<bool> hesabiKapat(String tableId) async {
     ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
     try {
       // 'bills' koleksiyonundaki belgeyi alıyoruz
-      final billDocument =
-          _firestoreHelper.getUserDocument('bills', tableId.toString());
+      final billDocument = _firestoreHelper.getUserDocument('bills', tableId);
       final doc = await billDocument.get();
 
       if (!doc.exists)
@@ -367,6 +421,7 @@ class TablesState extends Equatable {
     this.tables,
     this.tableBills = const {},
     this.isLoading = false,
+    this.areas,
   });
 
   final List<app.Order>? orders;
@@ -374,33 +429,36 @@ class TablesState extends Equatable {
   final List<Category>? categories;
   final String? selectedValue;
   final List<CoffeTable>? tables;
-  final Map<int, List<Menu>> tableBills;
+  final Map<String, List<Menu>> tableBills;
   final bool isLoading;
+  final List<Area>? areas;
 
   @override
   List<Object?> get props =>
       [orders, categories, selectedValue, tables, tableBills, menus, isLoading];
 
-  TablesState copyWith({
-    List<app.Order>? orders,
-    List<Menu>? menus,
-    List<Category>? categories,
-    String? selectedValue,
-    List<CoffeTable>? tables,
-    Map<int, List<Menu>>? tableBills,
-    bool? isLoading,
-  }) {
+  TablesState copyWith(
+      {List<app.Order>? orders,
+      List<Menu>? menus,
+      List<Category>? categories,
+      String? selectedValue,
+      List<CoffeTable>? tables,
+      Map<String, List<Menu>>? tableBills,
+      bool? isLoading,
+      List<Area>? areas}) {
     return TablesState(
-        orders: orders ?? this.orders,
-        menus: menus ?? this.menus,
-        categories: categories ?? this.categories,
-        selectedValue: selectedValue ?? this.selectedValue,
-        tables: tables ?? this.tables,
-        tableBills: tableBills ?? this.tableBills,
-        isLoading: isLoading ?? this.isLoading);
+      orders: orders ?? this.orders,
+      menus: menus ?? this.menus,
+      categories: categories ?? this.categories,
+      selectedValue: selectedValue ?? this.selectedValue,
+      tables: tables ?? this.tables,
+      tableBills: tableBills ?? this.tableBills,
+      isLoading: isLoading ?? this.isLoading,
+      areas: areas ?? this.areas,
+    );
   }
 
-  List<Menu> getTableBill(int tableId) {
+  List<Menu> getTableBill(String tableId) {
     return tableBills[tableId] ?? [];
   }
 }

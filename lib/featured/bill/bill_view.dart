@@ -23,7 +23,7 @@ final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
 });
 
 class BillView extends ConsumerStatefulWidget {
-  final int tableId;
+  final String tableId;
   final List<Menu> orderItems;
   final String? qrUrl;
   const BillView({

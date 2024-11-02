@@ -11,7 +11,7 @@ final _tablesProvider =
 
 void showAddOrderDialog(
   BuildContext context,
-  int tableId,
+  String tableId,
   List<Menu> orderItems,
   String? qrUrl,
 ) {
@@ -29,7 +29,7 @@ void showAddOrderDialog(
 }
 
 class _AddOrderDialog extends ConsumerStatefulWidget {
-  final int tableId;
+  final String tableId;
   final List<Menu> orderItems;
   final String? qrUrl;
   const _AddOrderDialog({

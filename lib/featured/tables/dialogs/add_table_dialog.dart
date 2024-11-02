@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Make sure to import the correct package
 
-void showAddTableDialog(BuildContext context, TablesNotifier tablesNotifier) {
+void showAddTableDialog(
+    BuildContext context, TablesNotifier tablesNotifier, String selectedArea) {
   final TextEditingController tableIdController = TextEditingController();
   String? qrData;
 
@@ -49,7 +50,7 @@ void showAddTableDialog(BuildContext context, TablesNotifier tablesNotifier) {
                 onPressed: () {
                   final tableIdText = tableIdController.text;
                   if (tableIdText.isNotEmpty) {
-                    final tableId = int.parse(tableIdText);
+                    final tableId = '$selectedArea $tableIdText';
                     final String qrCode =
                         tablesNotifier.generateQRCode(tableId);
                     setState(() {
@@ -59,19 +60,34 @@ void showAddTableDialog(BuildContext context, TablesNotifier tablesNotifier) {
                 },
               ),
               TextButton(
-                child: const Text('Masa Ekle'),
                 onPressed: qrData == null
                     ? null
-                    : () {
+                    : () async {
                         final tableIdText = tableIdController.text;
                         if (tableIdText.isNotEmpty) {
-                          final tableId = int.parse(tableIdText);
-                          final newTable =
-                              CoffeTable(tableId: tableId, qrUrl: qrData);
-                          tablesNotifier.addTable(newTable);
+                          final tableId = '$selectedArea $tableIdText';
+                          final newTable = CoffeTable(
+                              tableId: tableId,
+                              qrUrl: qrData,
+                              area: selectedArea);
+
+                          // Masa ekleme işlemi
+                          final success =
+                              await tablesNotifier.addTable(newTable);
+
+                          // Sonuca göre Snackbar göster
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(success
+                                  ? 'Masa başarıyla eklendi!'
+                                  : 'Bu ID ile zaten bir masa mevcut.'),
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                          if (success == true) Navigator.of(context).pop();
                         }
-                        Navigator.of(context).pop();
                       },
+                child: const Text('Masa Ekle'),
               ),
             ],
           );

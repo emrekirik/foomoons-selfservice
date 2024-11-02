@@ -9,7 +9,7 @@ final _tablesProvider =
   return TablesNotifier(ref);
 });
 
-Future<bool?> paymentBottomSheet(BuildContext context, int tableId) async {
+Future<bool?> paymentBottomSheet(BuildContext context, String tableId) async {
   return await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true, // Enable full-screen scrolling
@@ -20,7 +20,7 @@ Future<bool?> paymentBottomSheet(BuildContext context, int tableId) async {
 }
 
 class _PaymentPage extends ConsumerStatefulWidget {
-  final int tableId;
+  final String tableId;
   const _PaymentPage({
     required this.tableId,
     super.key,

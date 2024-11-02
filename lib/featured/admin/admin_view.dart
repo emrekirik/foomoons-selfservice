@@ -158,14 +158,14 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                                         item.title ?? ''),
                                                     _buildOrderDetail(
                                                         '${item.piece} adet'),
-                                                    status == 'hazır'
-                                                        ? const SizedBox()
-                                                        : _buildOrderDetailWithTime(
-                                                            effectivePreparationTime),
+                                                    // status == 'hazır'
+                                                    //     ? const SizedBox()
+                                                    //     : _buildOrderDetailWithTime(
+                                                    //         effectivePreparationTime),
                                                     _buildOrderDetail(item
                                                                 .tableId !=
                                                             null
-                                                        ? 'Masa ${item.tableId}'
+                                                        ? '${item.tableId}'
                                                         : 'Masa bilgisi bilinmiyor.'),
                                                     _buildActionButtons(item,
                                                         nextStatus, status),
@@ -198,16 +198,16 @@ class _AdminViewState extends ConsumerState<AdminView> {
     );
   }
 
-  Widget _buildOrderDetailWithTime(int? preparationTime) {
-    return Expanded(
-      child: Text(
-        preparationTime != null
-            ? formatDuration(preparationTime)
-            : 'Süre Yok', // Dakikayı saniyeye çevir
-        overflow: TextOverflow.visible,
-      ),
-    );
-  }
+  // Widget _buildOrderDetailWithTime(int? preparationTime) {
+  //   return Expanded(
+  //     child: Text(
+  //       preparationTime != null
+  //           ? formatDuration(preparationTime)
+  //           : 'Süre Yok', // Dakikayı saniyeye çevir
+  //       overflow: TextOverflow.visible,
+  //     ),
+  //   );
+  // }
 
   String formatDuration(int seconds) {
     final int minutes = seconds ~/ 60;

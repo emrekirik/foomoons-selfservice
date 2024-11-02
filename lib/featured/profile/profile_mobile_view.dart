@@ -79,15 +79,20 @@ class _ProfileMobileViewState extends ConsumerState<ProfileMobileView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _ProfilePhotoSection(deviceWidth: deviceWidth),
+                          const SizedBox(height: 40),
+                          _ProfilePhotoSection(
+                            deviceWidth: deviceWidth,
+                            profileNotifier: profileNotifier,
+                            profileState: profileState,
+                          ),
                           Divider(
                             indent: deviceWidth * 0.04,
                             endIndent: deviceWidth * 0.04,
                           ),
-                          _PermissionsSection(
-                              deviceWidth: deviceWidth,
-                              deviceHeight: deviceHeight,
-                              icons: icons),
+                          // _PermissionsSection(
+                          //     deviceWidth: deviceWidth,
+                          //     deviceHeight: deviceHeight,
+                          //     icons: icons),
                           _UserDataSection(
                               deviceHeight: deviceHeight,
                               profileState: profileState,
@@ -131,28 +136,28 @@ class _BusinessDataSection extends StatelessWidget {
           deviceHeight: deviceHeight,
           title: 'İşletme Bilgileri',
         ),
-        SizedBox(height: deviceHeight * 0.02),
-        GestureDetector(
-          onTap: () {
-            profileNotifier.pickAndUploadImage();
-          },
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: profileState.photoURL != null
-                    ? Image.network(profileState.photoURL!)
-                    : Image.asset(
-                        'assets/images/personal_placeholder.png'), // Eğer URL varsa, NetworkImage kullanıyoruz
-              ),
-              if (profileState.isUploading)
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-            ],
-          ),
-        ),
+        // SizedBox(height: deviceHeight * 0.02),
+        // GestureDetector(
+        //   onTap: () {
+        //     profileNotifier.pickAndUploadImage();
+        //   },
+        //   child: Stack(
+        //     alignment: Alignment.center,
+        //     children: [
+        //       ClipRRect(
+        //         borderRadius: BorderRadius.circular(8),
+        //         child: profileState.photoURL != null
+        //             ? Image.network(profileState.photoURL!)
+        //             : Image.asset(
+        //                 'assets/images/personal_placeholder.png'), // Eğer URL varsa, NetworkImage kullanıyoruz
+        //       ),
+        //       if (profileState.isUploading)
+        //         const CircularProgressIndicator(
+        //           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        //         ),
+        //     ],
+        //   ),
+        // ),
         SizedBox(height: deviceHeight * 0.02),
         _CustomText(
             title: 'İşletme Adı: ',
@@ -214,7 +219,7 @@ class _UserDataSection extends ConsumerWidget {
       children: [
         _CustomTitle(
           deviceHeight: deviceHeight,
-          title: 'Ünvan: ',
+          title: 'ÜNVAN ',
         ),
         SizedBox(height: deviceHeight * 0.02),
         _CustomText(
@@ -314,17 +319,40 @@ class _PermissionsSection extends StatelessWidget {
 
 class _ProfilePhotoSection extends StatelessWidget {
   const _ProfilePhotoSection({
+    required this.profileNotifier,
+    required this.profileState,
     required this.deviceWidth,
   });
-
+  final ProfileNotifier profileNotifier;
+  final ProfileState profileState;
   final double deviceWidth;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: CircleAvatar(
-        radius: 160,
-        backgroundImage: NetworkImage('assets/images/personal_placeholder.png'),
+    return Center(
+      child: SizedBox(
+        width: 240,
+        child: GestureDetector(
+          onTap: () {
+            profileNotifier.pickAndUploadImage();
+          },
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: profileState.photoURL != null
+                    ? Image.network(profileState.photoURL!)
+                    : Image.asset(
+                        'assets/images/personal_placeholder.png'), // Eğer URL varsa, NetworkImage kullanıyoruz
+              ),
+              if (profileState.isUploading)
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

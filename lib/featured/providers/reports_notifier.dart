@@ -27,7 +27,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           startDate = now.subtract(Duration(days: now.weekday - 1));
           break;
         case 'Aylık':
-          startDate = DateTime(now.year, now.month, 1);
+          startDate = now.subtract(const Duration(days: 30));
           break;
         default:
           startDate = now;
@@ -171,48 +171,50 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
     }
   }
 
-  Future<Map<String, int>> fetchDailySales(String period) async {
-    Map<String, int> dailySales =
-        {}; // Tarih bazında satış miktarlarını tutmak için bir harita
-    DateTime now = DateTime.now();
-    DateTime startDate;
+  // Future<Map<String, int>> fetchDailySales(String period) async {
+  //   Map<String, int> dailySales =
+  //       {}; // Tarih bazında satış miktarlarını tutmak için bir harita
+  //   DateTime now = DateTime.now();
+  //   DateTime startDate;
 
-    switch (period) {
-      case 'Günlük':
-        startDate = DateTime(now.year, now.month, now.day);
-        break;
-      case 'Haftalık':
-        startDate = now.subtract(Duration(days: now.weekday - 1));
-        break;
-      case 'Aylık':
-        startDate = DateTime(now.year, now.month, 1);
-        break;
-      default:
-        startDate = now;
-    }
+  //   switch (period) {
+  //     case 'Günlük':
+  //       startDate = DateTime(now.year, now.month, now.day);
+  //       break;
+  //     case 'Haftalık':
+  //       startDate = now.subtract(Duration(days: now.weekday - 1));
+  //       break;
+  //     case 'Aylık':
+  //       startDate = DateTime(now.year, now.month, now.day - 30);
 
-    final orderCollection = _firestoreHelper.getUserCollection('pastOrders');
-    final querySnapshot = await orderCollection
-        .where('closedAtDate',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-        .get();
+  //       break;
+  //     default:
+  //       startDate = now;
+  //   }
 
-    for (var doc in querySnapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>?;
-      if (data != null &&
-          data['totalPrice'] != null &&
-          data['closedAtDate'] != null) {
-        DateTime closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
-        String dayKey =
-            "${closedAtDate.year}-${closedAtDate.month}-${closedAtDate.day}";
+  //   final orderCollection = _firestoreHelper.getUserCollection('pastOrders');
+  //   final querySnapshot = await orderCollection
+  //       .where('closedAtDate',
+  //           isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+  //       .get();
 
-        dailySales[dayKey] =
-            (dailySales[dayKey] ?? 0) + (data['totalPrice'] as int);
-      }
-    }
+  //   for (var doc in querySnapshot.docs) {
+  //     final data = doc.data() as Map<String, dynamic>?;
 
-    return dailySales;
-  }
+  //     if (data != null &&
+  //         data['totalPrice'] != null &&
+  //         data['closedAtDate'] != null) {
+  //       DateTime closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
+  //       String dayKey =
+  //           "${closedAtDate.year}-${closedAtDate.month}-${closedAtDate.day}";
+
+  //       dailySales[dayKey] =
+  //           (dailySales[dayKey] ?? 0) + (data['totalPrice'] as int);
+  //     }
+  //   }
+
+  //   return dailySales;
+  // }
 
   Future<void> fetchAndLoad(String period) async {
     ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
@@ -221,7 +223,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
       String? cafeId = await getCurrentUserCafeId();
 
       if (cafeId != null) {
-        final dailySalesData = await fetchDailySales(period);
+        // final dailySalesData = await fetchDailySales(period);
         await Future.wait([
           fetchDeliveredRevenues(period: period),
           fetchTotalProduct(),
@@ -229,7 +231,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           fetchEmployeesForCafe(cafeId),
         ]);
 
-        state = state.copyWith(dailySales: dailySalesData);
+        // state = state.copyWith(dailySales: dailySalesData);
       } else {
         print('Kafe ID bulunamadı');
       }

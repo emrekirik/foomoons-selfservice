@@ -96,11 +96,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   ),
                   child: !isLoading
                       ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: Column(
                                 children: [
+                                  const SizedBox(height: 100),
                                   _ProfilePhotoSection(
+                                      profileNotifier: profileNotifier,
+                                      profileState: profileState,
                                       deviceWidth: deviceWidth),
                                   Divider(
                                     indent: deviceWidth * 0.04,
@@ -117,7 +121,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                               child: Padding(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: deviceWidth * 0.035,
-                                  vertical: deviceWidth * 0.02,
+                                  // vertical: deviceWidth * 0.02,
                                 ),
                                 child: SingleChildScrollView(
                                   child: Column(
@@ -125,6 +129,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
+                                      SizedBox(height: 100,),
                                       _UserDataSection(
                                           deviceHeight: deviceHeight,
                                           profileState: profileState,
@@ -174,28 +179,28 @@ class _BusinessDataSection extends StatelessWidget {
           deviceHeight: deviceHeight,
           title: 'İşletme Bilgileri',
         ),
-        SizedBox(height: deviceHeight * 0.02),
-        GestureDetector(
-          onTap: () {
-            profileNotifier.pickAndUploadImage();
-          },
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: profileState.photoURL != null
-                    ? Image.network(profileState.photoURL!)
-                    : Image.asset(
-                        'assets/images/personal_placeholder.png'), // Eğer URL varsa, NetworkImage kullanıyoruz
-              ),
-              if (profileState.isUploading)
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-            ],
-          ),
-        ),
+        // SizedBox(height: deviceHeight * 0.02),
+        // GestureDetector(
+        //   onTap: () {
+        //     profileNotifier.pickAndUploadImage();
+        //   },
+        //   child: Stack(
+        //     alignment: Alignment.center,
+        //     children: [
+        //       ClipRRect(
+        //         borderRadius: BorderRadius.circular(8),
+        //         child: profileState.photoURL != null
+        //             ? Image.network(profileState.photoURL!)
+        //             : Image.asset(
+        //                 'assets/images/personal_placeholder.png'), // Eğer URL varsa, NetworkImage kullanıyoruz
+        //       ),
+        //       if (profileState.isUploading)
+        //         const CircularProgressIndicator(
+        //           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        //         ),
+        //     ],
+        //   ),
+        // ),
         SizedBox(height: deviceHeight * 0.02),
         _CustomText(
             title: 'İşletme Adı: ',
@@ -257,7 +262,7 @@ class _UserDataSection extends ConsumerWidget {
       children: [
         _CustomTitle(
           deviceHeight: deviceHeight,
-          title: 'Ünvan: ',
+          title: 'ÜNVAN',
         ),
         SizedBox(height: deviceHeight * 0.02),
         _CustomText(
@@ -292,7 +297,7 @@ class _UserDataSection extends ConsumerWidget {
           title: 'Email: ',
           desc: profileState.email ?? 'bilinmiyor',
         ),
-        SizedBox(height: deviceHeight * 0.02),
+         SizedBox(height: deviceHeight * 0.02),
       ],
     );
   }
@@ -358,16 +363,37 @@ class _PermissionsSection extends StatelessWidget {
 class _ProfilePhotoSection extends StatelessWidget {
   const _ProfilePhotoSection({
     required this.deviceWidth,
+    required this.profileNotifier,
+    required this.profileState,
   });
-
+  final ProfileNotifier profileNotifier;
+  final ProfileState profileState;
   final double deviceWidth;
 
   @override
   Widget build(BuildContext context) {
-    return const Expanded(
-      child: CircleAvatar(
-        radius: 160,
-        backgroundImage: NetworkImage('assets/images/personal_placeholder.png'),
+    return SizedBox(
+      width: 240,
+      child: GestureDetector(
+        onTap: () {
+          profileNotifier.pickAndUploadImage();
+        },
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: profileState.photoURL != null
+                  ? Image.network(profileState.photoURL!)
+                  : Image.asset(
+                      'assets/images/personal_placeholder.png'), // Eğer URL varsa, NetworkImage kullanıyoruz
+            ),
+            if (profileState.isUploading)
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+          ],
+        ),
       ),
     );
   }
