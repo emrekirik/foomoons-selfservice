@@ -19,6 +19,7 @@ class AdminView extends ConsumerStatefulWidget {
 }
 
 class _AdminViewState extends ConsumerState<AdminView> {
+  bool isProcessing = false;
   @override
   void initState() {
     super.initState();
@@ -102,10 +103,22 @@ class _AdminViewState extends ConsumerState<AdminView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    if (status == 'hazırlanıyor')
+                      if (isProcessing == true)
+                        const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
+                        )
+                  ],
                 ),
                 const SizedBox(height: 16),
                 const Divider(
@@ -229,13 +242,24 @@ class _AdminViewState extends ConsumerState<AdminView> {
                     Icons.check,
                     size: 17,
                   ),
-                  onPressed: () {
-                    if (item.id != null) {
-                      ref
-                          .read(_adminProvider.notifier)
-                          .updateOrderStatus(item.id!, nextStatus);
-                    }
-                  },
+                  onPressed: isProcessing == true
+                      ? null
+                      : () async {
+                          setState(() {
+                            isProcessing = true;
+                          });
+                          try {
+                            await ref
+                                .read(_adminProvider.notifier)
+                                .updateOrderStatus(item.id!, nextStatus);
+                            // İşlem tamamlandıktan sonra kısa bir gecikme ekle
+                            await Future.delayed(Duration(milliseconds: 500));
+                          } finally {
+                            setState(() {
+                              isProcessing = false;
+                            });
+                          }
+                        },
                 ),
           status != 'yeni'
               ? const SizedBox()
@@ -254,11 +278,19 @@ class _AdminViewState extends ConsumerState<AdminView> {
                 ),
           nextStatus == 'teslim edildi'
               ? TextButton(
-                  onPressed: () async {
-                    await ref
-                        .read(_adminProvider.notifier)
-                        .updateOrderStatus(item.id!, nextStatus);
-                  },
+                  onPressed: isProcessing == true
+                      ? null
+                      : () async {
+                          setState(() {
+                            isProcessing = true;
+                          });
+                          await ref
+                              .read(_adminProvider.notifier)
+                              .updateOrderStatus(item.id!, nextStatus);
+                          setState(() {
+                            isProcessing = false;
+                          });
+                        },
                   child: const Text(
                     'Tamamlandı',
                     style: TextStyle(color: Colors.green, fontSize: 12),

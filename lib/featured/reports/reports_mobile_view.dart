@@ -64,10 +64,10 @@ class _ReportsMobileViewState extends ConsumerState<ReportsMobileView> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             AnalysysCardMobile(
-              assetImage: 'assets/images/coffee_icon.png',
+              assetImage: 'assets/images/cash.png',
               cardSubtitle: selectPeriod,
-              cardPiece: reportsState.totalProduct.toString(),
-              cardTitle: 'Toplam Ürün',
+              cardPiece: '${reportsState.totalCash}₺',
+              cardTitle: 'Nakit Ödeme',
               subTitleIcon: const Icon(Icons.graphic_eq),
             ),
             SizedBox(
@@ -78,7 +78,7 @@ class _ReportsMobileViewState extends ConsumerState<ReportsMobileView> {
                 assetImage: 'assets/images/dolar_icon.png',
                 cardSubtitle: selectPeriod,
                 subTitleIcon: const Icon(Icons.graphic_eq),
-                cardPiece: reportsState.totalRevenues.toString()),
+                cardPiece:'${reportsState.totalRevenues}₺',),
           ],
         ),
         const SizedBox(height: 20),
@@ -95,12 +95,12 @@ class _ReportsMobileViewState extends ConsumerState<ReportsMobileView> {
             SizedBox(
               width: sizeWidth * 0.015,
             ),
-             AnalysysCardMobile(
-              assetImage: 'assets/images/customer_icon.png',
-              cardSubtitle: selectPeriod,
-              cardPiece: '65',
-              cardTitle: 'Toplam Müşteri',
-              subTitleIcon: const Icon(Icons.graphic_eq),
+            AnalysysCardMobile(
+               assetImage: 'assets/images/credit.png',
+                cardSubtitle: selectPeriod,
+                cardPiece: '${reportsState.totalCredit}₺',
+                cardTitle: 'Kredi ile Ödeme',
+                subTitleIcon: const Icon(Icons.graphic_eq),
             ),
           ],
         ),

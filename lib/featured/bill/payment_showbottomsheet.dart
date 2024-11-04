@@ -38,6 +38,8 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
   double paidAmount = 0;
   double remainingAmount = 0;
   bool isSaving = false;
+  bool? isCredit;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -104,7 +106,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                       ],
                     ),
                     Text(
-                      'Masa Adı: Masa ${widget.tableId}',
+                      'Masa Adı:${widget.tableId}',
                       style: TextStyle(fontSize: 18),
                     ),
                     const SizedBox(height: 10),
@@ -155,10 +157,23 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                                 Text(
                                     '₺${(item.price ?? 0) * (item.piece ?? 1)}',
                                     style: const TextStyle(fontSize: 16)),
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline),
-                                  onPressed: () => _moveItemToLeftList(index),
-                                ),
+                                item.isCredit != null
+                                    ? const Padding(
+                                        padding: EdgeInsets.only(left: 4),
+                                        child: Text(
+                                          'Ödendi',
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.green),
+                                        ),
+                                      )
+                                    : IconButton(
+                                        icon: const Icon(
+                                            Icons.remove_circle_outline),
+                                        onPressed: () {
+                                          _moveItemToLeftList(index);
+                                        },
+                                      ),
                               ],
                             ),
                           ),
@@ -168,6 +183,19 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                     const Divider(),
                     _buildAmountSummary(),
                     Center(child: _buildSaveButton(context)),
+                    if (errorMessage !=
+                        null) // Eğer bir hata mesajı varsa göster
+                      Center(
+                        child: Text(
+                          errorMessage!,
+                          style: TextStyle(
+                            color: errorMessage == 'Lütfen ödeme yöntemi seçin.'
+                                ? Colors.red
+                                : Colors.green,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -181,6 +209,61 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
         _buildAmountRow('Toplam Tutar:', '₺$totalAmount'),
         _buildAmountRow('Ödenen Tutar:', '₺$paidAmount'),
         _buildAmountRow('Kalan Tutar:', '₺$remainingAmount'),
+        Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                      backgroundColor:
+                          isCredit == true ? Colors.orange : Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                          side: const BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.circular(4))),
+                  onPressed: () {
+                    setState(() {
+                      isCredit = isCredit == true
+                          ? null
+                          : true; // Eğer true ise null yap, değilse true yap
+                      errorMessage = null;
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.black,
+                  ),
+                  label: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text('Kredi Kartı',
+                        style: TextStyle(color: Colors.black)),
+                  )),
+              const SizedBox(width: 4),
+              OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                      backgroundColor:
+                          isCredit == false ? Colors.green : Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4))),
+                  onPressed: () {
+                    setState(() {
+                      isCredit = isCredit == false
+                          ? null
+                          : false; // Eğer true ise null yap, değilse true yap
+                      errorMessage = null;
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.black,
+                  ),
+                  label: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    child: Text('Nakit', style: TextStyle(color: Colors.black)),
+                  )),
+            ],
+          ),
+        )
       ],
     );
   }
@@ -226,44 +309,73 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
   }
 
   Future<void> _onPayPressed(BuildContext context) async {
-    if (isSaving) return;
-    setState(() => isSaving = true);
-    ref.read(loadingProvider.notifier).setLoading(true);
+    ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
+    if (isSaving) return; // Eğer zaten kaydediliyorsa işlemi durdur.
+    if (isCredit == null) {
+      setState(() {
+        errorMessage = 'Lütfen ödeme yöntemi seçin.';
+      });
+      ref.read(loadingProvider.notifier).setLoading(false);
+      return; // Tüm işlemi durdur
+    }
+    setState(() {
+      isSaving = true; // Kaydetme işlemi başladı
+    });
 
     final tablesNotifier = ref.read(_tablesProvider.notifier);
-    for (var item in rightList) {
-      await tablesNotifier.updateBillItemStatus(
-          widget.tableId, item.copyWith(status: 'ödendi'));
-    }
-    for (var item in leftList) {
-      await tablesNotifier.updateBillItemStatus(
-          widget.tableId, item.copyWith(status: 'bekliyor'));
-    }
-    ref.read(loadingProvider.notifier).setLoading(false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Ödeme başarıyla tamamlandı ve ürünler güncellendi.')),
-    );
+    // Sağ liste (rightList) içerisindeki her bir öğeyi güncelle
+    for (var item in rightList) {
+      final updatedItem = item.isCredit == null
+          ? item.copyWith(status: 'ödendi', isCredit: isCredit)
+          : item.copyWith(status: 'ödendi');
+      await tablesNotifier.updateBillItemStatus(widget.tableId, updatedItem);
+    }
+    // Sol listeyi kaydetmeden önce işlem tamamlanana kadar bekle
+    for (var item in leftList) {
+      final updatedItem = item.copyWith(status: 'bekliyor');
+      await tablesNotifier.updateBillItemStatus(widget.tableId, updatedItem);
+    }
+
+    // Güncelleme tamamlandığında Snackbar veya başka bir geri bildirim gösterilebilir
     if (mounted) {
-      setState(() => isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ödeme başarıyla tamamlandı ve ürünler güncellendi.'),
+        ),
+      );
+      setState(() {
+        isSaving = false; // Kaydetme işlemi tamamlandı
+      });
+      // İşlem tamamlandıktan sonra dialog kapatılabilir
+      ref.read(loadingProvider.notifier).setLoading(false); // isLoading set
       Navigator.of(context).pop(true);
     }
   }
 
-  void _moveItemToRightList(int index) {
-    setState(() {
-      final item = leftList.removeAt(index);
-      rightList.add(item.copyWith(status: 'ödendi'));
-      _calculateAmounts();
-    });
+  void _moveItemToRightList(int index) async {
+    if (index >= 0 && index < leftList.length) {
+      final item = leftList[index]; // Öğeyi çıkarırken referans al
+      setState(() {
+        leftList.removeAt(index); // Sadece geçerli bir index varsa çıkar
+        rightList.add(item.copyWith(
+            status: 'ödendi')); // Sağ listeye ekle ve statüyü güncelle
+        _calculateAmounts(); // Tutarları yeniden hesaplayın
+      });
+    }
   }
 
-  void _moveItemToLeftList(int index) {
-    setState(() {
-      final item = rightList.removeAt(index);
-      leftList.add(item.copyWith(status: 'bekliyor'));
-      _calculateAmounts();
-    });
+  void _moveItemToLeftList(int index) async {
+    if (index >= 0 && index < rightList.length) {
+      final item = rightList[index]; // Öğeyi çıkarırken referans al
+
+      // Status'ü bekliyor olarak güncelle
+      final updatedItem = item.copyWith(status: 'bekliyor');
+      setState(() {
+        rightList.removeAt(index); // Sadece geçerli bir index varsa çıkar
+        leftList.add(updatedItem); // Sol listeye ekle ve statüyü güncelle
+        _calculateAmounts(); // Tutarları yeniden hesaplayın
+      });
+    }
   }
 }

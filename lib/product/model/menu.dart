@@ -14,6 +14,7 @@ class Menu with EquatableMixin, IdModel {
   final String? category;
   final int? stock;
   final int? piece; // Yeni eklenen özellik
+  final bool? isCredit;
 
   const Menu({
     this.title,
@@ -25,6 +26,7 @@ class Menu with EquatableMixin, IdModel {
     this.category,
     this.stock,
     this.piece, // Constructor'a ekleyin
+    this.isCredit
   });
 
   @override
@@ -38,6 +40,7 @@ class Menu with EquatableMixin, IdModel {
         id,
         stock,
         piece, // Listeye ekleyin
+        isCredit
       ];
 
   @override
@@ -53,7 +56,8 @@ class Menu with EquatableMixin, IdModel {
         other.category == category &&
         other.id == id &&
         other.stock == stock &&
-        other.piece == piece; // Eşitlik kontrolüne ekleyin
+        other.piece == piece && // Eşitlik kontrolüne ekleyin
+        other.isCredit == isCredit;
   }
 
   @override
@@ -66,7 +70,8 @@ class Menu with EquatableMixin, IdModel {
         category.hashCode ^
         id.hashCode ^
         stock.hashCode ^
-        piece.hashCode; // HashCode'a ekleyin
+        piece.hashCode ^
+        isCredit.hashCode; // HashCode'a ekleyin
   }
 
   /// Copy this instance with new values, while preserving existing ones if not provided
@@ -80,6 +85,7 @@ class Menu with EquatableMixin, IdModel {
     String? id,
     int? stock,
     int? piece, // copyWith methoduna ekleyin
+    bool? isCredit,
   }) {
     return Menu(
       title: title ?? this.title,
@@ -91,6 +97,7 @@ class Menu with EquatableMixin, IdModel {
       id: id ?? this.id,
       stock: stock ?? this.stock,
       piece: piece ?? this.piece, // Değer atama yapın
+      isCredit: isCredit ?? this.isCredit
     );
   }
 
@@ -106,6 +113,7 @@ class Menu with EquatableMixin, IdModel {
       'category': category,
       'stock': stock,
       'piece': piece, // JSON dönüşümüne ekleyin
+      'isCredit' : isCredit,
     };
   }
 
@@ -123,6 +131,7 @@ class Menu with EquatableMixin, IdModel {
       category: json['category'] as String?,
       stock: _parseToInt(json['stock']),
       piece: _parseToInt(json['piece']), // JSON'dan `piece` değerini alın
+      isCredit: json['isCredit'] as bool?
     );
   }
 

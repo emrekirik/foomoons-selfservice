@@ -1,3 +1,4 @@
+import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/reports_notifier.dart';
 import 'package:altmisdokuzapp/featured/reports/dialogs/add_personal_dialog.dart';
 import 'package:altmisdokuzapp/product/widget/personal_card_item.dart';
@@ -10,14 +11,17 @@ final _reportsProvider =
 });
 
 class PersonSection extends ConsumerWidget {
-  final List<Map<String, dynamic>> employees;
   final BoxConstraints constraints;
-  const PersonSection(
-      {super.key, required this.employees, required this.constraints});
+  const PersonSection({super.key, required this.constraints});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final deviceWidth = MediaQuery.of(context).size.width;
+    final employees = ref.watch(_reportsProvider).employees;
+
+    if (employees.isEmpty) {
+      ref.read(_reportsProvider.notifier).fetchEmployees();
+    }
     return Expanded(
       child: Container(
         decoration: BoxDecoration(

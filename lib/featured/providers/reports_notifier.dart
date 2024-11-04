@@ -3,7 +3,9 @@ import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.da
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:altmisdokuzapp/product/model/user.dart' as Userr;
 
 class ReportsNotifier extends StateNotifier<ReportsState> {
   static const String allCategories = 'Tüm Kategoriler';
@@ -24,7 +26,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           startDate = DateTime(now.year, now.month, now.day);
           break;
         case 'Haftalık':
-          startDate = now.subtract(Duration(days: now.weekday - 1));
+          startDate = now.subtract(const Duration(days: 7));
           break;
         case 'Aylık':
           startDate = now.subtract(const Duration(days: 30));
@@ -87,10 +89,10 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           startDate = DateTime(now.year, now.month, now.day);
           break;
         case 'Haftalık':
-          startDate = now.subtract(Duration(days: now.weekday - 1));
+          startDate = now.subtract(const Duration(days: 7));
           break;
         case 'Aylık':
-          startDate = DateTime(now.year, now.month, 1);
+          startDate = now.subtract(const Duration(days: 30));
           break;
         default:
           startDate = now;
@@ -113,6 +115,173 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
       state = state.copyWith(totalOrder: totalOrderCount);
     } catch (e) {
       _handleError(e, 'Toplam Sipariş Sayısı Yükleme Hatası');
+    }
+  }
+
+  Future<void> fetchTotalCredit({required String period}) async {
+    try {
+      DateTime now = DateTime.now();
+      DateTime startDate;
+
+      switch (period) {
+        case 'Günlük':
+          startDate = DateTime(now.year, now.month, now.day);
+          break;
+        case 'Haftalık':
+          startDate = now.subtract(const Duration(days: 7));
+          break;
+        case 'Aylık':
+          startDate = now.subtract(const Duration(days: 30));
+          break;
+        default:
+          startDate = now;
+      }
+
+      // 'orders' koleksiyonunu alıyoruz
+      final orderCollection = _firestoreHelper.getUserCollection('pastOrders');
+
+      // Sadece 'status' alanı 'teslim edildi' olan siparişleri alıyoruz
+      final querySnapshot = await orderCollection
+          .where('closedAtDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .get();
+
+      // Toplam hasılatı başlatıyoruz
+      int totalCredit = 0;
+
+      // Her bir siparişin 'price' alanını topluyoruz
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+
+        // 'price' null değilse toplamaya ekliyoruz
+        if (data != null && data['billItems'] != null) {
+          final billItems = data['billItems'] as List<dynamic>;
+          for (var item in billItems) {
+            if (item['isCredit'] == true) {
+              totalCredit += item['price'] as int;
+            }
+          }
+        }
+      }
+
+      // State'i güncelliyoruz, sadece 'totalRevenues' alanını değiştiriyoruz
+      print('toplam kredi: $totalCredit');
+      state = state.copyWith(totalCredit: totalCredit);
+    } catch (e) {
+      _handleError(e,
+          'Kredi kartı ile ödeme yapanların hasılatı hesaplanırken hata: $e');
+    }
+  }
+
+  Future<void> fetchTotalCash({required String period}) async {
+    try {
+      DateTime now = DateTime.now();
+      DateTime startDate;
+
+      switch (period) {
+        case 'Günlük':
+          startDate = DateTime(now.year, now.month, now.day);
+          break;
+        case 'Haftalık':
+          startDate = now.subtract(const Duration(days: 7));
+          break;
+        case 'Aylık':
+          startDate = now.subtract(const Duration(days: 30));
+          break;
+        default:
+          startDate = now;
+      }
+
+      // 'orders' koleksiyonunu alıyoruz
+      final orderCollection = _firestoreHelper.getUserCollection('pastOrders');
+
+      // Sadece 'status' alanı 'teslim edildi' olan siparişleri alıyoruz
+      final querySnapshot = await orderCollection
+          .where('closedAtDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .get();
+
+      // Toplam hasılatı başlatıyoruz
+      int totalCash = 0;
+
+      // Her bir siparişin 'price' alanını topluyoruz
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+
+        // 'price' null değilse toplamaya ekliyoruz
+        if (data != null && data['billItems'] != null) {
+          final billItems = data['billItems'] as List<dynamic>;
+          for (var item in billItems) {
+            if (item['isCredit'] == false) {
+              totalCash += item['price'] as int;
+            }
+          }
+        }
+      }
+
+      // State'i güncelliyoruz, sadece 'totalRevenues' alanını değiştiriyoruz
+      print('toplam nakit: $totalCash');
+      state = state.copyWith(totalCash: totalCash);
+    } catch (e) {
+      _handleError(e,
+          'Kredi kartı ile ödeme yapanların hasılatı hesaplanırken hata: $e');
+    }
+  }
+
+  Future<void> fetchDailySales(String period) async {
+    Map<String, int> dailySales = {
+      "Pazartesi": 0,
+      "Salı": 0,
+      "Çarşamba": 0,
+      "Perşembe": 0,
+      "Cuma": 0,
+      "Cumartesi": 0,
+      "Pazar": 0,
+    };
+
+    DateTime now = DateTime.now();
+    DateTime startDate =
+        now.subtract(Duration(days: now.weekday - 1)); // Haftanın başlangıcı
+
+    final orderCollection = _firestoreHelper.getUserCollection('pastOrders');
+    final querySnapshot = await orderCollection
+        .where('closedAtDate',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .get();
+
+    for (var doc in querySnapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>?;
+      if (data != null &&
+          data['totalPrice'] != null &&
+          data['closedAtDate'] != null) {
+        DateTime closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
+        String dayOfWeek = _getDayName(closedAtDate.weekday);
+        dailySales[dayOfWeek] =
+            (dailySales[dayOfWeek] ?? 0) + (data['totalPrice'] as int);
+      }
+    }
+
+    state = state.copyWith(dailySales: dailySales);
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return "Pazartesi";
+      case 2:
+        return "Salı";
+      case 3:
+        return "Çarşamba";
+      case 4:
+        return "Perşembe";
+      case 5:
+        return "Cuma";
+      case 6:
+        return "Cumartesi";
+      case 7:
+        return "Pazar";
+      default:
+        return "";
     }
   }
 
@@ -148,23 +317,19 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
     return null; // Eğer bir kafe bulunamazsa null döndür
   }
 
-  Future<List<Map<String, dynamic>>> fetchEmployeesForCafe(
-      String cafeId) async {
+  Future<void> fetchEmployees() async {
     try {
-      final querySnapshot = await _firestore
-          .collection('users')
-          .where('cafeId', isEqualTo: cafeId)
-          .where('userType', isEqualTo: 'çalışan')
-          .get();
+      final orderCollection = _firestoreHelper.getUserCollection('users');
+      final querySnapshot = await orderCollection.get();
 
       // Çalışanları liste olarak döndür
-      final employeesList =
-          querySnapshot.docs.map((doc) => doc.data()).toList();
-
+      final employeesList = querySnapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+      print(employeesList);
       // State'i güncelle
       state = state.copyWith(employees: employeesList);
       // print('Çekilen çalışanlar: $employeesList');
-      return employeesList;
     } catch (e) {
       print('Çalışanları getirme hatası: $e');
       throw e;
@@ -228,7 +393,10 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           fetchDeliveredRevenues(period: period),
           fetchTotalProduct(),
           fetchTotalOrder(period: period),
-          fetchEmployeesForCafe(cafeId),
+          fetchEmployees(),
+          fetchTotalCredit(period: period),
+          fetchTotalCash(period: period),
+          fetchDailySales(period)
         ]);
 
         // state = state.copyWith(dailySales: dailySalesData);
@@ -249,36 +417,83 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
   }
 
   Future<void> createEmployee({
-    required String email,
-    required String password,
     required String name,
     required String position,
     required String profileImage,
     required String cafeId, // Kafe ID'si ilişkisi için eklendi
   }) async {
-    // TODO: on idTokenChanged sign out and sign in
     try {
-      // Kullanıcıyı Firebase Authentication'a ekle
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      // Kullanıcı Auth ile başarıyla oluşturulursa, Firestore'a kaydet
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'name': name,
-        'position': position,
-        'email': email,
-        'profileImage': profileImage,
-        'cafeId': cafeId, // Kafe ile ilişkilendirme
-        'userType': 'çalışan',
-      });
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        await _firestore
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('users')
+            .add({
+          'name': name,
+          'position': position,
+          'profileImage': profileImage,
+          'cafeId': cafeId, // Kafe ile ilişkilendirme
+          'userType': 'çalışan',
+        });
+        await fetchEmployees();
+      }
     } on FirebaseAuthException catch (e) {
       print('Error: ${e.message}');
       throw e;
     }
   }
+
+  Future<void> updateEmployee(
+      String userId, Userr.User updatedUser, BuildContext context) async {
+    try {
+      final productDocument = _firestoreHelper.getUserDocument('users', userId);
+      await productDocument.update(updatedUser.toJson());
+      await fetchEmployees();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ürün başarıyla güncellendi')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _handleError(e, 'Ürünü güncelleme hatası');
+      }
+    }
+  }
+
+  // Future<void> createEmployee({
+  //   required String email,
+  //   required String password,
+  //   required String name,
+  //   required String position,
+  //   required String profileImage,
+  //   required String cafeId, // Kafe ID'si ilişkisi için eklendi
+  // }) async {
+  //   // TODO: on idTokenChanged sign out and sign in
+  //   try {
+  //     // Kullanıcıyı Firebase Authentication'a ekle
+  //     UserCredential userCredential =
+  //         await _auth.createUserWithEmailAndPassword(
+  //       email: email,
+  //       password: password,
+  //     );
+
+  //     // Kullanıcı Auth ile başarıyla oluşturulursa, Firestore'a kaydet
+  //     await _firestore.collection('users').doc(userCredential.user!.uid).set({
+  //       'name': name,
+  //       'position': position,
+  //       'email': email,
+  //       'profileImage': profileImage,
+  //       'cafeId': cafeId, // Kafe ile ilişkilendirme
+  //       'userType': 'çalışan',
+  //     });
+  //   } on FirebaseAuthException catch (e) {
+  //     print('Error: ${e.message}');
+  //     throw e;
+  //   }
+  // }
 }
 
 class ReportsState extends Equatable {
@@ -286,6 +501,8 @@ class ReportsState extends Equatable {
     this.totalOrder,
     this.totalRevenues,
     this.totalProduct,
+    this.totalCredit,
+    this.totalCash,
     this.dailySales = const {},
     this.employees = const [], // Çalışanlar listesi
   });
@@ -293,26 +510,38 @@ class ReportsState extends Equatable {
   final int? totalOrder;
   final int? totalRevenues;
   final int? totalProduct;
+  final int? totalCredit;
+  final int? totalCash;
   final Map<String, int> dailySales;
   final List<Map<String, dynamic>> employees;
 
   @override
-  List<Object?> get props =>
-      [totalOrder, totalRevenues, totalProduct, employees, dailySales];
+  List<Object?> get props => [
+        totalOrder,
+        totalRevenues,
+        totalProduct,
+        employees,
+        dailySales,
+        totalCredit,
+        totalCash
+      ];
 
   ReportsState copyWith({
     int? totalOrder,
     int? totalRevenues,
     int? totalProduct,
+    int? totalCredit,
+    int? totalCash,
     Map<String, int>? dailySales,
     List<Map<String, dynamic>>? employees,
   }) {
     return ReportsState(
-      totalOrder: totalOrder ?? this.totalOrder,
-      totalRevenues: totalRevenues ?? this.totalRevenues,
-      totalProduct: totalProduct ?? this.totalProduct,
-      dailySales: dailySales ?? this.dailySales,
-      employees: employees ?? this.employees,
-    );
+        totalOrder: totalOrder ?? this.totalOrder,
+        totalRevenues: totalRevenues ?? this.totalRevenues,
+        totalProduct: totalProduct ?? this.totalProduct,
+        dailySales: dailySales ?? this.dailySales,
+        employees: employees ?? this.employees,
+        totalCredit: totalCredit ?? this.totalCredit,
+        totalCash: totalCash ?? this.totalCash);
   }
 }

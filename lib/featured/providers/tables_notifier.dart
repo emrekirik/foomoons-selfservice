@@ -55,8 +55,11 @@ class TablesNotifier extends StateNotifier<TablesState> {
           .get();
 
       final tables = response.docs.map((e) => e.data()).toList();
-      tables.sort((a, b) =>
-          a.tableId!.compareTo(b.tableId!)); // TableId'ye göre sıralama
+      tables.sort((a, b) {
+        final aId = int.tryParse(a.tableId!.split(' ').last) ?? 0;
+        final bId = int.tryParse(b.tableId!.split(' ').last) ?? 0;
+        return aId.compareTo(bId);
+      }); // TableId'ye göre sıralama
 
       state = state.copyWith(tables: tables);
     } catch (e) {
@@ -158,8 +161,9 @@ class TablesNotifier extends StateNotifier<TablesState> {
       final tableCollection = _firestoreHelper.getUserCollection('tables');
 
       // Aynı ID'ye sahip bir masa var mı kontrol et
-      final querySnapshot =
-          await tableCollection.where('tableId', isEqualTo: table.tableId).get();
+      final querySnapshot = await tableCollection
+          .where('tableId', isEqualTo: table.tableId)
+          .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         // Aynı ID’ye sahip masa varsa `false` döndür

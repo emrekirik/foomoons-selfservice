@@ -398,8 +398,8 @@ class _BillViewState extends ConsumerState<BillView> {
                                           Padding(
                                             padding: const EdgeInsets.all(12.0),
                                             child: Text(
-                                              'Masa ${widget.tableId}',
-                                              style: TextStyle(
+                                              widget.tableId,
+                                              style: const TextStyle(
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.bold),
                                             ),

@@ -37,6 +37,8 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
   double paidAmount = 0; // Ödenen tutar
   double remainingAmount = 0; // Kalan tutar
   bool isSaving = false;
+  bool? isCredit;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -89,30 +91,85 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
   Widget build(BuildContext context) {
     double deviceWidth = MediaQuery.of(context).size.width;
     double deviceHeight = MediaQuery.of(context).size.height;
-
+    print(isCredit);
+    print(errorMessage);
     return AlertDialog(
       backgroundColor: Colors.white,
-      title: Padding(
-        padding: const EdgeInsets.only(left: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Hesap',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Hesap',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            Text(
-              'Masa Adı: Masa ${widget.tableId}',
-              style: const TextStyle(
-                fontSize: 18,
+              Text(
+                'Masa Adı: ${widget.tableId}',
+                style: const TextStyle(
+                  fontSize: 18,
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                      backgroundColor:
+                          isCredit == true ? Colors.orange : Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                          side: const BorderSide(color: Colors.black),
+                          borderRadius: BorderRadius.circular(4))),
+                  onPressed: () {
+                    setState(() {
+                      isCredit = isCredit == true
+                          ? null
+                          : true; // Eğer true ise null yap, değilse true yap
+                      errorMessage = null;
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.black,
+                  ),
+                  label: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Text('Kredi Kartı',
+                        style: TextStyle(color: Colors.black)),
+                  )),
+              const SizedBox(width: 4),
+              OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                      backgroundColor:
+                          isCredit == false ? Colors.green : Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4))),
+                  onPressed: () {
+                    setState(() {
+                      isCredit = isCredit == false
+                          ? null
+                          : false; // Eğer true ise null yap, değilse true yap
+                      errorMessage = null;
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.black,
+                  ),
+                  label: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    child: Text('Nakit', style: TextStyle(color: Colors.black)),
+                  )),
+            ],
+          )
+        ],
       ),
       content: Container(
         decoration: BoxDecoration(
@@ -232,13 +289,25 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                                               style:
                                                   const TextStyle(fontSize: 16),
                                             ),
-                                            IconButton(
-                                              icon: const Icon(
-                                                  Icons.remove_circle_outline),
-                                              onPressed: () {
-                                                _moveItemToLeftList(index);
-                                              },
-                                            ),
+                                            item.isCredit != null
+                                                ? const Padding(
+                                                    padding: EdgeInsets.only(
+                                                        left: 4),
+                                                    child: Text(
+                                                      'Ödendi',
+                                                      style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.green),
+                                                    ),
+                                                  )
+                                                : IconButton(
+                                                    icon: const Icon(Icons
+                                                        .remove_circle_outline),
+                                                    onPressed: () {
+                                                      _moveItemToLeftList(
+                                                          index);
+                                                    },
+                                                  ),
                                           ],
                                         ),
                                       ),
@@ -317,6 +386,16 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
               ),
       ),
       actions: <Widget>[
+        if (errorMessage != null) // Eğer bir hata mesajı varsa göster
+          Text(
+            errorMessage!,
+            style: TextStyle(
+              color: errorMessage == 'Lütfen ödeme yöntemi seçin.'
+                  ? Colors.red
+                  : Colors.green,
+              fontSize: 16,
+            ),
+          ),
         TextButton(
           style: TextButton.styleFrom(
               shape: RoundedRectangleBorder(
@@ -355,8 +434,17 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
 
   /// `ÖDE` butonuna basıldığında sağ listedeki ürünlerin `status` alanını `ödendi` olarak günceller
   Future<void> _onPayPressed(BuildContext context) async {
-        ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
+    ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
     if (isSaving) return; // Eğer zaten kaydediliyorsa işlemi durdur.
+    if (isCredit == null) {
+      // Hata mesajını ayarla
+      setState(() {
+        errorMessage = 'Lütfen ödeme yöntemi seçin.';
+      });
+      ref.read(loadingProvider.notifier).setLoading(false);
+
+      return; // Tüm işlemi durdur
+    }
 
     setState(() {
       isSaving = true; // Kaydetme işlemi başladı
@@ -366,7 +454,9 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
 
     // Sağ liste (rightList) içerisindeki her bir öğeyi güncelle
     for (var item in rightList) {
-      final updatedItem = item.copyWith(status: 'ödendi');
+      final updatedItem = item.isCredit == null
+          ? item.copyWith(status: 'ödendi', isCredit: isCredit)
+          : item.copyWith(status: 'ödendi');
       await tablesNotifier.updateBillItemStatus(widget.tableId, updatedItem);
     }
     // Sol listeyi kaydetmeden önce işlem tamamlanana kadar bekle
@@ -386,7 +476,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
         isSaving = false; // Kaydetme işlemi tamamlandı
       });
       // İşlem tamamlandıktan sonra dialog kapatılabilir
-          ref.read(loadingProvider.notifier).setLoading(false); // isLoading set
+      ref.read(loadingProvider.notifier).setLoading(false); // isLoading set
       Navigator.of(context).pop(true);
     }
   }
@@ -404,9 +494,8 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
         leftList.removeAt(index); // Sadece geçerli bir index varsa çıkar
         rightList.add(item.copyWith(
             status: 'ödendi')); // Sağ listeye ekle ve statüyü güncelle
+        _calculateAmounts(); // Tutarları yeniden hesaplayın
       });
-      await _updateItemStatus(item); // Statü güncellemesini bekleyin
-      _calculateAmounts(); // Tutarları yeniden hesaplayın
     }
   }
 
@@ -419,9 +508,8 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
       setState(() {
         rightList.removeAt(index); // Sadece geçerli bir index varsa çıkar
         leftList.add(updatedItem); // Sol listeye ekle ve statüyü güncelle
+        _calculateAmounts(); // Tutarları yeniden hesaplayın
       });
-      await _updateItemStatus(updatedItem); // Statü güncellemesini bekleyin
-      _calculateAmounts(); // Tutarları yeniden hesaplayın
     }
   }
 }

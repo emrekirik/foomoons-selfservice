@@ -164,7 +164,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                   ),
                 if (_selectedOrderType == 'Geçmiş Siparişler')
                   _buildOrderColumn(context, 'Geçmiş Siparişler', pastOrders,
-                      'teslim edildi', menus, 'hazır'),
+                      '', menus, 'hazır'),
               ],
             ),
           ),
@@ -215,53 +215,48 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                                   menuItem?.preparationTime ??
                                   60;
 
-                          return Card(
-                            color: Colors.white,
-                            elevation: 0,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 16),
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  // final isLargeScreen = constraints.maxWidth > 200;
-                                  return SingleChildScrollView(
-                                    child: isLoading
-                                        ? const SizedBox()
-                                        : Column(
-                                            children: [
-                                              Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                // direction: isLargeScreen
-                                                //     ? Axis.horizontal
-                                                //     : Axis.vertical,
-                                                // spacing: 8.0,
-                                                // runSpacing: 4.0,
-                                                children: [
-                                                  _buildOrderDetail(
-                                                      item.title ?? ''),
-                                                  _buildOrderDetail(
-                                                      '${item.piece} adet'),
-                                                  status == 'hazır'
-                                                      ? const SizedBox()
-                                                      : _buildOrderDetailWithTime(
-                                                          effectivePreparationTime),
-                                                  _buildOrderDetail(item
-                                                              .tableId !=
-                                                          null
-                                                      ? 'Masa ${item.tableId}'
-                                                      : 'Masa bilgisi bilinmiyor.'),
-                                                  _buildActionButtons(
-                                                      item, nextStatus, status),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                  );
-                                },
-                              ),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                // final isLargeScreen = constraints.maxWidth > 200;
+                                return SingleChildScrollView(
+                                  child: isLoading
+                                      ? const SizedBox()
+                                      : Column(
+                                          children: [
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              // direction: isLargeScreen
+                                              //     ? Axis.horizontal
+                                              //     : Axis.vertical,
+                                              // spacing: 8.0,
+                                              // runSpacing: 4.0,
+                                              children: [
+                                                _buildOrderDetail(
+                                                    item.title ?? ''),
+                                                _buildOrderDetail(
+                                                    '${item.piece} adet'),
+                                                status == 'hazır'
+                                                    ? const SizedBox()
+                                                    : _buildOrderDetailWithTime(
+                                                        effectivePreparationTime),
+                                                _buildOrderDetail(item
+                                                            .tableId !=
+                                                        null
+                                                    ? 'Masa ${item.tableId}'
+                                                    : 'Masa bilgisi bilinmiyor.'),
+                                                _buildActionButtons(
+                                                    item, nextStatus, status),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                );
+                              },
                             ),
                           );
                         },
@@ -350,7 +345,8 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                                 .read(_adminProvider.notifier)
                                 .updateOrderStatus(item.id!, nextStatus);
                             // İşlem tamamlandıktan sonra kısa bir gecikme ekle
-                            await Future.delayed(Duration(milliseconds: 500));
+                            await Future.delayed(
+                                const Duration(milliseconds: 500));
                           } finally {
                             setState(() {
                               isProcessing = false;
@@ -358,7 +354,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                           }
                         },
                   child: const Text(
-                    'Tamamlandı',
+                    'Hazır',
                     style: TextStyle(color: Colors.green, fontSize: 12),
                   ),
                 )

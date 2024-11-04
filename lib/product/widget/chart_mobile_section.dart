@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class ChartMobileSection extends StatefulWidget {
@@ -18,6 +19,7 @@ class ChartMobileSection extends StatefulWidget {
 
 class _ChartMobileSectionState extends State<ChartMobileSection> {
   late String dropdownValue;
+  int touchedIndex = -1;
 
   @override
   void initState() {
@@ -81,118 +83,122 @@ class _ChartMobileSectionState extends State<ChartMobileSection> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        // SizedBox(
-        //   height: 200, // Grafik yüksekliği
-        //   child: LineChart(
-        //     LineChartData(
-        //       gridData: FlGridData(
-        //         show: true,
-        //         drawVerticalLine: true,
-        //         horizontalInterval: 1,
-        //         verticalInterval: 1,
-        //         getDrawingHorizontalLine: (value) {
-        //           return const FlLine(
-        //             color: Color(0xff37434d),
-        //             strokeWidth: 1,
-        //           );
-        //         },
-        //         getDrawingVerticalLine: (value) {
-        //           return const FlLine(
-        //             color: Color(0xff37434d),
-        //             strokeWidth: 1,
-        //           );
-        //         },
-        //       ),
-        //       titlesData: FlTitlesData(
-        //         bottomTitles: AxisTitles(
-        //           sideTitles: SideTitles(
-        //             showTitles: true,
-        //             getTitlesWidget: (value, meta) {
-        //               final index = value.toInt();
-        //               final dates = widget.dailySales.keys.toList();
-        //               if (index < dates.length) {
-        //                 final date = DateTime.parse(dates[index]);
-        //                 return Text('${date.day}/${date.month}');
-        //               }
-        //               return const Text('');
-        //             },
-        //             interval: 1,
-        //             reservedSize: 30,
-        //           ),
-        //         ),
-        //         leftTitles: AxisTitles(
-        //           sideTitles: SideTitles(
-        //             showTitles: true,
-        //             getTitlesWidget: (value, meta) {
-        //               // Sadece belirli aralıklarla başlık gösterin
-        //               if (value % 100 == 0) {
-        //                 return Text('${value.toInt()}',
-        //                     style: const TextStyle(fontSize: 10));
-        //               }
-        //               return const Text(''); // Diğer durumlarda başlık gösterme
-        //             },
-        //             interval: 200, // 100 birimlik aralıklarla başlıkları göster
-        //             reservedSize: 32, // Kenarda daha az boşluk bırakın
-        //           ),
-        //         ),
-        //         topTitles: const AxisTitles(
-        //           sideTitles: SideTitles(showTitles: false),
-        //         ),
-        //         rightTitles: const AxisTitles(
-        //           sideTitles: SideTitles(showTitles: false),
-        //         ),
-        //       ),
-        //       borderData: FlBorderData(
-        //         show: true,
-        //         border: Border.all(color: const Color(0xff37434d)),
-        //       ),
-        //       minX: 0,
-        //       maxX: (widget.dailySales.isNotEmpty
-        //               ? widget.dailySales.length - 1
-        //               : 1)
-        //           .toDouble(),
-        //       minY: 0,
-        //       maxY: widget.dailySales.isNotEmpty
-        //           ? widget.dailySales.values
-        //               .reduce((a, b) => a > b ? a : b)
-        //               .toDouble()
-        //           : 6, // Varsayılan maxY değeri
-        //       lineBarsData: [
-        //         LineChartBarData(
-        //           spots: widget.dailySales.isNotEmpty
-        //               ? widget.dailySales.entries
-        //                   .toList()
-        //                   .asMap()
-        //                   .entries
-        //                   .map((entry) {
-        //                   final index = entry.key.toDouble();
-        //                   final value = entry.value.value.toDouble();
-        //                   return FlSpot(index, value);
-        //                 }).toList()
-        //               : [
-        //                   FlSpot(0, 0)
-        //                 ], // Eğer `dailySales` boşsa varsayılan bir nokta
-        //           isCurved: true,
-        //           gradient: LinearGradient(
-        //             colors: [Colors.blue.withOpacity(0.5), Colors.blueAccent],
-        //           ),
-        //           barWidth: 3,
-        //           isStrokeCapRound: true,
-        //           belowBarData: BarAreaData(
-        //             show: true,
-        //             gradient: LinearGradient(
-        //               colors: [
-        //                 Colors.blue.withOpacity(0.2),
-        //                 Colors.blue.withOpacity(0.1),
-        //               ],
-        //             ),
-        //           ),
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
+        SizedBox(
+          height: 400,
+          child: Padding(
+            padding: const EdgeInsets.symmetric( vertical: 20),
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: widget.dailySales.values.isNotEmpty
+                    ? widget.dailySales.values.reduce((a, b) => a > b ? a : b) *
+                        1.2
+                    : 100,
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchTooltipData: BarTouchTooltipData(
+                    tooltipRoundedRadius: 8,
+                    tooltipPadding: const EdgeInsets.all(8),
+                    tooltipMargin: 8,
+                    fitInsideHorizontally: true,
+                    fitInsideVertically: true,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      final day = widget.dailySales.keys.elementAt(groupIndex);
+                      final price = widget.dailySales[day];
+                      return BarTooltipItem(
+                        '$day\n',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '$price₺',
+                            style: const TextStyle(
+                              color: Colors.yellowAccent,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  touchCallback: (FlTouchEvent event, barTouchResponse) {
+                    setState(() {
+                      if (!event.isInterestedForInteractions ||
+                          barTouchResponse == null ||
+                          barTouchResponse.spot == null) {
+                        touchedIndex = -1;
+                        return;
+                      }
+                      touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex;
+                    });
+                  },
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  rightTitles:
+                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles:
+                      const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        final days = [
+                          "Pzt",
+                          "Sal",
+                          "Çrş",
+                          "Prş",
+                          "Cum",
+                          "Cmt",
+                          "Paz"
+                        ];
+                        return Text(days[value.toInt()]);
+                      },
+                      reservedSize: 28,
+                    ),
+                  ),
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                    ),
+                  ),
+                ),
+                borderData: FlBorderData(
+                  show: false,
+                ),
+                barGroups: List.generate(
+                  widget.dailySales.entries.length,
+                  (index) {
+                    final entry = widget.dailySales.entries.elementAt(index);
+                    return BarChartGroupData(
+                      x: index,
+                      barRods: [
+                        BarChartRodData(
+                          
+                          toY: entry.value.toDouble(),
+                          color: touchedIndex == index
+                              ? Colors.redAccent
+                              : Colors.blue,
+                          width: 32,
+                          borderSide: touchedIndex == index
+                              ? const BorderSide(
+                                  color: Colors.redAccent,
+                                  width: 4,
+                                )
+                              : const BorderSide(width: 0),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

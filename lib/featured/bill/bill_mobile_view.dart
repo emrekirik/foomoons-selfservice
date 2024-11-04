@@ -259,76 +259,71 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                                   ],
                                 ),
                               ),
-                              Container(
-                                height: 520,
-                                color:
-                                    ColorConstants.tablePageBackgroundColor,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: GridView.builder(
-                                    itemCount: filteredItems.length,
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount:
-                                          (constraints.maxWidth / 160)
-                                              .floor(),
-                                      crossAxisSpacing: 10,
-                                      mainAxisSpacing: 10,
-                                      childAspectRatio: 1.6,
-                                    ),
-                                    itemBuilder:
-                                        (BuildContext context, int index) {
-                                      final item = filteredItems[index];
-                                      return isLoading
-                                          ? const SizedBox()
-                                          : InkWell(
-                                              onTap: () {
-                                                // Ürün seçimi işlemi
-                                                // Ürünü masanın adisyonuna ekle
-                                                tablesNotifier
-                                                    .addItemToBill(
-                                                        widget.tableId,
-                                                        item);
-                                              },
-                                              child: Card(
-                                                  color: Colors.white,
-                                                  shape:
-                                                      RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius
-                                                            .circular(15),
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets
-                                                            .symmetric(
-                                                            horizontal: 10),
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceAround,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                            item.title ??
-                                                                '',
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 16,
-                                                            )),
-                                                        Text(
-                                                            '₺${item.price}',
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize: 16,
-                                                            )),
-                                                      ],
+                              Expanded(
+                                child: Container(
+                                  color:
+                                      ColorConstants.tablePageBackgroundColor,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: GridView.builder(
+                                      itemCount: filteredItems.length,
+                                      gridDelegate:
+                                          SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount:
+                                            (constraints.maxWidth / 160)
+                                                .floor(),
+                                        crossAxisSpacing: 10,
+                                        mainAxisSpacing: 10,
+                                        childAspectRatio: 1.6,
+                                      ),
+                                      itemBuilder:
+                                          (BuildContext context, int index) {
+                                        final item = filteredItems[index];
+                                        return isLoading
+                                            ? const SizedBox()
+                                            : InkWell(
+                                                onTap: () {
+                                                  // Ürün seçimi işlemi
+                                                  // Ürünü masanın adisyonuna ekle
+                                                  tablesNotifier.addItemToBill(
+                                                      widget.tableId, item);
+                                                },
+                                                child: Card(
+                                                    color: Colors.white,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15),
                                                     ),
-                                                  )),
-                                            );
-                                    },
+                                                    child: Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 10),
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceAround,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(item.title ?? '',
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 16,
+                                                              )),
+                                                          Text('₺${item.price}',
+                                                              style:
+                                                                  const TextStyle(
+                                                                fontSize: 16,
+                                                              )),
+                                                        ],
+                                                      ),
+                                                    )),
+                                              );
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),

@@ -43,8 +43,8 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             child: sizeWidth < 1200
                 ? gridAnalysisCard(reportsState, sizeWidth, employees,
                     constraints, yourDailSalesData)
-                : reportsContent(reportsState, sizeWidth, employees,
-                    constraints, yourDailSalesData));
+                : reportsContent(
+                    reportsState, sizeWidth, constraints, yourDailSalesData));
       },
     );
   }
@@ -63,10 +63,10 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               AnalysisCard(
-                assetImage: 'assets/images/coffee_icon.png',
+                assetImage: 'assets/images/cash.png',
                 cardSubtitle: selectedPeriod,
-                cardPiece: reportsState.totalProduct.toString(),
-                cardTitle: 'Toplam Ürün',
+                cardPiece: '${reportsState.totalCash}₺',
+                cardTitle: 'Nakit Ödeme',
                 subTitleIcon: const Icon(Icons.graphic_eq),
               ),
               SizedBox(
@@ -74,8 +74,8 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
               ),
               AnalysisCard(
                   cardTitle: 'Toplam Hasılat',
-                  assetImage: selectedPeriod,
-                  cardSubtitle: '26% (son 30 gün)',
+                  assetImage: 'assets/images/dolar_icon.png',
+                  cardSubtitle: selectedPeriod,
                   subTitleIcon: const Icon(Icons.graphic_eq),
                   cardPiece: reportsState.totalRevenues.toString()),
             ],
@@ -98,10 +98,10 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                   width: sizeWidth * 0.015,
                 ),
                 AnalysisCard(
-                  assetImage: 'assets/images/customer_icon.png',
+                  assetImage: 'assets/images/credit.png',
                   cardSubtitle: selectedPeriod,
-                  cardPiece: '65',
-                  cardTitle: 'Toplam Müşteri',
+                  cardPiece: '${reportsState.totalCredit}₺',
+                  cardTitle: 'Kredi ile Ödeme',
                   subTitleIcon: const Icon(Icons.graphic_eq),
                 ),
               ],
@@ -126,7 +126,6 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               PersonSection(
-                employees: employees,
                 constraints: constraints,
               ),
               const SizedBox(
@@ -149,12 +148,8 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
     );
   }
 
-  Column reportsContent(
-      ReportsState reportsState,
-      double sizeWidth,
-      List<Map<String, dynamic>> employees,
-      BoxConstraints constraints,
-      Map<String, int> dailySales) {
+  Column reportsContent(ReportsState reportsState, double sizeWidth,
+      BoxConstraints constraints, Map<String, int> dailySales) {
     return Column(
       children: [
         Expanded(
@@ -163,21 +158,21 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               AnalysisCard(
-                assetImage: 'assets/images/coffee_icon.png',
+                assetImage: 'assets/images/cash.png',
                 cardSubtitle: selectedPeriod,
-                cardPiece: reportsState.totalProduct.toString(),
-                cardTitle: 'Toplam Ürün',
+                cardPiece: '${reportsState.totalCash}₺',
+                cardTitle: 'Nakit Ödeme',
                 subTitleIcon: const Icon(Icons.graphic_eq),
               ),
               SizedBox(
                 width: sizeWidth * 0.015,
               ),
               AnalysisCard(
-                  cardTitle: 'Toplam Hasılat',
+                  cardTitle: 'Hasılat',
                   assetImage: 'assets/images/dolar_icon.png',
                   cardSubtitle: selectedPeriod,
                   subTitleIcon: const Icon(Icons.graphic_eq),
-                  cardPiece: reportsState.totalRevenues.toString()),
+                  cardPiece: '${reportsState.totalRevenues}₺'),
               SizedBox(
                 width: sizeWidth * 0.015,
               ),
@@ -185,17 +180,17 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                 assetImage: 'assets/images/order_icon.png',
                 cardSubtitle: selectedPeriod,
                 cardPiece: reportsState.totalOrder.toString(),
-                cardTitle: 'Toplam Sipariş',
+                cardTitle: 'Sipariş',
                 subTitleIcon: const Icon(Icons.graphic_eq),
               ),
               SizedBox(
                 width: sizeWidth * 0.015,
               ),
               AnalysisCard(
-                assetImage: 'assets/images/customer_icon.png',
+                assetImage: 'assets/images/credit.png',
                 cardSubtitle: selectedPeriod,
-                cardPiece: '65',
-                cardTitle: 'Toplam Müşteri',
+                cardPiece: '${reportsState.totalCredit}₺',
+                cardTitle: 'Kredi ile Ödeme',
                 subTitleIcon: const Icon(Icons.graphic_eq),
               ),
             ],
@@ -209,7 +204,6 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
             children: [
               PersonSection(
                 constraints: constraints,
-                employees: employees,
               ),
               const SizedBox(
                 width: 20,

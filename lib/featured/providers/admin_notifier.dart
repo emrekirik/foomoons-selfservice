@@ -140,15 +140,19 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
             final String uniqueItemId = uuid.v4();
 
             // Siparişten bir Menu öğesi oluştur ve adisyona ekle
-            final menuItem = Menu(
-              title: order.title,
-              price: order.price,
-              preparationTime: order.preperationTime,
-              id: uniqueItemId,
-              status: order.status,
-              piece: order.piece ?? 1,
-            );
-            currentBillItems.add(menuItem);
+            // Siparişten her adet için bir Menu öğesi oluştur ve adisyona ekle
+            for (int i = 0; i < (order.piece ?? 1); i++) {
+              final String uniqueItemId = uuid.v4();
+              final menuItem = Menu(
+                title: order.title,
+                price: order.price,
+                preparationTime: order.preperationTime,
+                id: uniqueItemId,
+                status: order.status,
+                piece: 1, // Tek bir adet ekleniyor
+              );
+              currentBillItems.add(menuItem);
+            }
 
             // Bills koleksiyonundaki ilgili belgeyi güncelle
             await billDocument.set({
@@ -173,30 +177,27 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
     state = state.copyWith(selectedValue: value);
   }
 
-
-void playNotificationSound() {
-  final audio = html.AudioElement('assets/sounds/notification.mp3');
-  audio.play();
-}
-
-void showOrderAlert() {
-  final context = _ref.read(navigatorKeyProvider).currentContext;
-  if (context != null) {
-    playNotificationSound();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Yeni bir sipariş var.'),
-        action: SnackBarAction(
-          label: 'Tamam',
-          onPressed: () {},
-        ),
-      ),
-    );
+  void playNotificationSound() {
+    final audio = html.AudioElement('assets/assets/sounds/notification.mp3');
+    audio.play();
   }
-}
 
-  
+  void showOrderAlert() {
+    final context = _ref.read(navigatorKeyProvider).currentContext;
+    if (context != null) {
+      playNotificationSound();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Yeni bir sipariş var.'),
+          action: SnackBarAction(
+            label: 'Tamam',
+            onPressed: () {},
+          ),
+        ),
+      );
+    }
+  }
 
 //   void startCentralCountdown() {
 //     _centralTimer?.cancel();

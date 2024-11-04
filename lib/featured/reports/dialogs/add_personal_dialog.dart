@@ -7,8 +7,6 @@ Future<dynamic> addPersonalDialog(
   final TextEditingController profileImageController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController positionController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
 
   User? currentUser = FirebaseAuth.instance.currentUser;
 
@@ -33,16 +31,6 @@ Future<dynamic> addPersonalDialog(
                 controller: positionController,
                 decoration: const InputDecoration(labelText: 'Ünvan'),
               ),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Mail'),
-              ),
-              TextField(
-                controller: passwordController,
-                decoration: const InputDecoration(labelText: 'Şifre'),
-                obscureText: true,
-              ),
             ],
           ),
         ),
@@ -55,16 +43,22 @@ Future<dynamic> addPersonalDialog(
           ),
           ElevatedButton(
             onPressed: () async {
-              // Firebase'e çalışan kaydetme işlemi
+              // Girdilerin doğrulaması
+              if (nameController.text.isEmpty ||
+                  positionController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Lütfen tüm alanları doldurun')),
+                );
+                return; // İşlemi durdur
+              }
               try {
                 await reportsNotifier.createEmployee(
-                  email: emailController.text,
-                  password: passwordController.text,
                   name: nameController.text,
                   position: positionController.text,
                   profileImage: profileImageController.text,
                   cafeId: currentUser!.uid,
                 );
+
                 Navigator.of(context).pop();
               } catch (e) {
                 print('Error: $e');

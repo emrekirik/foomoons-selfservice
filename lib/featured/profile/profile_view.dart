@@ -72,7 +72,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ColorConstants.appbackgroundColor.withOpacity(0.15),
             body: Center(
               child: AspectRatio(
-                aspectRatio: 16 / 20,
+                aspectRatio: 22 / 20,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
