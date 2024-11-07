@@ -1,8 +1,10 @@
 import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart' as menu;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 final _adminProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
   return AdminNotifier(ref);
@@ -64,7 +66,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
               'hazırlanıyor',
             ),
             const SizedBox(width: 16),
-            _buildOrderColumn(context, 'Geçmiş Siparişler', pastOrders,
+            _buildOrderColumn(context, 'Online Geçmiş Siparişler', pastOrders,
                 'teslim edildi', menus, 'hazır'),
           ],
         ),
@@ -180,8 +182,13 @@ class _AdminViewState extends ConsumerState<AdminView> {
                                                             null
                                                         ? '${item.tableId}'
                                                         : 'Masa bilgisi bilinmiyor.'),
-                                                    _buildActionButtons(item,
-                                                        nextStatus, status),
+                                                    status == 'hazırlanıyor' || status == 'yeni'
+                                                        ? _buildActionButtons(
+                                                            item,
+                                                            nextStatus,
+                                                            status)
+                                                        : Text(formatTimestamp(
+                                                            item.orderDate))
                                                   ],
                                                 ),
                                               ],
@@ -238,8 +245,13 @@ class _AdminViewState extends ConsumerState<AdminView> {
           status != 'yeni'
               ? const SizedBox()
               : IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  side: const BorderSide(color: Colors.green, width: 2,)
+                ),
                   icon: const Icon(
                     Icons.check,
+                    color: Colors.white,
                     size: 17,
                   ),
                   onPressed: isProcessing == true
@@ -264,9 +276,14 @@ class _AdminViewState extends ConsumerState<AdminView> {
           status != 'yeni'
               ? const SizedBox()
               : IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red, width: 2)
+                ),
                   icon: const Icon(
                     Icons.close,
                     size: 17,
+                    color: Colors.white,
                   ),
                   onPressed: () {
                     if (item.id != null) {
@@ -292,7 +309,7 @@ class _AdminViewState extends ConsumerState<AdminView> {
                           });
                         },
                   child: const Text(
-                    'Tamamlandı',
+                    'Teslim Et',
                     style: TextStyle(color: Colors.green, fontSize: 12),
                   ),
                 )
@@ -301,4 +318,10 @@ class _AdminViewState extends ConsumerState<AdminView> {
       ),
     );
   }
+}
+
+String formatTimestamp(Timestamp timestamp) {
+  DateTime dateTime = timestamp.toDate(); // Timestamp'i DateTime'a çevir
+  return DateFormat('dd/MM/yyyy HH:mm')
+      .format(dateTime); // İstediğiniz formata çevir
 }
