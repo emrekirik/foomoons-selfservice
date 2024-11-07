@@ -57,6 +57,16 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
             .fromFirebase(doc as DocumentSnapshot<Map<String, dynamic>>);
       }).toList();
 
+      // En yeni tarihe göre (azalan) sıralama yapıyoruz
+      values.sort((a, b) {
+        final dateA = a.orderDate;
+        final dateB = b.orderDate;
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1; // `null` tarihleri sona yerleştir
+        if (dateB == null) return -1;
+        return dateB.compareTo(dateA); // Tarihe göre azalan sıralama yap
+      });
+
       if (!_isFirstLoad) {
         if (values.length > _previousOrders.length) {
           showOrderAlert();

@@ -1,5 +1,6 @@
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/utility/base/base_firebase_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +14,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
   final String? tableId;
   final String? status;
   final String? productId;
+  final Timestamp? orderDate; // Yeni alan eklendi
 
   @override
   final String? id;
@@ -27,6 +29,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
     this.tableId,
     this.status = 'yeni',
     this.productId,
+    this.orderDate, // Constructor'a eklendi
   });
 
   @override
@@ -40,9 +43,9 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
         tableId,
         status,
         productId,
+        orderDate, // Eşitlik kontrolüne eklendi
       ];
 
-  /// Eşitlik operatörünü manuel olarak override ediyoruz
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -56,10 +59,10 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
         other.preperationTime == preperationTime &&
         other.tableId == tableId &&
         other.status == status &&
-        other.productId == productId;
+        other.productId == productId &&
+        other.orderDate == orderDate; // orderDate eklendi
   }
 
-  /// hashCode fonksiyonunu manuel olarak override ediyoruz
   @override
   int get hashCode {
     return title.hashCode ^
@@ -70,7 +73,8 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
         preperationTime.hashCode ^
         tableId.hashCode ^
         status.hashCode ^
-        productId.hashCode;
+        productId.hashCode ^
+        orderDate.hashCode; // hashCode'a eklendi
   }
 
   Order copyWith({
@@ -83,6 +87,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
     String? status,
     Menu? menu,
     String? productId,
+    Timestamp? orderDate, // copyWith metoduna eklendi
   }) {
     return Order(
       title: title ?? this.title,
@@ -94,6 +99,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       status: status ?? this.status,
       id: id,
       productId: productId ?? this.productId,
+      orderDate: orderDate ?? this.orderDate, // Yeni alan için güncellendi
     );
   }
 
@@ -107,6 +113,7 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       'tableId': tableId,
       'status': status,
       'productId': productId,
+      'orderDate': orderDate, // JSON’a eklendi
     };
   }
 
@@ -124,6 +131,9 @@ class Order with EquatableMixin, BaseFirebaseModel<Order>, IdModel {
       status: json['status'] as String?,
       id: json['id'] as String?,
       productId: json['productId'] as String?,
+      orderDate: json['orderDate'] != null
+          ? (json['orderDate'] as Timestamp)
+          : null, // JSON’dan alındı
     );
   }
 }

@@ -43,9 +43,9 @@ class MyApp extends ConsumerWidget {
 //masalar kısmında bilgileri göster : yapıldı
 //menü ekleme sayfasının tasarımını düzelt : yapıldı
 //masa id'sini string yap ve aynı masa ismi girilmesini engelle, bide bölüm ekleme : yapıldı
+//Panel'de ürün ekleme sayfasının ui'ını yap : yapıldı 
+//kart nakit seçeneklerini ekle : yapıldı
+// personel eklemeyi düzelt : yapıldı
 
-//Panel'de ürün ekleme sayfasının ui'ını yap : yapıldı küçük eksiklikler var
 //Iyzico'yu entegre et
-// personel eklemeyi düzelt
-//kart nakit seçeneklerini ekle b
 //stok sayfasının tasarımını düzelt
