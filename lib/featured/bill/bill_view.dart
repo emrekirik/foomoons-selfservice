@@ -158,7 +158,6 @@ class _BillViewState extends ConsumerState<BillView> {
                                         offset: const Offset(0, 4),
                                       ),
                                     ]),
-                                height: 68,
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -188,7 +187,8 @@ class _BillViewState extends ConsumerState<BillView> {
                                             controller: searchContoller,
                                             decoration: InputDecoration(
                                               hintText: 'Ara...',
-                                              prefixIcon: Icon(Icons.search),
+                                              prefixIcon:
+                                                  const Icon(Icons.search),
                                               border: OutlineInputBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(12),
@@ -204,58 +204,67 @@ class _BillViewState extends ConsumerState<BillView> {
                                         ),
                                       ),
                                     Expanded(
-                                      child: searchQuery.isNotEmpty
-                                          ? const SizedBox()
-                                          : ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemBuilder: (context, index) {
-                                                final category =
-                                                    categories[index];
-
-                                                return Container(
-                                                  width: 180,
-                                                  decoration: BoxDecoration(
-                                                    border: Border(
-                                                      left: const BorderSide(
-                                                          color: Colors.black12,
-                                                          width: 1),
-                                                      bottom: BorderSide(
-                                                        color: selectedCategory ==
-                                                                category.name
+                                        child: isSearchBarVisible
+                                            ? const SizedBox()
+                                            : Wrap(
+                                                children:
+                                                    categories.map((category) {
+                                                  final isSelected =
+                                                      selectedCategory ==
+                                                          category.name;
+                                                  double itemWidth =
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width /
+                                                          10; // 4 sütun
+                                                  return Container(
+                                                    width: itemWidth,
+                                                    height: 60,
+                                                    decoration: BoxDecoration(
+                                                      color: isSelected
+                                                          ? Colors.orange
+                                                          : Colors.white,
+                                                      border: Border.all(
+                                                        color: isSelected
                                                             ? Colors.orange
-                                                            : Colors
-                                                                .transparent, // Seçili kategori altına çizgi ekle
-                                                        width:
-                                                            5, // Çizginin kalınlığı
+                                                            : Colors.black12,
+                                                        width: 1,
                                                       ),
                                                     ),
-                                                  ),
-                                                  child: Material(
-                                                    color: Colors.white,
-                                                    child: InkWell(
-                                                      splashColor: Colors.orange
-                                                          .withOpacity(0.6),
-                                                      onTap: () {
-                                                        menuNotifier
-                                                            .selectCategory(
-                                                                category.name);
-                                                      },
-                                                      child: Center(
-                                                        child: Text(
-                                                          category.name ?? '',
-                                                          style: const TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
+                                                    child: Material(
+                                                      color: isSelected
+                                                          ? Colors.orange
+                                                          : Colors.white,
+                                                      child: InkWell(
+                                                        splashColor: Colors
+                                                            .orange
+                                                            .withOpacity(0.6),
+                                                        onTap: () {
+                                                          menuNotifier
+                                                              .selectCategory(
+                                                                  category
+                                                                      .name);
+                                                        },
+                                                        child: Center(
+                                                          child: Text(
+                                                            category.name ?? '',
+                                                            style: TextStyle(
+                                                                color: isSelected
+                                                                    ? Colors
+                                                                        .white
+                                                                    : Colors
+                                                                        .black,
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
-                                                );
-                                              },
-                                              itemCount: categories.length),
-                                    ),
+                                                  );
+                                                }).toList(),
+                                              )),
                                   ],
                                 ),
                               ),

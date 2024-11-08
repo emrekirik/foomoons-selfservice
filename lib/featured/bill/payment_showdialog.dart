@@ -36,9 +36,11 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
   double totalAmount = 0; // Toplam tutar
   double paidAmount = 0; // Ödenen tutar
   double remainingAmount = 0; // Kalan tutar
+  double inputAmount = 0;
   bool isSaving = false;
   bool? isCredit;
   String? errorMessage;
+  String selectedPaymentType = 'product';
 
   @override
   void initState() {
@@ -87,6 +89,21 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
     remainingAmount = totalAmount - paidAmount;
   }
 
+  /// Kullanıcının girdiği tutarı ürünlere uygulayarak statü güncellemesi yapar
+  void _updateItemStatusForPartialPayment(double payment) {
+    for (var item in leftList) {
+      num itemTotal = (item.price ?? 0) * (item.piece ?? 1);
+      if (payment >= itemTotal) {
+        item = item.copyWith(status: 'ödendi');
+        payment -= itemTotal;
+        rightList.add(item);
+      } else {
+        break;
+      }
+    }
+    leftList.removeWhere((item) => item.status == 'ödendi');
+  }
+
   @override
   Widget build(BuildContext context) {
     double deviceWidth = MediaQuery.of(context).size.width;
@@ -117,6 +134,39 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
               ),
             ],
           ),
+          // DropdownButton<String>(
+          //   dropdownColor: Colors.white,
+          //   value: selectedPaymentType,
+          //   items: const [
+          //     DropdownMenuItem(value: 'amount', child: Text('Tutar Bazlı')),
+          //     DropdownMenuItem(value: 'product', child: Text('Ürün Bazlı')),
+          //   ],
+          //   onChanged: (value) {
+          //     setState(() {
+          //       selectedPaymentType = value!;
+          //     });
+          //   },
+          // ),
+          // if (selectedPaymentType == 'amount')
+          //   SizedBox(
+          //     height: 60,
+          //     width: 120,
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(8.0),
+          //       child: TextField(
+          //         decoration: const InputDecoration(
+          //           labelText: 'Ödeme Tutarı',
+          //           border: OutlineInputBorder(),
+          //         ),
+          //         keyboardType: TextInputType.number,
+          //         onChanged: (value) {
+          //           setState(() {
+          //             inputAmount = double.tryParse(value) ?? 0;
+          //           });
+          //         },
+          //       ),
+          //     ),
+          //   ),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -210,7 +260,9 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                                           .transparent, // İmleç üzerinde iken gölge çıkmasını engeller
 
                                       onTap: () {
-                                        _moveItemToRightList(index);
+                                        if (selectedPaymentType == 'product') {
+                                          _moveItemToRightList(index);
+                                        }
                                       },
                                       title: Text(item.title ?? ''),
                                       subtitle: Column(
