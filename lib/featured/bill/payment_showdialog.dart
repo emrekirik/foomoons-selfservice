@@ -1,3 +1,4 @@
+import 'package:altmisdokuzapp/featured/bill/custom_numpad.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
@@ -32,22 +33,25 @@ class _PaymentPage extends ConsumerStatefulWidget {
 class _PaymentPageState extends ConsumerState<_PaymentPage> {
   late List<Menu> leftList; // Sol listede yer alan ürünler
   late List<Menu> rightList; // Sağ listede yer alan ürünler
+  Set<int> selectedIndexes = {};
+  Set<int> saveIndexes = {};
   bool isLoading = true;
   double totalAmount = 0; // Toplam tutar
   double paidAmount = 0; // Ödenen tutar
   double remainingAmount = 0; // Kalan tutar
-  double inputAmount = 0;
+  int inputAmount = 0;
   bool isSaving = false;
   bool? isCredit;
   String? errorMessage;
   String selectedPaymentType = 'product';
+  late TextEditingController inputController;
 
   @override
   void initState() {
     super.initState();
     leftList = []; // Başlangıçta sol listeyi boş olarak tanımla
     rightList = []; // Başlangıçta sağ listeyi boş olarak tanımla
-
+    inputController = TextEditingController();
     // Tabloya ait adisyon verilerini yükleyin ve sol listeye ekleyin.
     Future.microtask(() async {
       await ref.read(_tablesProvider.notifier).fetchTableBill(widget.tableId);
@@ -73,35 +77,10 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
     });
   }
 
-  /// Toplam tutar, ödenen tutar ve kalan tutarı hesaplar
-  void _calculateAmounts() {
-    // Toplam tutarı hesapla (leftList ve rightList'in toplamı, adet ile çarpılarak)
-    totalAmount = leftList.fold<double>(
-            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1))) +
-        rightList.fold<double>(
-            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
-
-    // Ödenen tutarı hesapla (rightList'in toplamı, adet ile çarpılarak)
-    paidAmount = rightList.fold<double>(
-        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
-
-    // Kalan tutarı hesapla (toplam tutar - ödenen tutar)
-    remainingAmount = totalAmount - paidAmount;
-  }
-
-  /// Kullanıcının girdiği tutarı ürünlere uygulayarak statü güncellemesi yapar
-  void _updateItemStatusForPartialPayment(double payment) {
-    for (var item in leftList) {
-      num itemTotal = (item.price ?? 0) * (item.piece ?? 1);
-      if (payment >= itemTotal) {
-        item = item.copyWith(status: 'ödendi');
-        payment -= itemTotal;
-        rightList.add(item);
-      } else {
-        break;
-      }
-    }
-    leftList.removeWhere((item) => item.status == 'ödendi');
+  @override
+  void dispose() {
+    inputController.dispose();
+    super.dispose();
   }
 
   @override
@@ -134,91 +113,93 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
               ),
             ],
           ),
-          // DropdownButton<String>(
-          //   dropdownColor: Colors.white,
-          //   value: selectedPaymentType,
-          //   items: const [
-          //     DropdownMenuItem(value: 'amount', child: Text('Tutar Bazlı')),
-          //     DropdownMenuItem(value: 'product', child: Text('Ürün Bazlı')),
-          //   ],
-          //   onChanged: (value) {
-          //     setState(() {
-          //       selectedPaymentType = value!;
-          //     });
-          //   },
-          // ),
-          // if (selectedPaymentType == 'amount')
-          //   SizedBox(
-          //     height: 60,
-          //     width: 120,
-          //     child: Padding(
-          //       padding: const EdgeInsets.all(8.0),
-          //       child: TextField(
-          //         decoration: const InputDecoration(
-          //           labelText: 'Ödeme Tutarı',
-          //           border: OutlineInputBorder(),
-          //         ),
-          //         keyboardType: TextInputType.number,
-          //         onChanged: (value) {
-          //           setState(() {
-          //             inputAmount = double.tryParse(value) ?? 0;
-          //           });
-          //         },
-          //       ),
-          //     ),
-          //   ),
+          Row(
+            children: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: selectedPaymentType == 'product'
+                      ? Colors.orange
+                      : Colors.grey.shade200,
+                ),
+                onPressed: () {
+                  setState(() {
+                    selectedPaymentType = 'product';
+                  });
+                },
+                child: const Text(
+                  'Ürün Bazlı',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: selectedPaymentType == 'amount'
+                      ? Colors.orange
+                      : Colors.grey.shade200,
+                ),
+                onPressed: () {
+                  setState(() {
+                    selectedPaymentType = 'amount';
+                  });
+                },
+                child: const Text(
+                  'Tutar Bazlı',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+            ],
+          ),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                      backgroundColor:
-                          isCredit == true ? Colors.orange : Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: Colors.black),
-                          borderRadius: BorderRadius.circular(4))),
-                  onPressed: () {
-                    setState(() {
-                      isCredit = isCredit == true
-                          ? null
-                          : true; // Eğer true ise null yap, değilse true yap
-                      errorMessage = null;
-                    });
-                  },
-                  icon: const Icon(
-                    Icons.add,
-                    color: Colors.black,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor:
+                      isCredit == true ? Colors.orange : Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(color: Colors.black),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  label: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('Kredi Kartı',
-                        style: TextStyle(color: Colors.black)),
-                  )),
+                ),
+                onPressed: () {
+                  _processSelectedItems(true); // Kredi kartı için true
+                },
+                icon: const Icon(
+                  Icons.credit_card,
+                  color: Colors.black,
+                ),
+                label: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    'Kredi Kartı',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+              ),
               const SizedBox(width: 4),
               OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                      backgroundColor:
-                          isCredit == false ? Colors.green : Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4))),
-                  onPressed: () {
-                    setState(() {
-                      isCredit = isCredit == false
-                          ? null
-                          : false; // Eğer true ise null yap, değilse true yap
-                      errorMessage = null;
-                    });
-                  },
-                  icon: const Icon(
-                    Icons.add,
-                    color: Colors.black,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor:
+                      isCredit == false ? Colors.green : Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  label: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                    child: Text('Nakit', style: TextStyle(color: Colors.black)),
-                  )),
+                ),
+                onPressed: () {
+                  _processSelectedItems(false); // Nakit için false
+                },
+                icon: const Icon(
+                  Icons.attach_money,
+                  color: Colors.black,
+                ),
+                label: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  child: Text('Nakit', style: TextStyle(color: Colors.black)),
+                ),
+              ),
             ],
-          )
+          ),
         ],
       ),
       content: Container(
@@ -233,206 +214,44 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    // Sol Liste
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 16),
-                            child: Text(
-                              'ÖDENECEKLER',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: leftList.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                final item = leftList[index];
-                                return Card(
-                                  color: Colors.white,
+                    selectedPaymentType == 'amount'
+                        ? Expanded(
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: 60,
+                                  width: 280,
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: ListTile(
-                                      hoverColor: Colors
-                                          .transparent, // İmleç üzerinde iken gölge çıkmasını engeller
-
-                                      onTap: () {
-                                        if (selectedPaymentType == 'product') {
-                                          _moveItemToRightList(index);
-                                        }
-                                      },
-                                      title: Text(item.title ?? ''),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text('${item.piece ?? 1} adet'),
-                                        ],
-                                      ), // Fiyat null ise 0 olarak göster
-                                      trailing: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            '₺${(item.price ?? 0) * (item.piece ?? 1)}',
-                                            style: TextStyle(fontSize: 16),
-                                          ), // Her bir item için toplam fiyat
-                                        ],
+                                    child: TextField(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Ödeme Tutarı',
+                                        border: OutlineInputBorder(),
                                       ),
+                                      keyboardType: TextInputType.number,
+                                      controller: TextEditingController(
+                                          text: inputAmount.toString()),
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Sağ Liste
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                            border: Border(
-                                left: BorderSide(
-                                    color: Colors.grey.withOpacity(0.4),
-                                    width: 1))),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.only(left: 16),
-                              child: Text(
-                                'ÖDENENLER',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
                                 ),
-                              ),
+                                const SizedBox(height: 8),
+                                Expanded(
+                                  child: CustomNumpad(
+                                    value: remainingAmount.toStringAsFixed(2),
+                                    onInput: (value) {
+                                      setState(() {
+                                        inputAmount =
+                                            int.tryParse(value.toString()) ?? 0;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                            Expanded(
-                              child: ListView.separated(
-                                separatorBuilder: (context, index) =>
-                                    const Divider(),
-                                itemCount: rightList.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final item = rightList[index];
-                                  return Column(
-                                    children: [
-                                      ListTile(
-                                        title: Text(
-                                          item.title ?? '',
-                                        ),
-                                        subtitle: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text('${item.piece ?? 1} adet'),
-                                          ],
-                                        ), // Fiyat null ise 0 olarak göster
-                                        trailing: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              '₺${(item.price ?? 0) * (item.piece ?? 1)}',
-                                              style:
-                                                  const TextStyle(fontSize: 16),
-                                            ),
-                                            item.isCredit != null
-                                                ? const Padding(
-                                                    padding: EdgeInsets.only(
-                                                        left: 4),
-                                                    child: Text(
-                                                      'Ödendi',
-                                                      style: TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors.green),
-                                                    ),
-                                                  )
-                                                : IconButton(
-                                                    icon: const Icon(Icons
-                                                        .remove_circle_outline),
-                                                    onPressed: () {
-                                                      _moveItemToLeftList(
-                                                          index);
-                                                    },
-                                                  ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                            const Divider(),
-                            // Toplam Tutar, Ödenen Tutar ve Kalan Tutar bilgilerini göster
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Toplam Tutar:',
-                                        style: TextStyle(fontSize: 20),
-                                      ),
-                                      Text(
-                                        '₺$totalAmount',
-                                        style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Ödenen Tutar: ',
-                                        style: TextStyle(fontSize: 20),
-                                      ),
-                                      Text(
-                                        '₺$paidAmount',
-                                        style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    height: 28,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Kalan Tutar:',
-                                        style: TextStyle(fontSize: 20),
-                                      ),
-                                      Text(
-                                        '₺$remainingAmount',
-                                        style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                          )
+                        : _leftListViewOrders(),
+                    // Sağ Liste
+                    _rightListView(),
                   ],
                 ),
               ),
@@ -441,15 +260,19 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
         if (errorMessage != null) // Eğer bir hata mesajı varsa göster
           Text(
             errorMessage!,
-            style: TextStyle(
-              color: errorMessage == 'Lütfen ödeme yöntemi seçin.'
-                  ? Colors.red
-                  : Colors.green,
+            style: const TextStyle(
+              color: Colors.red,
               fontSize: 16,
             ),
           ),
-        TextButton(
-          style: TextButton.styleFrom(
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: (isSaving || selectedIndexes.isNotEmpty)
+                  ? Colors.grey // Pasif durum
+                  : Colors.blue, // Aktif durum
+              foregroundColor: Colors.white, // Metin rengi
+              disabledBackgroundColor:
+                  Colors.grey, // Pasif durumdaki arka plan rengi
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8))),
           child: const Padding(
@@ -461,10 +284,12 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
               ),
             ),
           ),
-          onPressed: () => isSaving ? null : _onPayPressed(context),
+          onPressed: () => isSaving || selectedIndexes.isNotEmpty
+              ? null
+              : _onPayPressed(context),
         ),
-        TextButton(
-          style: TextButton.styleFrom(
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8))),
           child: const Padding(
@@ -484,19 +309,270 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
     );
   }
 
+  Expanded _rightListView() {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+            border: Border(
+                left:
+                    BorderSide(color: Colors.grey.withOpacity(0.4), width: 1))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text(
+                'ÖDENENLER',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView.separated(
+                separatorBuilder: (context, index) => const Divider(),
+                itemCount: rightList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final item = rightList[index];
+                  return Column(
+                    children: [
+                      ListTile(
+                        title: Text(
+                          item.title ?? '',
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('${item.piece ?? 1} adet'),
+                          ],
+                        ), // Fiyat null ise 0 olarak göster
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            item.isCredit != null
+                                ? const Padding(
+                                    padding: EdgeInsets.only(left: 4),
+                                    child: Text(
+                                      'Ödendi',
+                                      style: TextStyle(
+                                          fontSize: 12, color: Colors.green),
+                                    ),
+                                  )
+                                : IconButton(
+                                    icon:
+                                        const Icon(Icons.remove_circle_outline),
+                                    onPressed: () {
+                                      _moveItemToLeftList(index);
+                                    },
+                                  ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+            const Divider(),
+            // Toplam Tutar, Ödenen Tutar ve Kalan Tutar bilgilerini göster
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Toplam Tutar:',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      Text(
+                        '₺$totalAmount',
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Ödenen Tutar: ',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      Text(
+                        '₺$paidAmount',
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 28,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Kalan Tutar:',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      Text(
+                        '₺$remainingAmount',
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Expanded _leftListViewOrders() {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 16),
+            child: Text(
+              'ÖDENECEKLER',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: leftList.length,
+              itemBuilder: (BuildContext context, int index) {
+                final item = leftList[index];
+                final isSelected = selectedIndexes.contains(index);
+
+                return Card(
+                  color: isSelected ? Colors.green.shade100 : Colors.white,
+                  child: ListTile(
+                    hoverColor: Colors.transparent,
+                    onTap: () {
+                      setState(() {
+                        if (isSelected) {
+                          selectedIndexes.remove(index);
+                        } else {
+                          selectedIndexes.add(index);
+                        }
+                      });
+                    },
+                    title: Text(item.title ?? ''),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${item.piece ?? 1} adet'),
+                        if (isSelected)
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                          ), // Seçim simgesi
+                      ],
+                    ),
+                    trailing: Text(
+                      '₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _processSelectedItems(bool isCreditSelected) async {
+    if (totalAmount == paidAmount) {
+      setState(() {
+        errorMessage = 'Hesap zaten ödendi.';
+      });
+      return;
+    }
+    if (inputAmount > remainingAmount) {
+      setState(() {
+        errorMessage = 'Hesaptan daha fazla ücret ödeyemezsiniz';
+      });
+      return;
+    }
+    List<Menu> itemsToMove = [];
+    if (inputAmount != 0) {
+      final amount = Menu(
+        title: isCreditSelected == true ? 'Kredi' : 'Nakit',
+        isCredit: isCreditSelected,
+        price: inputAmount,
+        status: 'ödendi',
+        isAmount: true,
+      );
+      itemsToMove.add(amount);
+      await ref
+          .read(_tablesProvider.notifier)
+          .addItemToBill(widget.tableId, amount);
+    }
+
+    // Eğer selectedIndexes boş değilse, listedeki öğeleri ekle
+    if (selectedIndexes.isNotEmpty) {
+      itemsToMove.addAll(selectedIndexes.map((index) {
+        final item = leftList[index];
+        return item.copyWith(
+          status: 'ödendi', // Status güncelleniyor
+          isCredit: isCreditSelected,
+        );
+      }).toList());
+    }
+
+    // Eğer hala liste boşsa, hata mesajını göster ve işlemi durdur
+    if (itemsToMove.isEmpty) {
+      setState(() {
+        errorMessage = 'Lütfen önce bir veya daha fazla ürün seçin.';
+      });
+      return;
+    }
+    setState(() {
+      // Sağ listeye ekle
+      rightList.addAll(itemsToMove);
+      saveIndexes = {...selectedIndexes};
+      // Sol listeyi, taşınan ürünlerin `id` değerine göre filtrele
+      leftList = leftList.where((item) {
+        return !itemsToMove.any((movedItem) => movedItem.id == item.id);
+      }).toList();
+
+      selectedIndexes.clear(); // Seçim listesini temizle
+      errorMessage = null; // Hata mesajını temizle
+    });
+    _calculateAmounts();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isCreditSelected
+              ? 'Seçilen ürünler kredi kartı ile ödendi olarak işaretlendi.'
+              : 'Seçilen ürünler nakit ile ödendi olarak işaretlendi.',
+        ),
+      ),
+    );
+  }
+
   /// `ÖDE` butonuna basıldığında sağ listedeki ürünlerin `status` alanını `ödendi` olarak günceller
   Future<void> _onPayPressed(BuildContext context) async {
     ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
     if (isSaving) return; // Eğer zaten kaydediliyorsa işlemi durdur.
-    if (isCredit == null) {
-      // Hata mesajını ayarla
-      setState(() {
-        errorMessage = 'Lütfen ödeme yöntemi seçin.';
-      });
-      ref.read(loadingProvider.notifier).setLoading(false);
-
-      return; // Tüm işlemi durdur
-    }
 
     setState(() {
       isSaving = true; // Kaydetme işlemi başladı
@@ -563,5 +639,28 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
         _calculateAmounts(); // Tutarları yeniden hesaplayın
       });
     }
+  }
+
+  void _calculateAmounts() {
+    // `isAmount` true olan ürünlerin fiyatlarını filtrele ve çıkar
+    double amountItemTotal = rightList
+        .where((item) => item.isAmount == true)
+        .fold<double>(
+            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+
+    // Toplam tutarı hesapla (`isAmount` ürünler hariç)
+    totalAmount = leftList.where((item) => item.isAmount != true).fold<double>(
+            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1))) +
+        rightList.where((item) => item.isAmount != true).fold<double>(
+            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+
+    // Ödenen tutarı hesapla
+    paidAmount = rightList.where((item) => item.isAmount != true).fold<double>(
+        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+
+    // Kalan tutarı hesapla
+    remainingAmount = totalAmount - paidAmount - amountItemTotal;
+    paidAmount = rightList.fold<double>(
+        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
   }
 }

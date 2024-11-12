@@ -122,7 +122,7 @@ class _BillViewState extends ConsumerState<BillView> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
-                      color: ColorConstants.white,
+                      color: ColorConstants.tablePageBackgroundColor,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.grey.withOpacity(0.5),
@@ -139,134 +139,111 @@ class _BillViewState extends ConsumerState<BillView> {
                           flex: 2,
                           child: Column(
                             children: [
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: const Border(
-                                        bottom: BorderSide(
-                                      color: Colors.black12,
-                                      width: 1,
-                                    )),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey
-                                            .withOpacity(0.4), // Gölgenin rengi
-                                        spreadRadius:
-                                            1, // Gölgenin yayılma alanı
-                                        blurRadius: 5, // Gölgenin yumuşaklığı
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ]),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Search icon
-                                    IconButton(
-                                      icon: Icon(
-                                        isSearchBarVisible
-                                            ? Icons.close
-                                            : Icons.search,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          isSearchBarVisible =
-                                              !isSearchBarVisible; // Arama çubuğu aç/kapat
-                                        });
-                                      },
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Search icon
+                                  IconButton(
+                                    icon: Icon(
+                                      isSearchBarVisible
+                                          ? Icons.close
+                                          : Icons.search,
                                     ),
-                                    // Eğer arama çubuğu görünürse arama çubuğunu göster
-                                    if (isSearchBarVisible)
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0),
-                                          child: TextField(
-                                            controller: searchContoller,
-                                            decoration: InputDecoration(
-                                              hintText: 'Ara...',
-                                              prefixIcon:
-                                                  const Icon(Icons.search),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
+                                    onPressed: () {
+                                      setState(() {
+                                        isSearchBarVisible =
+                                            !isSearchBarVisible; // Arama çubuğu aç/kapat
+                                      });
+                                    },
+                                  ),
+                                  // Eğer arama çubuğu görünürse arama çubuğunu göster
+                                  if (isSearchBarVisible)
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0, vertical: 8),
+                                        child: TextField(
+                                          controller: searchContoller,
+                                          decoration: InputDecoration(
+                                            hintText: 'Ara...',
+                                            prefixIcon:
+                                                const Icon(Icons.search),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
-                                            onChanged: (query) {
-                                              setState(() {
-                                                searchQuery =
-                                                    query; // Update search query
-                                              });
-                                            },
                                           ),
+                                          onChanged: (query) {
+                                            setState(() {
+                                              searchQuery =
+                                                  query; // Update search query
+                                            });
+                                          },
                                         ),
                                       ),
-                                    Expanded(
-                                        child: isSearchBarVisible
-                                            ? const SizedBox()
-                                            : Wrap(
-                                                children:
-                                                    categories.map((category) {
-                                                  final isSelected =
-                                                      selectedCategory ==
-                                                          category.name;
-                                                  double itemWidth =
-                                                      MediaQuery.of(context)
-                                                              .size
-                                                              .width /
-                                                          10; // 4 sütun
-                                                  return Container(
-                                                    width: itemWidth,
-                                                    height: 60,
-                                                    decoration: BoxDecoration(
+                                    ),
+                                  Expanded(
+                                      child: isSearchBarVisible
+                                          ? const SizedBox()
+                                          : Wrap(
+                                              children:
+                                                  categories.map((category) {
+                                                final isSelected =
+                                                    selectedCategory ==
+                                                        category.name;
+                                                double itemWidth =
+                                                    MediaQuery.of(context)
+                                                            .size
+                                                            .width /
+                                                        10; // 4 sütun
+                                                return Container(
+                                                  width: itemWidth,
+                                                  height: 60,
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected
+                                                        ? Colors.orange
+                                                        : Colors.white,
+                                                    border: Border.all(
                                                       color: isSelected
                                                           ? Colors.orange
-                                                          : Colors.white,
-                                                      border: Border.all(
-                                                        color: isSelected
-                                                            ? Colors.orange
-                                                            : Colors.black12,
-                                                        width: 1,
-                                                      ),
+                                                          : Colors.black12,
+                                                      width: 1,
                                                     ),
-                                                    child: Material(
-                                                      color: isSelected
-                                                          ? Colors.orange
-                                                          : Colors.white,
-                                                      child: InkWell(
-                                                        splashColor: Colors
-                                                            .orange
-                                                            .withOpacity(0.6),
-                                                        onTap: () {
-                                                          menuNotifier
-                                                              .selectCategory(
-                                                                  category
-                                                                      .name);
-                                                        },
-                                                        child: Center(
-                                                          child: Text(
-                                                            category.name ?? '',
-                                                            style: TextStyle(
-                                                                color: isSelected
-                                                                    ? Colors
-                                                                        .white
-                                                                    : Colors
-                                                                        .black,
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
+                                                  ),
+                                                  child: Material(
+                                                    color: isSelected
+                                                        ? Colors.orange
+                                                        : Colors.white,
+                                                    child: InkWell(
+                                                      splashColor: Colors.orange
+                                                          .withOpacity(0.6),
+                                                      onTap: () {
+                                                        menuNotifier
+                                                            .selectCategory(
+                                                                category.name);
+                                                      },
+                                                      child: Center(
+                                                        child: Text(
+                                                          category.name ?? '',
+                                                          style: TextStyle(
+                                                              color: isSelected
+                                                                  ? Colors.white
+                                                                  : Colors
+                                                                      .black,
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
                                                         ),
                                                       ),
                                                     ),
-                                                  );
-                                                }).toList(),
-                                              )),
-                                  ],
-                                ),
+                                                  ),
+                                                );
+                                              }).toList(),
+                                            )),
+                                ],
                               ),
                               Expanded(
                                 child: Container(
@@ -376,12 +353,41 @@ class _BillViewState extends ConsumerState<BillView> {
                             : Expanded(
                                 child: Consumer(
                                   builder: (context, ref, child) {
-                                    final tableBill = ref.watch(
-                                        _tablesProvider.select((state) => state
-                                            .getTableBill(widget.tableId)));
-
+                                    final tableBill = ref
+                                        .watch(_tablesProvider.select((state) =>
+                                            state.getTableBill(widget.tableId)))
+                                        .where((item) =>
+                                            item.isAmount !=
+                                            true) // `isAmount == true` olanlar filtrelenir
+                                        .toList();
+                                    final totalAmount = tableBill.fold(
+                                        0,
+                                        (sum, item) =>
+                                            sum +
+                                            ((item.price ?? 0) *
+                                                (item.piece ?? 1)));
+                                    final tableBillAmount = ref
+                                        .watch(_tablesProvider.select((state) =>
+                                            state.getTableBill(widget.tableId)))
+                                        .where((item) =>
+                                            item.isAmount ==
+                                            true) // `isAmount == true` olanlar filtrelenir
+                                        .toList();
+                                    final negativeAmount = tableBillAmount.fold(
+                                        0,
+                                        (sum, item) =>
+                                            sum +
+                                            ((item.price ?? 0) *
+                                                (item.piece ?? 1)));
+                                    bool negativeAmountFull =
+                                        negativeAmount != 0 &&
+                                            negativeAmount == totalAmount;
                                     bool allItemsPaid = tableBill.every(
-                                        (item) => item.status == 'ödendi');
+                                            (item) =>
+                                                item.status == 'ödendi') ||
+                                        negativeAmountFull;
+                                    final remainingAmount =
+                                        totalAmount - negativeAmount;
                                     return Container(
                                       decoration: BoxDecoration(
                                           color: Colors.white,
@@ -496,7 +502,7 @@ class _BillViewState extends ConsumerState<BillView> {
                                                 ),
                                                 Text(
                                                   // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
-                                                  '₺${tableBill.fold(0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)))}',
+                                                  '₺$totalAmount',
                                                   style: const TextStyle(
                                                       fontSize: 18,
                                                       fontWeight:
@@ -512,10 +518,18 @@ class _BillViewState extends ConsumerState<BillView> {
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 12),
                                             child: deviceWidth < 1350
-                                                ? verticalButtons(tableBill,
-                                                    context, ref, allItemsPaid)
-                                                : horiontalButtons(tableBill,
-                                                    context, ref, allItemsPaid),
+                                                ? verticalButtons(
+                                                    tableBill,
+                                                    context,
+                                                    ref,
+                                                    allItemsPaid,
+                                                    remainingAmount)
+                                                : horiontalButtons(
+                                                    tableBill,
+                                                    context,
+                                                    ref,
+                                                    allItemsPaid,
+                                                    remainingAmount),
                                           ),
                                           const SizedBox(
                                             height: 24,
@@ -539,7 +553,7 @@ class _BillViewState extends ConsumerState<BillView> {
   }
 
   Row horiontalButtons(List<Menu> tableBill, BuildContext context,
-      WidgetRef ref, bool allItemsPaid) {
+      WidgetRef ref, bool allItemsPaid, int remainingAmount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -575,16 +589,28 @@ class _BillViewState extends ConsumerState<BillView> {
                       }
                     }
                   : null,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
                   vertical: 16,
                 ),
-                child: Text(
-                  'ÖDE',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'ÖDE',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '₺$remainingAmount',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ), // Liste boşsa düğme pasif olur
             ),
@@ -664,7 +690,7 @@ class _BillViewState extends ConsumerState<BillView> {
   }
 
   Column verticalButtons(List<Menu> tableBill, BuildContext context,
-      WidgetRef ref, bool allItemsPaid) {
+      WidgetRef ref, bool allItemsPaid, int remainingAmount) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,

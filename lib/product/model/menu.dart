@@ -15,19 +15,20 @@ class Menu with EquatableMixin, IdModel {
   final int? stock;
   final int? piece; // Yeni eklenen özellik
   final bool? isCredit;
+  final bool? isAmount;
 
-  const Menu({
-    this.title,
-    this.price,
-    this.image,
-    this.id,
-    this.status = 'yeni',
-    this.preparationTime,
-    this.category,
-    this.stock,
-    this.piece, // Constructor'a ekleyin
-    this.isCredit
-  });
+  const Menu(
+      {this.title,
+      this.price,
+      this.image,
+      this.id,
+      this.status = 'yeni',
+      this.preparationTime,
+      this.category,
+      this.stock,
+      this.piece, // Constructor'a ekleyin
+      this.isCredit,
+      this.isAmount});
 
   @override
   List<Object?> get props => [
@@ -40,7 +41,8 @@ class Menu with EquatableMixin, IdModel {
         id,
         stock,
         piece, // Listeye ekleyin
-        isCredit
+        isCredit,
+        isAmount
       ];
 
   @override
@@ -86,19 +88,20 @@ class Menu with EquatableMixin, IdModel {
     int? stock,
     int? piece, // copyWith methoduna ekleyin
     bool? isCredit,
+    bool? isAmount,
   }) {
     return Menu(
-      title: title ?? this.title,
-      price: price ?? this.price,
-      image: image ?? this.image,
-      status: status ?? this.status,
-      preparationTime: preparationTime ?? this.preparationTime,
-      category: category ?? this.category,
-      id: id ?? this.id,
-      stock: stock ?? this.stock,
-      piece: piece ?? this.piece, // Değer atama yapın
-      isCredit: isCredit ?? this.isCredit
-    );
+        title: title ?? this.title,
+        price: price ?? this.price,
+        image: image ?? this.image,
+        status: status ?? this.status,
+        preparationTime: preparationTime ?? this.preparationTime,
+        category: category ?? this.category,
+        id: id ?? this.id,
+        stock: stock ?? this.stock,
+        piece: piece ?? this.piece, // Değer atama yapın
+        isCredit: isCredit ?? this.isCredit,
+        isAmount: isAmount ?? this.isAmount);
   }
 
   /// Convert this Menu instance to a JSON map
@@ -113,26 +116,27 @@ class Menu with EquatableMixin, IdModel {
       'category': category,
       'stock': stock,
       'piece': piece, // JSON dönüşümüne ekleyin
-      'isCredit' : isCredit,
+      'isCredit': isCredit,
+      'isAmount': isAmount
     };
   }
 
   /// Create a Menu instance from a JSON map
   static Menu fromJson(Map<String, dynamic> json) {
     return Menu(
-      id: json['id'] as String?,
-      title: json['title'] as String?,
-      price: _parseToInt(json['price']),
-      image: json['image'] as String?,
-      status: json['status'] as String?,
-      preparationTime: json['preparationTime'] != null
-          ? (json['preparationTime'] as int)
-          : null,
-      category: json['category'] as String?,
-      stock: _parseToInt(json['stock']),
-      piece: _parseToInt(json['piece']), // JSON'dan `piece` değerini alın
-      isCredit: json['isCredit'] as bool?
-    );
+        id: json['id'] as String?,
+        title: json['title'] as String?,
+        price: _parseToInt(json['price']),
+        image: json['image'] as String?,
+        status: json['status'] as String?,
+        preparationTime: json['preparationTime'] != null
+            ? (json['preparationTime'] as int)
+            : null,
+        category: json['category'] as String?,
+        stock: _parseToInt(json['stock']),
+        piece: _parseToInt(json['piece']), // JSON'dan `piece` değerini alın
+        isCredit: json['isCredit'] as bool?,
+        isAmount: json['isAmount'] as bool?);
   }
 
   /// Helper method to safely parse price values to int

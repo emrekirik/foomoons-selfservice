@@ -204,14 +204,41 @@ class _TablesViewState extends ConsumerState<TablesView> {
                           ),
                           itemCount: filteredTables.length,
                           itemBuilder: (BuildContext context, int index) {
+                            final tableId = filteredTables[index].tableId;
                             ref
                                 .read(_tablesProvider.notifier)
                                 .fetchTableBill(filteredTables[index].tableId!);
-                            final tableBill = ref.watch(_tablesProvider.select(
-                                (state) => state.getTableBill(
-                                    filteredTables[index].tableId!)));
+                            final tableBill = ref
+                                .watch(_tablesProvider.select((state) =>
+                                    state.getTableBill(tableId!)))
+                                .where((item) =>
+                                    item.isAmount !=
+                                    true) // `isAmount == true` olanlar filtrelenir
+                                .toList();
+                            final totalAmount = tableBill.fold(
+                                0,
+                                (sum, item) =>
+                                    sum +
+                                    ((item.price ?? 0) * (item.piece ?? 1)));
+                            final tableBillAmount = ref
+                                .watch(_tablesProvider.select((state) =>
+                                    state.getTableBill(tableId!)))
+                                .where((item) =>
+                                    item.isAmount ==
+                                    true) // `isAmount == true` olanlar filtrelenir
+                                .toList();
+                            final negativeAmount = tableBillAmount.fold(
+                                0,
+                                (sum, item) =>
+                                    sum +
+                                    ((item.price ?? 0) * (item.piece ?? 1)));
+                            bool negativeAmountFull = negativeAmount != 0 &&
+                                negativeAmount == totalAmount;
                             bool allItemsPaid = tableBill
-                                .every((item) => item.status == 'ödendi');
+                                    .every((item) => item.status == 'ödendi') ||
+                                negativeAmountFull;
+                            final remainingAmount =
+                                totalAmount - negativeAmount;
                             return InkWell(
                               onTap: () async {
                                 final tableId = filteredTables[index].tableId;

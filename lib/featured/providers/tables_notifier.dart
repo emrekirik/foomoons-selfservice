@@ -357,51 +357,43 @@ class TablesNotifier extends StateNotifier<TablesState> {
       final data = doc.data() as Map<String, dynamic>;
       final currentBillItems = (data['billItems'] as List<dynamic>)
           .map((item) => Menu.fromJson(item as Map<String, dynamic>))
+          .where(
+              (item) => item.status == 'ödendi') // Sadece 'ödendi' olanları al
           .toList();
 
-      // Tüm öğelerin `status` alanını kontrol et
-      final areAllPaid =
-          currentBillItems.every((item) => item.status == 'ödendi');
+      // Benzersiz bir belge ID'si oluşturuyoruz
+      final String uniqueId = uuid.v4();
 
-      if (areAllPaid) {
-        // Benzersiz bir belge ID'si oluşturuyoruz
-        final String uniqueId = uuid.v4();
+      // Toplam tutarı hesapla
+      final totalPrice = currentBillItems.fold<double>(
+        0.0,
+        (sum, item) => sum + (item.price ?? 0), // Fiyat null ise 0 olarak ekle
+      );
 
-        // Toplam tutarı hesapla
-        final totalPrice = currentBillItems.fold<double>(
-          0.0,
-          (sum, item) =>
-              sum + (item.price ?? 0), // Fiyat null ise 0 olarak ekle
-        );
+      // 'pastOrders' koleksiyonundaki ilgili belgeye referans oluşturuyoruz
+      final pastOrdersDocument =
+          _firestoreHelper.getUserDocument('pastOrders', uniqueId);
 
-        // 'pastOrders' koleksiyonundaki ilgili belgeye referans oluşturuyoruz
-        final pastOrdersDocument =
-            _firestoreHelper.getUserDocument('pastOrders', uniqueId);
+      // 'pastOrders' koleksiyonuna belge ekliyoruz
+      await pastOrdersDocument.set({
+        'tableId': tableId,
+        'billItems': currentBillItems.map((item) => item.toJson()).toList(),
+        'closedAtDate':
+            Timestamp.fromDate(DateTime.now()), // Hesabı kapama tarihi
+        'uniqueId': uniqueId, // Ekstra olarak belge ID'sini de kaydediyoruz
+        'totalPrice': totalPrice, // Adisyonun toplam tutarını kaydediyoruz
+      });
 
-        // 'pastOrders' koleksiyonuna belge ekliyoruz
-        await pastOrdersDocument.set({
-          'tableId': tableId,
-          'billItems': currentBillItems.map((item) => item.toJson()).toList(),
-          'closedAtDate':
-              Timestamp.fromDate(DateTime.now()), // Hesabı kapama tarihi
-          'uniqueId': uniqueId, // Ekstra olarak belge ID'sini de kaydediyoruz
-          'totalPrice': totalPrice, // Adisyonun toplam tutarını kaydediyoruz
-        });
+      // 'bills' koleksiyonundan bu masaya ait tüm adisyon öğelerini sil
+      await billDocument.delete();
 
-        // 'bills' koleksiyonundan bu masaya ait tüm adisyon öğelerini sil
-        await billDocument.delete();
+      // State güncellemesi
+      state = state.copyWith(
+        tableBills: {...state.tableBills}..remove(tableId),
+      );
 
-        // State güncellemesi
-        state = state.copyWith(
-          tableBills: {...state.tableBills}..remove(tableId),
-        );
-
-        print('Hesap başarıyla kapatıldı ve geçmiş siparişlere taşındı.');
-        return true; // Başarılı işlemi bildir
-      } else {
-        print('Tüm öğeler henüz ödenmediği için hesap kapatılamaz.');
-        return false; // Hesap kapatılamadı, işlemi bildir
-      }
+      print('Hesap başarıyla kapatıldı ve geçmiş siparişlere taşındı.');
+      return true; // Başarılı işlemi bildir
     } catch (e) {
       print('Hesap kapatma hatası: $e');
       return false; // Hata durumunda işlemi bildir
