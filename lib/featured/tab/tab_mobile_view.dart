@@ -30,8 +30,8 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
   @override
   void initState() {
     super.initState();
-    _loadUserDetails();
     _pageController = PageController(initialPage: _tabIndex);
+    _loadUserDetails();
   }
 
   void _onTabChanged(int index) {
@@ -45,14 +45,31 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
 
   Future<void> _loadUserDetails() async {
     userDetails = await _userHelper.getCurrentUserDetails();
-    setState(() {});
+    // Eğer userType garson ise _tabIndex'i 0 yap
+    if (userDetails?['userType'] == 'çalışan') {
+      setState(() {
+        _tabIndex = 0;
+        _pageController =
+            PageController(initialPage: _tabIndex); // PageController'ı güncelle
+      });
+    } else {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
-    final String userType = userDetails?['userType'] ?? '';
     double deviceWidth = MediaQuery.of(context).size.width;
+    if (userDetails == null) {
+      // Kullanıcı bilgileri yüklenmemişse gösterilecek içerik
+      return const Center(child: CircularProgressIndicator());
+    }
+    final String userType = userDetails?['userType'] ?? '';
+    final List<NavigationRailDestination> navigationItems =
+        _buildNavigationItems(userType);
+    final List<Widget> pageViews = _buildPageViews(userType);
+
     return Column(
       children: [
         if (isLoading)
@@ -65,7 +82,7 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
             backgroundColor: Colors.white,
             extendBody: true,
             appBar: PreferredSize(
-              preferredSize: Size.fromHeight(70.0),
+              preferredSize: const Size.fromHeight(70.0),
               child: CustomAppbar(
                 userType: userType,
                 showDrawer: true,
@@ -76,81 +93,105 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
               backgroundColor: Colors.white,
               width: deviceWidth * 0.2,
               child: NavigationRail(
-                selectedIndex: _tabIndex,
-                groupAlignment: groupAlignment,
-                onDestinationSelected: (int index) {
-                  setState(() {
-                    _onTabChanged(index);
-                  });
-                },
-                labelType: labelType,
-                leading: showLeading
-                    ? FloatingActionButton(
-                        elevation: 0,
-                        onPressed: () {
-                          // Add your onPressed code here!
-                        },
-                        child: const Icon(Icons.add),
-                      )
-                    : const SizedBox(),
-                trailing: showTrailing
-                    ? IconButton(
-                        onPressed: () {
-                          // Add your onPressed code here!
-                        },
-                        icon: const Icon(Icons.more_horiz_rounded),
-                      )
-                    : const SizedBox(),
-                destinations: const <NavigationRailDestination>[
-                  NavigationRailDestination(
-                    icon: Icon(Icons.restaurant_menu_sharp),
-                    selectedIcon: Icon(Icons.restaurant_menu),
-                    label: Text('Menu'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.monitor_rounded),
-                    selectedIcon: Icon(Icons.monitor_rounded),
-                    label: Text('Siparişler'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.table_bar_outlined),
-                    selectedIcon: Icon(Icons.table_bar_outlined),
-                    label: Text('Adisyonlar'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.article_outlined),
-                    selectedIcon: Icon(Icons.article_outlined),
-                    label: Text('Stok'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.insert_chart_outlined_rounded),
-                    selectedIcon: Icon(Icons.insert_chart_outlined_rounded),
-                    label: Text('Raporlar'),
-                  ),
-                ],
-              ),
+                  selectedIndex: _tabIndex,
+                  groupAlignment: groupAlignment,
+                  onDestinationSelected: (int index) {
+                    setState(() {
+                      _onTabChanged(index);
+                    });
+                  },
+                  labelType: labelType,
+                  leading: showLeading
+                      ? FloatingActionButton(
+                          elevation: 0,
+                          onPressed: () {
+                            // Add your onPressed code here!
+                          },
+                          child: const Icon(Icons.add),
+                        )
+                      : const SizedBox(),
+                  trailing: showTrailing
+                      ? IconButton(
+                          onPressed: () {
+                            // Add your onPressed code here!
+                          },
+                          icon: const Icon(Icons.more_horiz_rounded),
+                        )
+                      : const SizedBox(),
+                  destinations: navigationItems),
             ),
             body: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              onPageChanged: (index) {
-                setState(() {
-                  _tabIndex = index;
-                });
-              },
-              children: const [
-                MenuMobileView(),
-                AdminMobileView(),
-                TablesMobileView(),
-                StockMobileView(),
-                ReportsMobileView()
-              ],
-            ),
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (index) {
+                  setState(() {
+                    _tabIndex = index;
+                  });
+                },
+                children: pageViews),
           ),
         ),
       ],
     );
   }
+}
+
+List<NavigationRailDestination> _buildNavigationItems(String userType) {
+  if (userType == 'çalışan') {
+    return [
+      const NavigationRailDestination(
+        icon: Icon(Icons.monitor_rounded),
+        selectedIcon: Icon(Icons.monitor_rounded),
+        label: Text('Siparişler'),
+      ),
+      const NavigationRailDestination(
+        icon: Icon(Icons.table_bar_outlined),
+        selectedIcon: Icon(Icons.table_bar_outlined),
+        label: Text('Adisyonlar'),
+      ),
+    ];
+  } else if (userType == 'kafe') {
+    return [
+      const NavigationRailDestination(
+        icon: Icon(Icons.restaurant_menu_sharp),
+        selectedIcon: Icon(Icons.restaurant_menu),
+        label: Text('Menu'),
+      ),
+      const NavigationRailDestination(
+        icon: Icon(Icons.monitor_rounded),
+        selectedIcon: Icon(Icons.monitor_rounded),
+        label: Text('Siparişler'),
+      ),
+      const NavigationRailDestination(
+        icon: Icon(Icons.table_bar_outlined),
+        selectedIcon: Icon(Icons.table_bar_outlined),
+        label: Text('Adisyonlar'),
+      ),
+      const NavigationRailDestination(
+        icon: Icon(Icons.article_outlined),
+        selectedIcon: Icon(Icons.article_outlined),
+        label: Text('Stok'),
+      ),
+      const NavigationRailDestination(
+        icon: Icon(Icons.insert_chart_outlined_rounded),
+        selectedIcon: Icon(Icons.insert_chart_outlined_rounded),
+        label: Text('Raporlar'),
+      ),
+    ];
+  } else {
+    return [];
+  }
+}
+
+List<Widget> _buildPageViews(String userType) {
+  final pages = [
+    if (userType == 'kafe') const MenuMobileView(),
+    const AdminMobileView(),
+    const TablesMobileView(),
+    if (userType == 'kafe') const StockMobileView(),
+    if (userType == 'kafe') const ReportsMobileView()
+  ];
+  return pages;
 }
 
 class SideShadowPainter extends CustomPainter {

@@ -42,6 +42,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
   bool isSearchBarVisible = false;
   late TextEditingController searchContoller;
   String searchQuery = '';
+  late bool allItemsPaid;
+  late int remainingAmount;
   final UserFirestoreHelper _userHelper = UserFirestoreHelper();
   Map<String, dynamic>? userDetails;
 
@@ -346,12 +348,21 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                             : Expanded(
                                 child: Consumer(
                                   builder: (context, ref, child) {
-                                    final tableBill = ref.watch(
-                                        _tablesProvider.select((state) => state
-                                            .getTableBill(widget.tableId)));
+                                    final tableBill = ref
+                                        .watch(_tablesProvider.select((state) =>
+                                            state.getTableBill(widget.tableId)))
+                                        .where((item) =>
+                                            item.isAmount !=
+                                            true) // `isAmount != true` olanlar filtrelenir
+                                        .toList();
+                                    final totalAmount = tableBill.fold(
+                                        0,
+                                        (sum, item) =>
+                                            sum +
+                                            ((item.price ?? 0) *
+                                                (item.piece ?? 1)));
+                                    calculateAmount(tableBill, totalAmount);
 
-                                    bool allItemsPaid = tableBill.every(
-                                        (item) => item.status == 'ödendi');
                                     return Container(
                                       decoration: BoxDecoration(
                                           color: Colors.white,
@@ -554,17 +565,29 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                     }
                   }
                 : null,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(
+            child:  Padding(
+              padding: const EdgeInsets.symmetric(
                 vertical: 16,
               ),
-              child: Text(
-                'ÖDE',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.white,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'ÖDE',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '₺$remainingAmount',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
             ), // Liste boşsa düğme pasif olur
           ),
         ),
@@ -639,5 +662,51 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
         ),
       ],
     );
+  }
+
+  void calculateAmount(List<Menu> tableBill, int totalAmount) {
+    final tableBillAmount = _getTableBillAmount(widget.tableId);
+    final negativeAmount = _calculateTotal(tableBillAmount);
+
+    final urunBazliOdenenler =
+        tableBill.where((item) => item.status == 'ödendi').toList();
+    final urunBazliOdenenToplam = _calculateTotal(urunBazliOdenenler);
+
+    allItemsPaid = _checkIfAllItemsPaid(
+      tableBill,
+      negativeAmount,
+      urunBazliOdenenToplam,
+      totalAmount,
+    );
+
+    remainingAmount = _calculateRemainingAmount(
+      totalAmount,
+      negativeAmount,
+      urunBazliOdenenToplam,
+    );
+  }
+
+  List<Menu> _getTableBillAmount(String tableId) {
+    return ref
+        .watch(_tablesProvider.select((state) => state.getTableBill(tableId)))
+        .where((item) => item.isAmount == true)
+        .toList();
+  }
+
+  int _calculateTotal(List<Menu> items) {
+    return items.fold(
+        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+  }
+
+  bool _checkIfAllItemsPaid(List<Menu> tableBill, int negativeAmount,
+      int urunBazliOdenenToplam, int totalAmount) {
+    return tableBill.every((item) => item.status == 'ödendi') ||
+        (negativeAmount != 0 && negativeAmount == totalAmount) ||
+        urunBazliOdenenToplam + negativeAmount == totalAmount;
+  }
+
+  int _calculateRemainingAmount(
+      int totalAmount, int negativeAmount, int urunBazliOdenenToplam) {
+    return totalAmount - negativeAmount - urunBazliOdenenToplam;
   }
 }

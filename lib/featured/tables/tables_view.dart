@@ -87,8 +87,6 @@ class _TablesViewState extends ConsumerState<TablesView> {
       return isAreaMatch;
     }).toList();
 
-    
-
     return LayoutBuilder(
       builder: (context, constraints) {
         return Center(
@@ -210,7 +208,7 @@ class _TablesViewState extends ConsumerState<TablesView> {
                           itemCount: filteredTables.length,
                           itemBuilder: (BuildContext context, int index) {
                             final tableId = filteredTables[index].tableId;
-                      ref
+                            ref
                                 .read(_tablesProvider.notifier)
                                 .fetchTableBill(filteredTables[index].tableId!);
                             final tableBill = ref

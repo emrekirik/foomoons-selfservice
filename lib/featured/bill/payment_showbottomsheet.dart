@@ -1,3 +1,5 @@
+import 'package:altmisdokuzapp/featured/bill/custom_numpad.dart';
+import 'package:altmisdokuzapp/featured/bill/custom_numpad_mobile.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
@@ -33,19 +35,25 @@ class _PaymentPage extends ConsumerStatefulWidget {
 class _PaymentPageState extends ConsumerState<_PaymentPage> {
   late List<Menu> leftList;
   late List<Menu> rightList;
+  Set<int> selectedIndexes = {};
+  Set<int> saveIndexes = {};
   bool isLoading = true;
   double totalAmount = 0;
   double paidAmount = 0;
   double remainingAmount = 0;
+  int inputAmount = 0;
   bool isSaving = false;
   bool? isCredit;
   String? errorMessage;
+  String selectedPaymentType = 'product';
+  late TextEditingController inputController;
 
   @override
   void initState() {
     super.initState();
     leftList = [];
     rightList = [];
+    inputController = TextEditingController();
     _loadTableData(); // Load data asynchronously
   }
 
@@ -63,16 +71,6 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
         isLoading = false;
       });
     }
-  }
-
-  void _calculateAmounts() {
-    totalAmount = leftList.fold<double>(
-            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1))) +
-        rightList.fold<double>(
-            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
-    paidAmount = rightList.fold<double>(
-        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
-    remainingAmount = totalAmount - paidAmount;
   }
 
   @override
@@ -102,105 +100,206 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),
+                        _paymentTypeButtons(),
                         _buildCloseButton(context),
                       ],
                     ),
                     Text(
                       'Masa Adı:${widget.tableId}',
-                      style: TextStyle(fontSize: 18),
+                      style: const TextStyle(fontSize: 18),
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'ÖDENECEKLER',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: leftList.length,
-                      itemBuilder: (context, index) {
-                        final item = leftList[index];
-                        return Card(
-                          color: Colors.white,
-                          child: ListTile(
-                            title: Text(item.title ?? ''),
-                            subtitle: Text('${item.piece ?? 1} adet'),
-                            trailing: Text(
-                                '₺${(item.price ?? 0) * (item.piece ?? 1)}',
-                                style: const TextStyle(fontSize: 16)),
-                            onTap: () => _moveItemToRightList(index),
-                          ),
-                        );
-                      },
-                    ),
+                    selectedPaymentType == 'amount'
+                        ? SizedBox(
+                            height: 460,
+                            child: _amountBased(),
+                          )
+                        : SizedBox(height: 320, child: _productBased()),
                     const SizedBox(height: 10),
-                    const Text(
-                      'ÖDENENLER',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: rightList.length,
-                      itemBuilder: (context, index) {
-                        final item = rightList[index];
-                        return Card(
-                          color: Colors.white,
-                          child: ListTile(
-                            title: Text(item.title ?? ''),
-                            subtitle: Text('${item.piece ?? 1} adet'),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                    '₺${(item.price ?? 0) * (item.piece ?? 1)}',
-                                    style: const TextStyle(fontSize: 16)),
-                                item.isCredit != null
-                                    ? const Padding(
-                                        padding: EdgeInsets.only(left: 4),
-                                        child: Text(
-                                          'Ödendi',
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.green),
-                                        ),
-                                      )
-                                    : IconButton(
-                                        icon: const Icon(
-                                            Icons.remove_circle_outline),
-                                        onPressed: () {
-                                          _moveItemToLeftList(index);
-                                        },
-                                      ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                    SizedBox(height: 320, child: _paidList()),
                     const Divider(),
                     _buildAmountSummary(),
-                    Center(child: _buildSaveButton(context)),
                     if (errorMessage !=
                         null) // Eğer bir hata mesajı varsa göster
-                      Center(
-                        child: Text(
-                          errorMessage!,
-                          style: TextStyle(
-                            color: errorMessage == 'Lütfen ödeme yöntemi seçin.'
-                                ? Colors.red
-                                : Colors.green,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
+                      ErrorMessage(errorMessage: errorMessage),
+                    Center(child: _buildSaveButton(context)),
                   ],
                 ),
               ),
             ),
           );
+  }
+
+  Row _paymentTypeButtons() {
+    return Row(
+      children: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: selectedPaymentType == 'product'
+                ? Colors.orange
+                : Colors.grey.shade200,
+          ),
+          onPressed: () {
+            setState(() {
+              selectedPaymentType = 'product';
+            });
+          },
+          child: const Text(
+            'Ürün Bazlı',
+            style: TextStyle(color: Colors.black),
+          ),
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: selectedPaymentType == 'amount'
+                ? Colors.orange
+                : Colors.grey.shade200,
+          ),
+          onPressed: () {
+            setState(() {
+              selectedPaymentType = 'amount';
+            });
+          },
+          child: const Text(
+            'Tutar Bazlı',
+            style: TextStyle(color: Colors.black),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Column _amountBased() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 60,
+          width: 280,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: const InputDecoration(
+                labelText: 'Ödeme Tutarı',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+              controller: TextEditingController(text: inputAmount.toString()),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: CustomNumpadMobile(
+            value: remainingAmount.toStringAsFixed(2),
+            onInput: (value) {
+              setState(() {
+                inputAmount = int.tryParse(value.toString()) ?? 0;
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Column _paidList() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'ÖDENENLER',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: rightList.length,
+          itemBuilder: (context, index) {
+            final item = rightList[index];
+            return Card(
+              color: Colors.white,
+              child: ListTile(
+                title: Text(item.title ?? ''),
+                subtitle: Text('${item.piece ?? 1} adet'),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                        style: const TextStyle(fontSize: 16)),
+                    item.isCredit != null
+                        ? const Padding(
+                            padding: EdgeInsets.only(left: 4),
+                            child: Text(
+                              'Ödendi',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.green),
+                            ),
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.remove_circle_outline),
+                            onPressed: () {
+                              _moveItemToLeftList(index);
+                            },
+                          ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Column _productBased() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'ÖDENECEKLER',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: leftList.length,
+          itemBuilder: (context, index) {
+            final item = leftList[index];
+            final isSelected = selectedIndexes.contains(index);
+            return Card(
+              color: isSelected ? Colors.green.shade100 : Colors.white,
+              child: ListTile(
+                hoverColor: Colors.transparent,
+                title: Text(item.title ?? ''),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${item.piece ?? 1} adet'),
+                    if (isSelected)
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                      ), // Seçim simgesi
+                  ],
+                ),
+                trailing: Text('₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                    style: const TextStyle(fontSize: 16)),
+                onTap: () {
+                  setState(() {
+                    if (isSelected) {
+                      selectedIndexes.remove(index);
+                    } else {
+                      selectedIndexes.add(index);
+                    }
+                  });
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
   }
 
   Widget _buildAmountSummary() {
@@ -222,12 +321,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                           side: const BorderSide(color: Colors.black),
                           borderRadius: BorderRadius.circular(4))),
                   onPressed: () {
-                    setState(() {
-                      isCredit = isCredit == true
-                          ? null
-                          : true; // Eğer true ise null yap, değilse true yap
-                      errorMessage = null;
-                    });
+                    _processSelectedItems(true);
                   },
                   icon: const Icon(
                     Icons.add,
@@ -246,12 +340,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4))),
                   onPressed: () {
-                    setState(() {
-                      isCredit = isCredit == false
-                          ? null
-                          : false; // Eğer true ise null yap, değilse true yap
-                      errorMessage = null;
-                    });
+                    _processSelectedItems(false); // Nakit için false
                   },
                   icon: const Icon(
                     Icons.add,
@@ -288,7 +377,9 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
       style: OutlinedButton.styleFrom(
           backgroundColor: Colors.orange,
           side: const BorderSide(color: Colors.orange)),
-      onPressed: isSaving ? null : () => _onPayPressed(context),
+      onPressed: () => isSaving || selectedIndexes.isNotEmpty
+          ? null
+          : _onPayPressed(context),
       child: const Padding(
         padding: EdgeInsets.all(4.0),
         child:
@@ -308,16 +399,82 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
     );
   }
 
+  void _processSelectedItems(bool isCreditSelected) async {
+    if (totalAmount == paidAmount) {
+      setState(() {
+        errorMessage = 'Hesap zaten ödendi.';
+      });
+      return;
+    }
+    if (inputAmount > remainingAmount) {
+      setState(() {
+        errorMessage = 'Hesaptan daha fazla ücret ödeyemezsiniz';
+      });
+      return;
+    }
+    List<Menu> itemsToMove = [];
+    if (inputAmount != 0) {
+      final amount = Menu(
+        title: isCreditSelected == true ? 'Kredi' : 'Nakit',
+        isCredit: isCreditSelected,
+        price: inputAmount,
+        status: 'ödendi',
+        isAmount: true,
+      );
+      itemsToMove.add(amount);
+      await ref
+          .read(_tablesProvider.notifier)
+          .addItemToBill(widget.tableId, amount);
+    }
+
+    // Eğer selectedIndexes boş değilse, listedeki öğeleri ekle
+    if (selectedIndexes.isNotEmpty) {
+      itemsToMove.addAll(selectedIndexes.map((index) {
+        final item = leftList[index];
+        return item.copyWith(
+          status: 'ödendi', // Status güncelleniyor
+          isCredit: isCreditSelected,
+        );
+      }).toList());
+    }
+
+    // Eğer hala liste boşsa, hata mesajını göster ve işlemi durdur
+    if (itemsToMove.isEmpty) {
+      setState(() {
+        errorMessage = 'Lütfen önce bir veya daha fazla ürün seçin.';
+      });
+      return;
+    }
+    setState(() {
+      // Sağ listeye ekle
+      rightList.addAll(itemsToMove);
+      saveIndexes = {...selectedIndexes};
+      // Sol listeyi, taşınan ürünlerin `id` değerine göre filtrele
+      leftList = leftList.where((item) {
+        return !itemsToMove.any((movedItem) => movedItem.id == item.id);
+      }).toList();
+
+      selectedIndexes.clear(); // Seçim listesini temizle
+      errorMessage = null; // Hata mesajını temizle
+    });
+    _calculateAmounts();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isCreditSelected
+              ? 'Seçilen ürünler kredi kartı ile ödendi olarak işaretlendi.'
+              : 'Seçilen ürünler nakit ile ödendi olarak işaretlendi.',
+        ),
+      ),
+    );
+  }
+
+  /// `ÖDE` butonuna basıldığında sağ listedeki ürünlerin `status` alanını `ödendi` olarak günceller
   Future<void> _onPayPressed(BuildContext context) async {
     ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
     if (isSaving) return; // Eğer zaten kaydediliyorsa işlemi durdur.
-    if (isCredit == null) {
-      setState(() {
-        errorMessage = 'Lütfen ödeme yöntemi seçin.';
-      });
-      ref.read(loadingProvider.notifier).setLoading(false);
-      return; // Tüm işlemi durdur
-    }
+
     setState(() {
       isSaving = true; // Kaydetme işlemi başladı
     });
@@ -377,5 +534,52 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
         _calculateAmounts(); // Tutarları yeniden hesaplayın
       });
     }
+  }
+
+  void _calculateAmounts() {
+    // `isAmount` true olan ürünlerin fiyatlarını filtrele ve çıkar
+    double amountItemTotal = rightList
+        .where((item) => item.isAmount == true)
+        .fold<double>(
+            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+
+    // Toplam tutarı hesapla (`isAmount` ürünler hariç)
+    totalAmount = leftList.where((item) => item.isAmount != true).fold<double>(
+            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1))) +
+        rightList.where((item) => item.isAmount != true).fold<double>(
+            0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+
+    // Ödenen tutarı hesapla
+    paidAmount = rightList.where((item) => item.isAmount != true).fold<double>(
+        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+
+    // Kalan tutarı hesapla
+    remainingAmount = totalAmount - paidAmount - amountItemTotal;
+    paidAmount = rightList.fold<double>(
+        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+  }
+}
+
+class ErrorMessage extends StatelessWidget {
+  const ErrorMessage({
+    super.key,
+    required this.errorMessage,
+  });
+
+  final String? errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        errorMessage!,
+        style: TextStyle(
+          color: errorMessage == 'Lütfen ödeme yöntemi seçin.'
+              ? Colors.red
+              : Colors.green,
+          fontSize: 16,
+        ),
+      ),
+    );
   }
 }

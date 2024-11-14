@@ -721,16 +721,28 @@ class _BillViewState extends ConsumerState<BillView> {
                     }
                   }
                 : null,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
                 vertical: 16,
               ),
-              child: Text(
-                'ÖDE',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.white,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'ÖDE',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    '₺$remainingAmount',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ), // Liste boşsa düğme pasif olur
           ),

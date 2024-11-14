@@ -117,54 +117,38 @@ class TablesNotifier extends StateNotifier<TablesState> {
       final userDetails = await _userHelper.getCurrentUserDetails();
       final String userType = userDetails?['userType'] ?? '';
       final String? cafeId = userDetails?['cafeId'];
+      late DocumentReference billDocument;
 
       if (userType == 'kafe') {
         // 'bills' koleksiyonundaki ilgili masanın adisyonunu çekiyoruz
-        final billDocument =
-            _userHelper.getUserDocument('bills', tableId.toString());
-        final doc = await billDocument.get();
-
-        List<Menu> currentBillItems = [];
-        if (doc.exists) {
-          // Eğer belge varsa, mevcut adisyon öğelerini alıyoruz
-          final data = doc.data() as Map<String, dynamic>;
-          currentBillItems = (data['billItems'] as List<dynamic>)
-              .map((item) => Menu.fromJson(item as Map<String, dynamic>))
-              .toList();
-        }
-
-        // State'i güncelliyoruz
-        state = state.copyWith(
-          tableBills: {
-            ...state.tableBills,
-            tableId: currentBillItems,
-          },
-        );
-      }
-      if (userType == 'çalışan' && cafeId != null) {
-        final billDocument = FirebaseFirestore.instance
+        billDocument = _userHelper.getUserDocument('bills', tableId.toString());
+      } else if (userType == 'çalışan' && cafeId != null) {
+        billDocument = FirebaseFirestore.instance
             .collection('users')
             .doc(cafeId)
             .collection('bills')
             .doc(tableId);
-        final doc = await billDocument.get();
-        List<Menu> currentBillItems = [];
-        if (doc.exists) {
-          // Eğer belge varsa, mevcut adisyon öğelerini alıyoruz
-          final data = doc.data() as Map<String, dynamic>;
-          currentBillItems = (data['billItems'] as List<dynamic>)
-              .map((item) => Menu.fromJson(item as Map<String, dynamic>))
-              .toList();
-        }
-
-        // State'i güncelliyoruz
-        state = state.copyWith(
-          tableBills: {
-            ...state.tableBills,
-            tableId: currentBillItems,
-          },
-        );
+      } else {
+        throw Exception('Geçersiz kullanıcı tipi');
       }
+
+      final doc = await billDocument.get();
+      List<Menu> currentBillItems = [];
+      if (doc.exists) {
+        // Eğer belge varsa, mevcut adisyon öğelerini alıyoruz
+        final data = doc.data() as Map<String, dynamic>;
+        currentBillItems = (data['billItems'] as List<dynamic>)
+            .map((item) => Menu.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+
+      // State'i güncelliyoruz
+      state = state.copyWith(
+        tableBills: {
+          ...state.tableBills,
+          tableId: currentBillItems,
+        },
+      );
     } catch (e) {
       _handleError(e, 'Adisyon verilerini getirme hatası');
     }

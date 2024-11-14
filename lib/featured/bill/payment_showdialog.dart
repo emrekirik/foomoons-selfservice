@@ -505,7 +505,13 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
       });
       return;
     }
-    if (inputAmount > remainingAmount) {
+
+    double selectedItemsTotal = selectedIndexes.fold<double>(
+      0.0,
+      (total, index) => total + (leftList[index].price ?? 0.0),
+    );
+
+    if (inputAmount > remainingAmount || selectedItemsTotal > remainingAmount) {
       setState(() {
         errorMessage = 'Hesaptan daha fazla ücret ödeyemezsiniz';
       });

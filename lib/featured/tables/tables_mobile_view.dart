@@ -8,6 +8,7 @@ import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
 import 'package:altmisdokuzapp/featured/tables/dialogs/add_areas_dialog.dart';
 import 'package:altmisdokuzapp/featured/tables/dialogs/add_table_dialog.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -52,6 +53,9 @@ class TablesMobileView extends ConsumerStatefulWidget {
 }
 
 class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
+  late bool allItemsPaid;
+  late int remainingAmount;
+
   @override
   void initState() {
     super.initState();
@@ -186,14 +190,27 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
                       ),
                       itemCount: filteredTables.length,
                       itemBuilder: (BuildContext context, int index) {
+                        final tableId = filteredTables[index].tableId;
                         ref
                             .read(_tablesProvider.notifier)
                             .fetchTableBill(filteredTables[index].tableId!);
-                        final tableBill = ref.watch(_tablesProvider.select(
-                            (state) =>
-                                state.getTableBill(filteredTables[index].tableId!)));
-                        bool allItemsPaid =
-                            tableBill.every((item) => item.status == 'ödendi');
+                        final tableBill = ref
+                            .watch(_tablesProvider.select(
+                                (state) => state.getTableBill(tableId!)))
+                            .where((item) =>
+                                item.isAmount !=
+                                true) // `isAmount == true` olanlar filtrelenir
+                            .toList();
+                        print('ui: $tableBill');
+
+                        final totalAmount = tableBill.fold(
+                            0,
+                            (sum, item) =>
+                                sum + ((item.price ?? 0) * (item.piece ?? 1)));
+
+                        calculateAmount(tableBill, totalAmount, tableId!);
+
+                        final odenenToplamTutar = totalAmount - remainingAmount;
                         return InkWell(
                           onTap: () async {
                             final tableId = filteredTables[index].tableId;
@@ -266,18 +283,37 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
                                             ),
                                           ),
                                           Center(
-                                            child: Text(
-                                              '₺${tableBill.fold(0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)))}',
-                                              style: TextStyle(
-                                                decoration: (allItemsPaid &&
-                                                        tableBill.isNotEmpty)
-                                                    ? TextDecoration.lineThrough
-                                                    : TextDecoration.none,
-                                                fontSize: 20.0,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
+                                            child: odenenToplamTutar != 0
+                                                ? Text(
+                                                    '₺$totalAmount / ₺$odenenToplamTutar',
+                                                    style: TextStyle(
+                                                      decoration: (allItemsPaid &&
+                                                              tableBill
+                                                                  .isNotEmpty)
+                                                          ? TextDecoration
+                                                              .lineThrough
+                                                          : TextDecoration.none,
+                                                      fontSize: 20.0,
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  )
+                                                : Text(
+                                                    '₺$totalAmount',
+                                                    style: TextStyle(
+                                                      decoration: (allItemsPaid &&
+                                                              tableBill
+                                                                  .isNotEmpty)
+                                                          ? TextDecoration
+                                                              .lineThrough
+                                                          : TextDecoration.none,
+                                                      fontSize: 20.0,
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
                                           ),
                                           const SizedBox(),
                                         ],
@@ -306,5 +342,51 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
         );
       },
     );
+  }
+
+  void calculateAmount(List<Menu> tableBill, int totalAmount, String tableId) {
+    final tableBillAmount = _getTableBillAmount(tableId);
+    final negativeAmount = _calculateTotal(tableBillAmount);
+
+    final urunBazliOdenenler =
+        tableBill.where((item) => item.status == 'ödendi').toList();
+    final urunBazliOdenenToplam = _calculateTotal(urunBazliOdenenler);
+
+    allItemsPaid = _checkIfAllItemsPaid(
+      tableBill,
+      negativeAmount,
+      urunBazliOdenenToplam,
+      totalAmount,
+    );
+
+    remainingAmount = _calculateRemainingAmount(
+      totalAmount,
+      negativeAmount,
+      urunBazliOdenenToplam,
+    );
+  }
+
+  List<Menu> _getTableBillAmount(String tableId) {
+    return ref
+        .watch(_tablesProvider.select((state) => state.getTableBill(tableId)))
+        .where((item) => item.isAmount == true)
+        .toList();
+  }
+
+  int _calculateTotal(List<Menu> items) {
+    return items.fold(
+        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+  }
+
+  bool _checkIfAllItemsPaid(List<Menu> tableBill, int negativeAmount,
+      int urunBazliOdenenToplam, int totalAmount) {
+    return tableBill.every((item) => item.status == 'ödendi') ||
+        (negativeAmount != 0 && negativeAmount == totalAmount) ||
+        urunBazliOdenenToplam + negativeAmount == totalAmount;
+  }
+
+  int _calculateRemainingAmount(
+      int totalAmount, int negativeAmount, int urunBazliOdenenToplam) {
+    return totalAmount - negativeAmount - urunBazliOdenenToplam;
   }
 }
