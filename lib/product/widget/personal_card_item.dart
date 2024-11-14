@@ -1,4 +1,3 @@
-import 'package:altmisdokuzapp/featured/reports/dialogs/update_personal_dailog.dart';
 import 'package:flutter/material.dart';
 
 class PersonalCardItem extends StatelessWidget {

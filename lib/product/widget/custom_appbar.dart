@@ -13,8 +13,12 @@ final _loginProvider = StateNotifierProvider<LoginNotifier, LoginState>((ref) {
 class CustomAppbar extends ConsumerWidget {
   final bool showBackButton;
   final bool showDrawer;
+  final String userType;
   const CustomAppbar(
-      {super.key, required this.showBackButton, required this.showDrawer});
+      {super.key,
+      required this.userType,
+      required this.showBackButton,
+      required this.showDrawer});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,10 +94,11 @@ class CustomAppbar extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'Profile',
-                    child: Text('Profile'),
-                  ),
+                  if (userType == 'kafe')
+                    const PopupMenuItem<String>(
+                      value: 'Profile',
+                      child: Text('Profile'),
+                    ),
                   const PopupMenuItem<String>(
                     value: 'Logout',
                     child: Text('Logout'),

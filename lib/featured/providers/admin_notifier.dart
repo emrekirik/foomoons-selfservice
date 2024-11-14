@@ -39,47 +39,59 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
   }
 
   /// Kullanıcıya özel sipariş akışını takip eder
-  void fetchOrdersStream() {
-    final currentUser =
-        _firestoreHelper.currentUser; // Oturum açmış kullanıcıyı kontrol et
-    if (currentUser == null) {
-      print('No authenticated user'); // Kullanıcı oturumu yoksa işlemi durdur
-      return;
-    }
+  void fetchOrdersStream() async {
+    try {
+      final userType = await _firestoreHelper.getUserType();
+      final cafeId = await _firestoreHelper.getCafeId();
 
-    final orderCollectionReference =
-        _firestoreHelper.getUserCollection('orders');
+      Query orderCollectionReference;
 
-    _orderSubscription =
-        orderCollectionReference.snapshots().listen((snapshot) {
-      final values = snapshot.docs.map((doc) {
-        return const app.Order()
-            .fromFirebase(doc as DocumentSnapshot<Map<String, dynamic>>);
-      }).toList();
-
-      // En yeni tarihe göre (azalan) sıralama yapıyoruz
-      values.sort((a, b) {
-        final dateA = a.orderDate;
-        final dateB = b.orderDate;
-        if (dateA == null && dateB == null) return 0;
-        if (dateA == null) return 1; // `null` tarihleri sona yerleştir
-        if (dateB == null) return -1;
-        return dateB.compareTo(dateA); // Tarihe göre azalan sıralama yap
-      });
-
-      if (!_isFirstLoad) {
-        if (values.length > _previousOrders.length) {
-          showOrderAlert();
-        }
+      if (userType == 'çalışan' && cafeId != null) {
+        // Çalışan ise bağlı olduğu cafeId'ye göre filtrele
+        orderCollectionReference = FirebaseFirestore.instance
+            .collection('users')
+            .doc(cafeId)
+            .collection('orders');
+      } else if (userType == 'kafe') {
+        // Kafe ise tüm siparişleri çek
+        orderCollectionReference = _firestoreHelper.getUserCollection('orders');
       } else {
-        _isFirstLoad = false;
+        print('User is not authorized to fetch orders');
+        return;
       }
 
-      _previousOrders = values;
-      state = state.copyWith(orders: values);
+      // Dinleyiciyi başlat
+      _orderSubscription =
+          orderCollectionReference.snapshots().listen((snapshot) {
+        final values = snapshot.docs.map((doc) {
+          return const app.Order()
+              .fromFirebase(doc as DocumentSnapshot<Map<String, dynamic>>);
+        }).toList();
 
-      // startCentralCountdown();
-    });
+        // Siparişleri tarihe göre sıralama
+        values.sort((a, b) {
+          final dateA = a.orderDate;
+          final dateB = b.orderDate;
+          if (dateA == null && dateB == null) return 0;
+          if (dateA == null) return 1;
+          if (dateB == null) return -1;
+          return dateB.compareTo(dateA);
+        });
+
+        if (!_isFirstLoad) {
+          if (values.length > _previousOrders.length) {
+            showOrderAlert();
+          }
+        } else {
+          _isFirstLoad = false;
+        }
+
+        _previousOrders = values;
+        state = state.copyWith(orders: values);
+      });
+    } catch (e) {
+      print('Error fetching orders: $e');
+    }
   }
 
   Future<void> fetchAndLoad() async {
@@ -106,8 +118,23 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
   //// Sipariş durumunu günceller ve durum `teslim edildi` olduğunda stok güncellemesi yapar
   Future<void> updateOrderStatus(String orderId, String status) async {
     try {
-      // Siparişin bulunduğu belgeyi Firestore'dan al
-      final orderDocument = _firestoreHelper.getUserDocument('orders', orderId);
+      final userType = await _firestoreHelper.getUserType();
+      final cafeId = await _firestoreHelper.getCafeId();
+      late DocumentReference orderDocument;
+
+      if (userType == 'kafe') {
+        orderDocument =
+            _firestoreHelper.getUserCollection('orders').doc(orderId);
+      } else if (userType == 'çalışan' && cafeId != null) {
+        orderDocument = FirebaseFirestore.instance
+            .collection('users')
+            .doc(cafeId)
+            .collection('orders')
+            .doc(orderId);
+      } else {
+        throw Exception('Geçersiz kullanıcı tipi');
+      }
+
       await orderDocument.update({'status': status}); // Durumu güncelle
 
       // Sipariş `teslim edildi` durumuna geçtiğinde stok güncellemesini ve `bills` kaydını yap
@@ -133,8 +160,17 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
 
           // Order'ı bills koleksiyonuna kaydetme işlemi
           if (order.tableId != null) {
-            final billDocument =
-                _firestoreHelper.getUserDocument('bills', order.tableId!);
+            late DocumentReference billDocument;
+            if (userType == 'çalışan' && cafeId != null) {
+              billDocument = FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(cafeId)
+                  .collection('bills')
+                  .doc(order.tableId);
+            } else if (userType == 'kafe') {
+              billDocument =
+                  _firestoreHelper.getUserDocument('bills', order.tableId!);
+            }
 
             final doc = await billDocument.get();
             List<Menu> currentBillItems = [];
@@ -146,8 +182,6 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
                   .map((item) => Menu.fromJson(item as Map<String, dynamic>))
                   .toList();
             }
-
-            final String uniqueItemId = uuid.v4();
 
             // Siparişten bir Menu öğesi oluştur ve adisyona ekle
             // Siparişten her adet için bir Menu öğesi oluştur ve adisyona ekle
@@ -179,6 +213,19 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
     } catch (e) {
       print('Failed to update order status for orderId: $orderId: $e');
     }
+  }
+
+  Future<String?> getCafeIdForCurrentUser() async {
+    final currentUser = _firestoreHelper.currentUser;
+    if (currentUser == null) {
+      print('No authenticated user');
+      return null;
+    }
+    // Kullanıcı verilerini Firestore'dan al
+    final userDoc =
+        await _firestoreHelper.getUserDocument('users', currentUser.uid).get();
+    final userData = userDoc.data() as Map<String, dynamic>?;
+    return userData?['cafeId'] as String?;
   }
 
   /// Seçili değeri günceller

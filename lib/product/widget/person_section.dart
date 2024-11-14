@@ -1,4 +1,3 @@
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/reports_notifier.dart';
 import 'package:altmisdokuzapp/featured/reports/dialogs/add_personal_dialog.dart';
 import 'package:altmisdokuzapp/product/widget/personal_card_item.dart';

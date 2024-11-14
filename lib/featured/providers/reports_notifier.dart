@@ -11,7 +11,6 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
   static const String allCategories = 'Tüm Kategoriler';
   final UserFirestoreHelper _firestoreHelper = UserFirestoreHelper();
   final Ref ref; // Ref instance to manage the global provider
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   ReportsNotifier(this.ref) : super(const ReportsState());

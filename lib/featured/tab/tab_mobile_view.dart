@@ -1,19 +1,12 @@
 import 'package:altmisdokuzapp/featured/admin/admin_mobile_view.dart';
 import 'package:altmisdokuzapp/featured/menu/menu_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/menu/menu_view.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/reports/reports_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
 import 'package:altmisdokuzapp/featured/stock/stock_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/stock/stock_view.dart';
 import 'package:altmisdokuzapp/featured/tables/tables_mobile_view.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
 import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:altmisdokuzapp/featured/admin/admin_view.dart';
-import 'package:altmisdokuzapp/featured/tables/tables_view.dart';
-import 'package:altmisdokuzapp/featured/reports/reports_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TabMobileView extends ConsumerStatefulWidget {
@@ -31,10 +24,13 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
   bool showLeading = false;
   bool showTrailing = false;
   double groupAlignment = -1.0;
+  final UserFirestoreHelper _userHelper = UserFirestoreHelper();
+  Map<String, dynamic>? userDetails;
 
   @override
   void initState() {
     super.initState();
+    _loadUserDetails();
     _pageController = PageController(initialPage: _tabIndex);
   }
 
@@ -47,9 +43,15 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
     });
   }
 
+  Future<void> _loadUserDetails() async {
+    userDetails = await _userHelper.getCurrentUserDetails();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
+    final String userType = userDetails?['userType'] ?? '';
     double deviceWidth = MediaQuery.of(context).size.width;
     return Column(
       children: [
@@ -62,9 +64,10 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
           child: Scaffold(
             backgroundColor: Colors.white,
             extendBody: true,
-            appBar: const PreferredSize(
+            appBar: PreferredSize(
               preferredSize: Size.fromHeight(70.0),
               child: CustomAppbar(
+                userType: userType,
                 showDrawer: true,
                 showBackButton: false,
               ),

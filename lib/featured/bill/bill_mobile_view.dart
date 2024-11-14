@@ -1,15 +1,14 @@
 import 'package:altmisdokuzapp/featured/bill/payment_showbottomsheet.dart';
-import 'package:altmisdokuzapp/featured/bill/payment_showdialog.dart';
 import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
+import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
 import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 final _adminProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
   return AdminNotifier(ref);
@@ -43,11 +42,14 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
   bool isSearchBarVisible = false;
   late TextEditingController searchContoller;
   String searchQuery = '';
+  final UserFirestoreHelper _userHelper = UserFirestoreHelper();
+  Map<String, dynamic>? userDetails;
 
   @override
   void initState() {
     super.initState();
     searchContoller = TextEditingController();
+    _loadUserDetails();
     Future.microtask(
       () async {
         if (mounted) {
@@ -80,6 +82,11 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
     searchContoller.dispose();
   }
 
+  Future<void> _loadUserDetails() async {
+    userDetails = await _userHelper.getCurrentUserDetails();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
@@ -89,8 +96,8 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
     final productItem = ref.watch(_menuProvider).products ?? [];
     final categories = ref.watch(_menuProvider).categories ?? [];
     final selectedCategory = ref.watch(_menuProvider).selectedValue;
-    double deviceWidth = MediaQuery.of(context).size.width;
 
+    final String userType = userDetails?['userType'] ?? '';
     // Filter items based on the search query, ignoring the selected category during search
     final filteredItems = productItem.where((item) {
       // If search query is not empty, ignore category and search across all products
@@ -115,9 +122,10 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
             ),
           Expanded(
             child: Scaffold(
-              appBar: const PreferredSize(
+              appBar: PreferredSize(
                 preferredSize: Size.fromHeight(70.0),
                 child: CustomAppbar(
+                  userType: userType,
                   showDrawer: false,
                   showBackButton: true,
                 ),

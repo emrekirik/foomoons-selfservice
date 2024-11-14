@@ -6,6 +6,7 @@ import 'package:altmisdokuzapp/product/model/area.dart';
 import 'package:altmisdokuzapp/product/model/category.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
 import 'package:altmisdokuzapp/product/model/table.dart';
+import 'package:altmisdokuzapp/product/utility/firebase/firestore_helper.dart';
 import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
@@ -26,13 +27,12 @@ final _tablesProvider =
 class TablesNotifier extends StateNotifier<TablesState> {
   static const String allCategories = 'Tüm Kategoriler';
   static const String allTables = 'Masalar';
-  final UserFirestoreHelper _firestoreHelper = UserFirestoreHelper();
+  final UserFirestoreHelper _userHelper = UserFirestoreHelper();
   final Ref ref; // Ref instance to manage the global provider
   final uuid = const Uuid();
-  bool _isFirstLoad = true;
   StreamSubscription? _orderSubscription;
-  List<app.Order> _previousOrders = [];
   bool isLoading = false;
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
 
   TablesNotifier(this.ref) : super(const TablesState());
 
@@ -43,100 +43,128 @@ class TablesNotifier extends StateNotifier<TablesState> {
   }
 
   /// Masaları (tables) Firebase'den getirir.
-  Future<void> fetchTable() async {
+  Future<void> fetchTablesBasedOnUserType() async {
     try {
-      final tableCollection = _firestoreHelper.getUserCollection('tables');
-      final response = await tableCollection
-          .withConverter<CoffeTable>(
-            fromFirestore: (snapshot, options) =>
-                CoffeTable.fromJson(snapshot.data()!),
-            toFirestore: (value, options) => value.toJson(),
-          )
-          .get();
+      final userDetails = await _userHelper.getCurrentUserDetails();
+      final tables = await _firestoreHelper.fetchCollection(
+        _getPathForUser(userDetails, 'tables'),
+        (data) => CoffeTable.fromJson(data),
+      );
 
-      final tables = response.docs.map((e) => e.data()).toList();
-      tables.sort((a, b) {
-        final aId = int.tryParse(a.tableId!.split(' ').last) ?? 0;
-        final bId = int.tryParse(b.tableId!.split(' ').last) ?? 0;
-        return aId.compareTo(bId);
-      }); // TableId'ye göre sıralama
+      tables.sort((a, b) =>
+          int.tryParse(a.tableId!.split(' ').last)?.compareTo(
+            int.tryParse(b.tableId!.split(' ').last) ?? 0,
+          ) ??
+          0);
 
       state = state.copyWith(tables: tables);
     } catch (e) {
-      _handleError(e, 'Masaları getirme hatası');
+      _handleError(e, 'Masaları getirirken hata oluştu');
     }
   }
 
   Future<void> fetchArea() async {
     try {
-      final areaCollection = _firestoreHelper.getUserCollection('areas');
-      final response = await areaCollection
+      // Kullanıcı bilgilerini al
+      final userDetails = await _userHelper.getCurrentUserDetails();
+      final areaQuery = _getAreaQuery(userDetails);
+
+      // Firestore'dan alanları getir
+      final response = await areaQuery.get();
+      final areas = response.docs.map((e) => e.data()).toList();
+
+      // State'i güncelle
+      state = state.copyWith(areas: areas);
+    } catch (e) {
+      _handleError(e, 'Bölgeleri getirme hatası');
+    }
+  }
+
+  /// Kullanıcı tipine göre `areas` sorgusunu döner
+  Query<Area> _getAreaQuery(Map<String, dynamic>? userDetails) {
+    final String? cafeId = userDetails?['cafeId'];
+    final String userType = userDetails?['userType'] ?? '';
+
+    if (userType == 'kafe') {
+      // Kafe kullanıcısı için kendi koleksiyonunu döner
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userHelper.currentUser!.uid)
+          .collection('areas')
           .withConverter<Area>(
             fromFirestore: (snapshot, options) =>
                 Area.fromJson(snapshot.data()!),
             toFirestore: (value, options) => value.toJson(),
-          )
-          .get();
-      final areas = response.docs.map((e) => e.data()).toList();
-      state = state.copyWith(areas: areas);
-    } catch (e) {}
-  }
-
-  /// Kullanıcıya özel sipariş akışını takip eder
-  void fetchOrdersStream() {
-    final currentUser =
-        _firestoreHelper.currentUser; // Oturum açmış kullanıcıyı kontrol et
-    if (currentUser == null) {
-      print('No authenticated user'); // Kullanıcı oturumu yoksa işlemi durdur
-      return;
+          );
+    } else if (userType == 'çalışan' && cafeId != null) {
+      // Çalışan kullanıcı için bağlı olduğu kafe koleksiyonunu döner
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(cafeId)
+          .collection('areas')
+          .withConverter<Area>(
+            fromFirestore: (snapshot, options) =>
+                Area.fromJson(snapshot.data()!),
+            toFirestore: (value, options) => value.toJson(),
+          );
+    } else {
+      throw Exception('Yetkisiz kullanıcı');
     }
-
-    final orderCollectionReference =
-        _firestoreHelper.getUserCollection('orders');
-
-    _orderSubscription =
-        orderCollectionReference.snapshots().listen((snapshot) {
-      final values = snapshot.docs.map((doc) {
-        return const app.Order()
-            .fromFirebase(doc as DocumentSnapshot<Map<String, dynamic>>);
-      }).toList();
-
-      if (!_isFirstLoad) {
-        if (values.length > _previousOrders.length) {}
-      } else {
-        _isFirstLoad = false;
-      }
-
-      _previousOrders = values;
-      state = state.copyWith(orders: values);
-
-      // startCentralCountdown();
-    });
   }
 
   Future<void> fetchTableBill(String tableId) async {
     try {
-      // 'bills' koleksiyonundaki ilgili masanın adisyonunu çekiyoruz
-      final billDocument =
-          _firestoreHelper.getUserDocument('bills', tableId.toString());
-      final doc = await billDocument.get();
+      final userDetails = await _userHelper.getCurrentUserDetails();
+      final String userType = userDetails?['userType'] ?? '';
+      final String? cafeId = userDetails?['cafeId'];
 
-      List<Menu> currentBillItems = [];
-      if (doc.exists) {
-        // Eğer belge varsa, mevcut adisyon öğelerini alıyoruz
-        final data = doc.data() as Map<String, dynamic>;
-        currentBillItems = (data['billItems'] as List<dynamic>)
-            .map((item) => Menu.fromJson(item as Map<String, dynamic>))
-            .toList();
+      if (userType == 'kafe') {
+        // 'bills' koleksiyonundaki ilgili masanın adisyonunu çekiyoruz
+        final billDocument =
+            _userHelper.getUserDocument('bills', tableId.toString());
+        final doc = await billDocument.get();
+
+        List<Menu> currentBillItems = [];
+        if (doc.exists) {
+          // Eğer belge varsa, mevcut adisyon öğelerini alıyoruz
+          final data = doc.data() as Map<String, dynamic>;
+          currentBillItems = (data['billItems'] as List<dynamic>)
+              .map((item) => Menu.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+
+        // State'i güncelliyoruz
+        state = state.copyWith(
+          tableBills: {
+            ...state.tableBills,
+            tableId: currentBillItems,
+          },
+        );
       }
+      if (userType == 'çalışan' && cafeId != null) {
+        final billDocument = FirebaseFirestore.instance
+            .collection('users')
+            .doc(cafeId)
+            .collection('bills')
+            .doc(tableId);
+        final doc = await billDocument.get();
+        List<Menu> currentBillItems = [];
+        if (doc.exists) {
+          // Eğer belge varsa, mevcut adisyon öğelerini alıyoruz
+          final data = doc.data() as Map<String, dynamic>;
+          currentBillItems = (data['billItems'] as List<dynamic>)
+              .map((item) => Menu.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
 
-      // State'i güncelliyoruz
-      state = state.copyWith(
-        tableBills: {
-          ...state.tableBills,
-          tableId: currentBillItems,
-        },
-      );
+        // State'i güncelliyoruz
+        state = state.copyWith(
+          tableBills: {
+            ...state.tableBills,
+            tableId: currentBillItems,
+          },
+        );
+      }
     } catch (e) {
       _handleError(e, 'Adisyon verilerini getirme hatası');
     }
@@ -146,7 +174,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
     ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
     try {
       await Future.wait([
-        fetchTable(),
+        fetchTablesBasedOnUserType(),
         fetchArea(),
       ]);
     } catch (e) {
@@ -156,9 +184,20 @@ class TablesNotifier extends StateNotifier<TablesState> {
     }
   }
 
+  String _getPathForUser(Map<String, dynamic>? userDetails, String collection) {
+    if (userDetails?['userType'] == 'kafe') {
+      return 'users/${_userHelper.currentUser!.uid}/$collection';
+    } else if (userDetails?['userType'] == 'çalışan' &&
+        userDetails?['cafeId'] != null) {
+      return 'users/${userDetails!['cafeId']}/$collection';
+    } else {
+      throw Exception('Yetkisiz kullanıcı');
+    }
+  }
+
   Future<bool> addTable(CoffeTable table) async {
     try {
-      final tableCollection = _firestoreHelper.getUserCollection('tables');
+      final tableCollection = _userHelper.getUserCollection('tables');
 
       // Aynı ID'ye sahip bir masa var mı kontrol et
       final querySnapshot = await tableCollection
@@ -186,36 +225,31 @@ class TablesNotifier extends StateNotifier<TablesState> {
   }
 
   /// Hesaba ürün ekleme işlemi
+  /// Hesaba ürün ekleme işlemi
   Future<void> addItemToBill(String tableId, Menu item) async {
     state = state.copyWith(isLoading: true);
+
     try {
-      final billDocument =
-          _firestoreHelper.getUserDocument('bills', tableId.toString());
-      final doc = await billDocument.get();
+      // Kullanıcı bilgilerini al
+      final userDetails = await _userHelper.getCurrentUserDetails();
 
-      List<Map<String, dynamic>> currentBillItems = [];
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>;
-        currentBillItems =
-            (data['billItems'] as List<dynamic>).cast<Map<String, dynamic>>();
-      }
+      // Firestore'da hedef belgeyi al
+      final billDocument = _getBillDocument(userDetails, tableId);
 
-      // Yeni item'e benzersiz bir itemId ekliyoruz
-      final newItem = item.copyWith(id: uuid.v4());
+      // Mevcut adisyonu getir
+      final currentBillItems = await _fetchCurrentBillItems(billDocument);
 
-      currentBillItems.add(newItem.toJson()); // Yeni item'i ekliyoruz
+      // Yeni item'e benzersiz bir ID ekle
+      final newItem = item.copyWith(id: _generateUniqueId());
+      currentBillItems.add(newItem.toJson());
 
-      await billDocument.set({
-        'tableId': tableId,
-        'billItems': currentBillItems,
-      });
+      // Firestore'da güncelle
+      await _updateBillDocument(billDocument, tableId, currentBillItems);
 
-      // State'i güncelliyoruz
-      state = state.copyWith(tableBills: {
-        ...state.tableBills,
-        tableId: currentBillItems.map((item) => Menu.fromJson(item)).toList(),
-      });
-      await fetchTableBill(tableId);
+      // State'i güncelle
+      _updateStateWithBillItems(tableId, currentBillItems);
+
+      print('Ürün başarıyla hesaba eklendi: ${item.title}');
     } catch (e) {
       _handleError(e, 'Hesaba ürün ekleme hatası');
     } finally {
@@ -223,12 +257,70 @@ class TablesNotifier extends StateNotifier<TablesState> {
     }
   }
 
+  /// Kullanıcı bilgilerine göre Firestore belge referansı döndürür
+  DocumentReference<Map<String, dynamic>> _getBillDocument(
+      Map<String, dynamic>? userDetails, String tableId) {
+    if (userDetails?['userType'] == 'kafe') {
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userHelper.currentUser!.uid)
+          .collection('bills')
+          .doc(tableId);
+    } else if (userDetails?['userType'] == 'çalışan' &&
+        userDetails?['cafeId'] != null) {
+      final cafeId = userDetails!['cafeId'];
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(cafeId)
+          .collection('bills')
+          .doc(tableId);
+    } else {
+      throw Exception('Yetkisiz kullanıcı');
+    }
+  }
+
+  /// Mevcut adisyonu Firestore'dan getirir
+  Future<List<Map<String, dynamic>>> _fetchCurrentBillItems(
+      DocumentReference<Map<String, dynamic>> billDocument) async {
+    final doc = await billDocument.get();
+
+    if (!doc.exists) return [];
+    final data = doc.data() as Map<String, dynamic>;
+    return (data['billItems'] as List<dynamic>)
+        .cast<Map<String, dynamic>>(); // Adisyon öğelerini döndür
+  }
+
+  /// Benzersiz bir ID oluşturur
+  String _generateUniqueId() {
+    return uuid.v4();
+  }
+
+  /// Firestore belgeyi günceller
+  Future<void> _updateBillDocument(
+      DocumentReference<Map<String, dynamic>> billDocument,
+      String tableId,
+      List<Map<String, dynamic>> billItems) async {
+    await billDocument.set({
+      'tableId': tableId,
+      'billItems': billItems,
+    });
+  }
+
+  /// State'i günceller
+  void _updateStateWithBillItems(
+      String tableId, List<Map<String, dynamic>> billItems) {
+    state = state.copyWith(tableBills: {
+      ...state.tableBills,
+      tableId: billItems.map((item) => Menu.fromJson(item)).toList(),
+    });
+  }
+
   /// Hesaptan ürün çıkarma işlemi
   Future<void> removeItemFromBill(String tableId, String itemId) async {
     state = state.copyWith(isLoading: true);
     try {
       final billDocument =
-          _firestoreHelper.getUserDocument('bills', tableId.toString());
+          _userHelper.getUserDocument('bills', tableId.toString());
       final doc = await billDocument.get();
 
       List<Map<String, dynamic>> currentBillItems = [];
@@ -260,28 +352,41 @@ class TablesNotifier extends StateNotifier<TablesState> {
     }
   }
 
-  String generateQRCode(String tableId) {
-    final user = FirebaseAuth.instance.currentUser;
+  Future<String> generateQRCode(String tableId) async {
+    try {
+      // Kullanıcı detaylarını al
+      final userDetails = await _userHelper.getCurrentUserDetails();
 
-    if (user == null) {
-      throw Exception(
-          'No authenticated user'); // Eğer oturum açmış kullanıcı yoksa hata ver
+      String businessId;
+
+      if (userDetails?['userType'] == 'kafe') {
+        // Eğer kullanıcı türü 'kafe' ise kendi UID'sini kullan
+        businessId = FirebaseAuth.instance.currentUser!.uid;
+      } else if (userDetails?['userType'] == 'çalışan' &&
+          userDetails?['cafeId'] != null) {
+        // Eğer kullanıcı türü 'çalışan' ise cafeId'yi kullan
+        businessId = userDetails!['cafeId'];
+      } else {
+        throw Exception('Yetkisiz kullanıcı');
+      }
+
+      // businessId ve tableId'yi şifreliyoruz
+      final String token =
+          base64Encode(utf8.encode('businessId:$businessId,tableId:$tableId'));
+
+      final Uri menuUrl = Uri(
+        scheme: 'http',
+        host: 'foomoons.com', // veya IP adresi
+        path: '/menu/', // API'nin path kısmı
+      );
+      final String finalUrl = '$menuUrl#/table?token=$token';
+      print(finalUrl);
+
+      return finalUrl;
+    } catch (e) {
+      print('QR kod oluşturma hatası: $e');
+      rethrow;
     }
-
-    final String businessId = user.uid;
-
-    // businessId ve tableId'yi şifreliyoruz
-    final String token =
-        base64Encode(utf8.encode('businessId:$businessId,tableId:$tableId'));
-
-    final Uri menuUrl = Uri(
-      scheme: 'http',
-      host: 'foomoons.com', // veya IP adresi
-      path: '/menu/', // yerel sunucunuzun port numarası
-    );
-    final String finalUrl = '$menuUrl#/table?token=$token';
-    print(finalUrl);
-    return finalUrl;
   }
 
   /// Yeni bir bölgeyi Firebase'e eklemek için fonksiyon
@@ -293,7 +398,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
       }
 
       // Mevcut kullanıcının `tables` koleksiyonuna ulaş
-      final tablesCollection = _firestoreHelper.getUserCollection('areas');
+      final tablesCollection = _userHelper.getUserCollection('areas');
 
       // `areas` adında bir alt koleksiyon oluştur ve yeni bölgeyi ekle
       await tablesCollection.add({'name': areaName});
@@ -308,34 +413,21 @@ class TablesNotifier extends StateNotifier<TablesState> {
   /// Bill öğesinin `status` alanını günceller
   Future<void> updateBillItemStatus(String tableId, Menu updatedItem) async {
     try {
-      final billDocument =
-          _firestoreHelper.getUserDocument('bills', tableId.toString());
-      final doc = await billDocument.get();
+      // Kullanıcı bilgilerini al ve Firestore belge referansını al
+      final userDetails = await _userHelper.getCurrentUserDetails();
+      final billDocument = _getBillDocument(userDetails, tableId);
 
-      List<Map<String, dynamic>> currentBillItems = [];
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>;
-        currentBillItems =
-            (data['billItems'] as List<dynamic>).cast<Map<String, dynamic>>();
-      }
+      // Mevcut adisyon öğelerini getir
+      final currentBillItems = await _fetchCurrentBillItems(billDocument);
 
-      // Güncellenen öğeyi eski listenin içinde bul ve değiştir.
-      currentBillItems = currentBillItems.map((item) {
-        if (item['id'] == updatedItem.id) {
-          return updatedItem.toJson(); // Status güncellendiği yeni öğe
-        }
-        return item;
-      }).toList();
+      // Güncellenen öğeyi liste içinde değiştir
+      final updatedBillItems = _updateItemInList(currentBillItems, updatedItem);
 
-      await billDocument.set({
-        'tableId': tableId,
-        'billItems': currentBillItems,
-      });
+      // Firestore'da güncellenmiş öğeleri kaydet
+      await _updateBillDocument(billDocument, tableId, updatedBillItems);
 
-      state = state.copyWith(tableBills: {
-        ...state.tableBills,
-        tableId: currentBillItems.map((item) => Menu.fromJson(item)).toList(),
-      });
+      // State'i güncelle
+      _updateStateWithBillItems(tableId, updatedBillItems);
 
       print(
           'Öğe güncellendi: ${updatedItem.title}, Status: ${updatedItem.status}');
@@ -344,61 +436,122 @@ class TablesNotifier extends StateNotifier<TablesState> {
     }
   }
 
+  /// Liste içindeki bir öğeyi günceller
+  List<Map<String, dynamic>> _updateItemInList(
+      List<Map<String, dynamic>> currentBillItems, Menu updatedItem) {
+    return currentBillItems.map((item) {
+      if (item['id'] == updatedItem.id) {
+        return updatedItem.toJson(); // Güncellenmiş öğeyi döndür
+      }
+      return item; // Diğer öğeleri olduğu gibi döndür
+    }).toList();
+  }
+
   Future<bool> hesabiKapat(String tableId) async {
-    ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
+    ref.read(loadingProvider.notifier).setLoading(true);
     try {
-      // 'bills' koleksiyonundaki belgeyi alıyoruz
-      final billDocument = _firestoreHelper.getUserDocument('bills', tableId);
-      final doc = await billDocument.get();
+      // Kullanıcı bilgilerini al
+      final userDetails = await _userHelper.getCurrentUserDetails();
 
-      if (!doc.exists)
-        return false; // Eğer adisyon mevcut değilse işlemi durdur
+      // Firestore referanslarını al
+      final billDocument = _getBillDocument(userDetails, tableId);
+      final pastOrdersCollection = _getPastOrdersCollection(userDetails);
 
-      final data = doc.data() as Map<String, dynamic>;
-      final currentBillItems = (data['billItems'] as List<dynamic>)
-          .map((item) => Menu.fromJson(item as Map<String, dynamic>))
-          .where(
-              (item) => item.status == 'ödendi') // Sadece 'ödendi' olanları al
-          .toList();
+      // Mevcut adisyon öğelerini al
+      final currentBillItems = await _fetchBillItems(billDocument);
 
-      // Benzersiz bir belge ID'si oluşturuyoruz
-      final String uniqueId = uuid.v4();
+      if (currentBillItems.isEmpty) {
+        return false; // Eğer adisyon boşsa işlemi durdur
+      }
 
-      // Toplam tutarı hesapla
-      final totalPrice = currentBillItems.fold<double>(
-        0.0,
-        (sum, item) => sum + (item.price ?? 0), // Fiyat null ise 0 olarak ekle
+      // Hesap bilgilerini geçmiş siparişlere taşı
+      await _moveToPastOrders(
+        pastOrdersCollection,
+        tableId,
+        currentBillItems,
       );
 
-      // 'pastOrders' koleksiyonundaki ilgili belgeye referans oluşturuyoruz
-      final pastOrdersDocument =
-          _firestoreHelper.getUserDocument('pastOrders', uniqueId);
+      // 'bills' koleksiyonundan masayı sil
+      await _deleteBill(billDocument);
 
-      // 'pastOrders' koleksiyonuna belge ekliyoruz
-      await pastOrdersDocument.set({
-        'tableId': tableId,
-        'billItems': currentBillItems.map((item) => item.toJson()).toList(),
-        'closedAtDate':
-            Timestamp.fromDate(DateTime.now()), // Hesabı kapama tarihi
-        'uniqueId': uniqueId, // Ekstra olarak belge ID'sini de kaydediyoruz
-        'totalPrice': totalPrice, // Adisyonun toplam tutarını kaydediyoruz
-      });
-
-      // 'bills' koleksiyonundan bu masaya ait tüm adisyon öğelerini sil
-      await billDocument.delete();
-
-      // State güncellemesi
-      state = state.copyWith(
-        tableBills: {...state.tableBills}..remove(tableId),
-      );
+      // State güncelle
+      _updateStateAfterBillClose(tableId);
 
       print('Hesap başarıyla kapatıldı ve geçmiş siparişlere taşındı.');
-      return true; // Başarılı işlemi bildir
+      return true;
     } catch (e) {
       print('Hesap kapatma hatası: $e');
-      return false; // Hata durumunda işlemi bildir
+      return false;
     } finally {
-      ref.read(loadingProvider.notifier).setLoading(false); // isLoading set
+      ref.read(loadingProvider.notifier).setLoading(false);
+    }
+  }
+
+  /// Belirtilen adisyon belgesini sil
+  Future<void> _deleteBill(
+      DocumentReference<Map<String, dynamic>> billDocument) async {
+    await billDocument.delete();
+  }
+
+  /// State güncellemesi
+  void _updateStateAfterBillClose(String tableId) {
+    state = state.copyWith(
+      tableBills: {...state.tableBills}..remove(tableId),
+    );
+  }
+
+  /// Hesap öğelerini geçmiş siparişlere taşı
+  Future<void> _moveToPastOrders(
+      CollectionReference<Map<String, dynamic>> pastOrdersCollection,
+      String tableId,
+      List<Menu> billItems) async {
+    final String uniqueId = uuid.v4();
+    final totalPrice = billItems.fold<double>(
+      0.0,
+      (sum, item) => sum + (item.price ?? 0),
+    );
+
+    await pastOrdersCollection.doc(uniqueId).set({
+      'tableId': tableId,
+      'billItems': billItems.map((item) => item.toJson()).toList(),
+      'closedAtDate': Timestamp.fromDate(DateTime.now()),
+      'uniqueId': uniqueId,
+      'totalPrice': totalPrice,
+    });
+  }
+
+  /// Belirtilen belgeden adisyon öğelerini getir
+  Future<List<Menu>> _fetchBillItems(
+      DocumentReference<Map<String, dynamic>> billDocument) async {
+    final doc = await billDocument.get();
+    if (!doc.exists) {
+      return [];
+    }
+
+    final data = doc.data() as Map<String, dynamic>;
+    return (data['billItems'] as List<dynamic>)
+        .map((item) => Menu.fromJson(item as Map<String, dynamic>))
+        .where((item) => item.status == 'ödendi') // Sadece 'ödendi' olanları al
+        .toList();
+  }
+
+  /// Kullanıcı bilgilerine göre 'pastOrders' referansını al
+  CollectionReference<Map<String, dynamic>> _getPastOrdersCollection(
+      Map<String, dynamic>? userDetails) {
+    if (userDetails?['userType'] == 'kafe') {
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userHelper.currentUser!.uid)
+          .collection('pastOrders');
+    } else if (userDetails?['userType'] == 'çalışan' &&
+        userDetails?['cafeId'] != null) {
+      final cafeId = userDetails!['cafeId'];
+      return FirebaseFirestore.instance
+          .collection('users')
+          .doc(cafeId)
+          .collection('pastOrders');
+    } else {
+      throw Exception('Yetkisiz kullanıcı');
     }
   }
 

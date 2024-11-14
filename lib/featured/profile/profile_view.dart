@@ -2,6 +2,7 @@ import 'package:altmisdokuzapp/featured/profile/profile_info_showdialog.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/profile_notifier.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
 import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,17 +22,23 @@ class ProfileView extends ConsumerStatefulWidget {
 
 class _ProfileViewState extends ConsumerState<ProfileView> {
   final TextEditingController profileImageController = TextEditingController();
-
   final TextEditingController nameController = TextEditingController();
-
   final TextEditingController titleController = TextEditingController();
+  final UserFirestoreHelper _userHelper = UserFirestoreHelper();
+  Map<String, dynamic>? userDetails;
 
   @override
   void initState() {
     super.initState();
+    _loadUserDetails();
     Future.microtask(() {
       ref.read(_profileProvider.notifier).fetchAndLoad();
     });
+  }
+
+  Future<void> _loadUserDetails() async {
+    userDetails = await _userHelper.getCurrentUserDetails();
+    setState(() {});
   }
 
   @override
@@ -41,7 +48,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     double deviceHeight = MediaQuery.of(context).size.height;
     final profileState = ref.watch(_profileProvider);
     final profileNotifier = ref.read(_profileProvider.notifier);
-
+    final String userType = userDetails?['userType'] ?? '';
     final List<IconData> icons = [
       Icons.person,
       Icons.lock,
@@ -61,9 +68,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
         Expanded(
           child: Scaffold(
-            appBar: const PreferredSize(
+            appBar: PreferredSize(
               preferredSize: Size.fromHeight(70.0),
               child: CustomAppbar(
+                userType: userType,
                 showDrawer: false,
                 showBackButton: true,
               ),
@@ -96,7 +104,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   ),
                   child: !isLoading
                       ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               child: Column(
@@ -129,7 +137,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      SizedBox(height: 100,),
+                                      SizedBox(
+                                        height: 100,
+                                      ),
                                       _UserDataSection(
                                           deviceHeight: deviceHeight,
                                           profileState: profileState,
@@ -297,7 +307,7 @@ class _UserDataSection extends ConsumerWidget {
           title: 'Email: ',
           desc: profileState.email ?? 'bilinmiyor',
         ),
-         SizedBox(height: deviceHeight * 0.02),
+        SizedBox(height: deviceHeight * 0.02),
       ],
     );
   }

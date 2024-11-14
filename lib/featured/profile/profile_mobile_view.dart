@@ -2,6 +2,7 @@ import 'package:altmisdokuzapp/featured/profile/profile_info_showdialog.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/profile_notifier.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
 import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,13 +27,20 @@ class _ProfileMobileViewState extends ConsumerState<ProfileMobileView> {
   final TextEditingController nameController = TextEditingController();
 
   final TextEditingController titleController = TextEditingController();
-
+  final UserFirestoreHelper _userHelper = UserFirestoreHelper();
+  Map<String, dynamic>? userDetails;
   @override
   void initState() {
     super.initState();
+    _loadUserDetails();
     Future.microtask(() {
       ref.read(_profileProvider.notifier).fetchAndLoad();
     });
+  }
+
+  Future<void> _loadUserDetails() async {
+    userDetails = await _userHelper.getCurrentUserDetails();
+    setState(() {});
   }
 
   @override
@@ -42,17 +50,7 @@ class _ProfileMobileViewState extends ConsumerState<ProfileMobileView> {
     double deviceHeight = MediaQuery.of(context).size.height;
     final profileState = ref.watch(_profileProvider);
     final profileNotifier = ref.read(_profileProvider.notifier);
-
-    final List<IconData> icons = [
-      Icons.person,
-      Icons.lock,
-      Icons.check_circle,
-      Icons.phone,
-      Icons.email,
-      Icons.settings,
-      Icons.star,
-      Icons.face,
-    ];
+    final String userType = userDetails?['userType'] ?? '';
 
     return Column(
       children: [
@@ -62,9 +60,10 @@ class _ProfileMobileViewState extends ConsumerState<ProfileMobileView> {
           ),
         Expanded(
           child: Scaffold(
-            appBar: const PreferredSize(
+            appBar: PreferredSize(
               preferredSize: Size.fromHeight(70.0),
               child: CustomAppbar(
+                userType: userType,
                 showDrawer: false,
                 showBackButton: true,
               ),

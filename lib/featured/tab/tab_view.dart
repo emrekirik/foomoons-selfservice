@@ -1,11 +1,9 @@
-import 'package:altmisdokuzapp/featured/menu/menu_mobile_view.dart';
 import 'package:altmisdokuzapp/featured/menu/menu_view.dart';
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/reports/reports_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
 import 'package:altmisdokuzapp/featured/stock/stock_view.dart';
-import 'package:altmisdokuzapp/featured/tables/tables_mobile_view.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
 import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
@@ -21,29 +19,102 @@ class TabView extends ConsumerStatefulWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _TabViewState();
 }
 
-class _TabViewState extends ConsumerState<TabView>
-    with SingleTickerProviderStateMixin {
+class _TabViewState extends ConsumerState<TabView> {
   int _tabIndex = 2; // Başlangıç sekmesi
   late PageController _pageController;
+  final UserFirestoreHelper _userHelper = UserFirestoreHelper();
+  Map<String, dynamic>? userDetails;
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _tabIndex);
+    _loadUserDetails();
   }
 
   void _onTabChanged(int index) {
     setState(() {
       _tabIndex = index;
-      _pageController.jumpToPage(
-        _tabIndex,
-      );
+      _pageController.jumpToPage(_tabIndex);
     });
+  }
+
+  Future<void> _loadUserDetails() async {
+    userDetails = await _userHelper.getCurrentUserDetails();
+    // Eğer userType garson ise _tabIndex'i 0 yap
+    if (userDetails?['userType'] == 'çalışan') {
+      setState(() {
+        _tabIndex = 0;
+        _pageController =
+            PageController(initialPage: _tabIndex); // PageController'ı güncelle
+      });
+    } else {
+      setState(() {});
+    }
+  }
+
+  List<Widget> _buildNavigationItems(String userType, double deviceWidth) {
+    // "çalışan" için farklı, "kafe" için farklı sekmeler döndürüyoruz
+    if (userType == 'çalışan') {
+      return [
+        _buildNavItem(Icons.monitor_rounded, 'Siparişler', 0, deviceWidth),
+        _buildNavItem(Icons.table_bar_outlined, 'Adisyonlar', 1, deviceWidth),
+      ];
+    } else if (userType == 'kafe') {
+      return [
+        _buildNavItem(Icons.restaurant_menu, 'Menu', 0, deviceWidth),
+        _buildNavItem(Icons.monitor_rounded, 'Siparişler', 1, deviceWidth),
+        _buildNavItem(Icons.table_bar_outlined, 'Adisyonlar', 2, deviceWidth),
+        _buildNavItem(Icons.article_outlined, 'Stok', 3, deviceWidth),
+        _buildNavItem(
+            Icons.insert_chart_outlined_rounded, 'Raporlar', 4, deviceWidth),
+      ];
+    } else {
+      return []; // Desteklenmeyen kullanıcı tipi
+    }
+  }
+
+  Widget _buildNavItem(
+      IconData icon, String label, int index, double deviceWidth) {
+    return Column(
+      mainAxisAlignment:
+          deviceWidth < 600 ? MainAxisAlignment.center : MainAxisAlignment.end,
+      children: [
+        Icon(icon, size: 30),
+        if (_tabIndex != index && deviceWidth >= 600)
+          Text(label), // Label sadece seçili değilse gösterilir
+      ],
+    );
+  }
+
+  List<Widget> _buildPageViews(String userType, double deviceWidth) {
+    final pages = [
+      if (userType == 'kafe') const MenuView(),
+      const AdminView(),
+      const TablesView(),
+      if (userType == 'kafe') const StockView(),
+      if (userType == 'kafe')
+        deviceWidth < 800 ? const ReportsMobileView() : const ReportsView(),
+    ];
+    return pages;
   }
 
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
     double deviceWidth = MediaQuery.of(context).size.width;
+
+    if (userDetails == null) {
+      // Kullanıcı bilgileri yüklenmemişse gösterilecek içerik
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final String userType = userDetails?['userType'] ?? '';
+
+    final List<Widget> navigationItems =
+        _buildNavigationItems(userType, deviceWidth);
+    final List<Widget> pageViews = _buildPageViews(userType, deviceWidth);
+
     return Column(
       children: [
         if (isLoading)
@@ -57,14 +128,11 @@ class _TabViewState extends ConsumerState<TabView>
                 ColorConstants.appbackgroundColor.withOpacity(0.15),
             extendBody: true,
             bottomNavigationBar: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(30), // Köşe yuvarlama için
+                  borderRadius: BorderRadius.circular(30),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -73,83 +141,7 @@ class _TabViewState extends ConsumerState<TabView>
                     animationCurve: Curves.fastLinearToSlowEaseIn,
                     animationDuration: const Duration(milliseconds: 800),
                     height: 75,
-                    items: [
-                      Column(
-                        mainAxisAlignment: deviceWidth < 600
-                            ? MainAxisAlignment.center
-                            : MainAxisAlignment.end,
-                        children: [
-                          const Icon(
-                            Icons.restaurant_menu,
-                            size: 30,
-                          ),
-                          if (_tabIndex != 0)
-                            deviceWidth < 600
-                                ? const SizedBox()
-                                : const Text('Menu'),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: deviceWidth < 600
-                            ? MainAxisAlignment.center
-                            : MainAxisAlignment.end,
-                        children: [
-                          const Icon(
-                            Icons.monitor_rounded,
-                            size: 30,
-                          ),
-                          if (_tabIndex != 1)
-                            deviceWidth < 600
-                                ? const SizedBox()
-                                : const Text('Siparişler'),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: deviceWidth < 600
-                            ? MainAxisAlignment.center
-                            : MainAxisAlignment.end,
-                        children: [
-                          const Icon(
-                            Icons.table_bar_outlined,
-                            size: 30,
-                          ),
-                          if (_tabIndex != 2)
-                            deviceWidth < 600
-                                ? const SizedBox()
-                                : const Text('Adisyonlar'),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: deviceWidth < 600
-                            ? MainAxisAlignment.center
-                            : MainAxisAlignment.end,
-                        children: [
-                          const Icon(
-                            Icons.article_outlined,
-                            size: 30,
-                          ),
-                          if (_tabIndex != 3)
-                            deviceWidth < 600
-                                ? const SizedBox()
-                                : const Text('Stok'),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: deviceWidth < 600
-                            ? MainAxisAlignment.center
-                            : MainAxisAlignment.end,
-                        children: [
-                          const Icon(
-                            Icons.insert_chart_outlined_rounded,
-                            size: 30,
-                          ),
-                          if (_tabIndex != 4)
-                            deviceWidth < 600
-                                ? const SizedBox()
-                                : const Text('Raporlar'),
-                        ],
-                      ),
-                    ],
+                    items: navigationItems,
                     backgroundColor:
                         ColorConstants.appbackgroundColor.withOpacity(0.15),
                     onTap: (index) {
@@ -159,9 +151,10 @@ class _TabViewState extends ConsumerState<TabView>
                 ),
               ),
             ),
-            appBar: const PreferredSize(
-              preferredSize: Size.fromHeight(70.0),
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(70.0),
               child: CustomAppbar(
+                userType: userType,
                 showDrawer: false,
                 showBackButton: false,
               ),
@@ -171,20 +164,7 @@ class _TabViewState extends ConsumerState<TabView>
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() {
-                    _tabIndex = index;
-                  });
-                },
-                children: [
-                  const MenuView(),
-                  const AdminView(),
-                  const TablesView(),
-                  const StockView(),
-                  deviceWidth < 800
-                      ? const ReportsMobileView()
-                      : const ReportsView()
-                ],
+                children: pageViews,
               ),
             ),
           ),

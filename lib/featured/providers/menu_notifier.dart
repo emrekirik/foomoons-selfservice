@@ -18,11 +18,32 @@ class MenuNotifier extends StateNotifier<MenuState> {
   final ImagePicker _picker = ImagePicker();
   MenuNotifier(this.ref) : super(const MenuState());
 
-  /// Siparişleri (orders) Firebase'den getirir.
   Future<void> fetchProducts() async {
     try {
-      final productCollection = _firestoreHelper.getUserCollection('products');
-      final response = await productCollection
+      // Kullanıcı detaylarını al
+      final userDetails = await getCurrentUserDetails();
+      Query<Map<String, dynamic>> productQuery;
+
+      if (userDetails?['userType'] == 'kafe') {
+        // Kafe kullanıcısıysa kendi 'products' koleksiyonunu sorgula
+        productQuery = FirebaseFirestore.instance
+            .collection('users')
+            .doc(_firestoreHelper.currentUser!.uid)
+            .collection('products');
+      } else if (userDetails!['userType'] == 'çalışan' &&
+          userDetails['cafeId'] != null) {
+        // Çalışan kullanıcıysa bağlı olduğu kafenin 'products' koleksiyonunu sorgula
+        final cafeId = userDetails['cafeId'];
+        productQuery = FirebaseFirestore.instance
+            .collection('users')
+            .doc(cafeId)
+            .collection('products');
+      } else {
+        throw Exception('Yetkisiz kullanıcı');
+      }
+
+      // Firestore'dan ürünleri getir
+      final response = await productQuery
           .withConverter<Menu>(
             fromFirestore: (snapshot, options) {
               final menu = Menu.fromJson(snapshot.data()!);
@@ -35,16 +56,37 @@ class MenuNotifier extends StateNotifier<MenuState> {
       final products = response.docs.map((e) => e.data()).toList();
       state = state.copyWith(products: products);
     } catch (e) {
-      _handleError(e, 'Siparişleri getirme hatası');
+      _handleError(e, 'Ürünleri getirme hatası');
     }
   }
 
   /// Kategorileri (categories) Firebase'den getirir.
   Future<void> fetchCategories() async {
     try {
-      final categoryCollection =
-          _firestoreHelper.getUserCollection('categories');
-      final response = await categoryCollection
+      // Kullanıcı detaylarını al
+      final userDetails = await getCurrentUserDetails();
+      Query<Map<String, dynamic>> categoryQuery;
+
+      if (userDetails?['userType'] == 'kafe') {
+        // Kafe kullanıcısıysa kendi 'categories' koleksiyonunu sorgula
+        categoryQuery = FirebaseFirestore.instance
+            .collection('users')
+            .doc(_firestoreHelper.currentUser!.uid)
+            .collection('categories');
+      } else if (userDetails?['userType'] == 'çalışan' &&
+          userDetails!['cafeId'] != null) {
+        // Çalışan kullanıcıysa bağlı olduğu kafenin 'categories' koleksiyonunu sorgula
+        final cafeId = userDetails['cafeId'];
+        categoryQuery = FirebaseFirestore.instance
+            .collection('users')
+            .doc(cafeId)
+            .collection('categories');
+      } else {
+        throw Exception('Yetkisiz kullanıcı');
+      }
+
+      // Firestore'dan kategorileri getir
+      final response = await categoryQuery
           .withConverter<Category>(
             fromFirestore: (snapshot, options) =>
                 Category.fromJson(snapshot.data()!),
@@ -170,6 +212,25 @@ class MenuNotifier extends StateNotifier<MenuState> {
     } catch (e) {
       print('Stok miktarı güncellenirken hata oluştu: $e');
     }
+  }
+
+  Future<Map<String, dynamic>?> getCurrentUserDetails() async {
+    final currentUser = _firestoreHelper.currentUser;
+    if (currentUser == null) {
+      throw Exception('Kullanıcı oturum açmamış');
+    }
+
+    // Kullanıcının Firestore belgesini al
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
+
+    if (!userDoc.exists) {
+      throw Exception('Kullanıcı bulunamadı');
+    }
+
+    return userDoc.data() as Map<String, dynamic>?;
   }
 
   // stock güncelleme işlemi

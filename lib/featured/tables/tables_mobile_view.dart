@@ -74,7 +74,6 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
     final tablesNotifier = ref.read(_tablesProvider.notifier);
     final productItem = ref.watch(_menuProvider).products ?? [];
     final tables = ref.watch(_tablesProvider).tables ?? [];
-    final deviceWidth = MediaQuery.of(context).size.width;
     final areas = ref.watch(_tablesProvider).areas ?? [];
     final selectedArea = ref.watch(_tablesProvider).selectedValue;
 
@@ -130,7 +129,7 @@ class _TablesMobileViewState extends ConsumerState<TablesMobileView> {
                                       },
                                       child: Center(
                                         child: Text(
-                                          area.name ?? '',
+                                          area.name,
                                           style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold),

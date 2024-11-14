@@ -135,14 +135,14 @@ class _AdminViewState extends ConsumerState<AdminView> {
                           separatorBuilder: (context, index) => const Divider(),
                           itemBuilder: (context, index) {
                             final item = orders[index];
-                            final menuItems =
-                                menus.where((menu) => menu.title == item.title);
-                            final menuItem =
-                                menuItems.isNotEmpty ? menuItems.first : null;
-                            final effectivePreparationTime =
-                                item.preperationTime ??
-                                    menuItem?.preparationTime ??
-                                    60;
+                            // final menuItems =
+                            //     menus.where((menu) => menu.title == item.title);
+                            // final menuItem =
+                            //     menuItems.isNotEmpty ? menuItems.first : null;
+                            // final effectivePreparationTime =
+                            //     item.preperationTime ??
+                            //         menuItem?.preparationTime ??
+                            //         60;
 
                             return Card(
                               color: Colors.white,

@@ -1,7 +1,6 @@
 import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
 import 'package:altmisdokuzapp/featured/stock/stock_list_item.dart';
 import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -31,7 +30,6 @@ class _StockMobileViewState extends ConsumerState<StockMobileView> {
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
     final menuNotifier = ref.watch(_menuProvider.notifier);
-    double deviceWidth = MediaQuery.of(context).size.width;
     final orderItem = ref
             .watch(_menuProvider)
             .products

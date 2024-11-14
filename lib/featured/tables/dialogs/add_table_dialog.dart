@@ -47,12 +47,12 @@ void showAddTableDialog(
               ),
               TextButton(
                 child: const Text('QR Kod Oluştur'),
-                onPressed: () {
+                onPressed: () async {
                   final tableIdText = tableIdController.text;
                   if (tableIdText.isNotEmpty) {
                     final tableId = '$selectedArea $tableIdText';
                     final String qrCode =
-                        tablesNotifier.generateQRCode(tableId);
+                        await tablesNotifier.generateQRCode(tableId);
                     setState(() {
                       qrData = qrCode;
                     });

@@ -5,6 +5,7 @@ import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
 import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
 import 'package:altmisdokuzapp/product/constants/color_constants.dart';
 import 'package:altmisdokuzapp/product/model/menu.dart';
+import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
 import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,11 +43,16 @@ class _BillViewState extends ConsumerState<BillView> {
   bool isSearchBarVisible = false;
   late TextEditingController searchContoller;
   String searchQuery = '';
+  late bool allItemsPaid;
+  late int remainingAmount;
+  final UserFirestoreHelper _userHelper = UserFirestoreHelper();
+  Map<String, dynamic>? userDetails;
 
   @override
   void initState() {
     super.initState();
     searchContoller = TextEditingController();
+    _loadUserDetails();
     Future.microtask(
       () {
         ref.read(_tablesProvider.notifier).fetchTableBill(widget.tableId);
@@ -71,6 +77,11 @@ class _BillViewState extends ConsumerState<BillView> {
     searchContoller.dispose();
   }
 
+  Future<void> _loadUserDetails() async {
+    userDetails = await _userHelper.getCurrentUserDetails();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
@@ -81,7 +92,7 @@ class _BillViewState extends ConsumerState<BillView> {
     final categories = ref.watch(_menuProvider).categories ?? [];
     final selectedCategory = ref.watch(_menuProvider).selectedValue;
     double deviceWidth = MediaQuery.of(context).size.width;
-
+    final String userType = userDetails?['userType'] ?? '';
     // Filter items based on the search query, ignoring the selected category during search
     final filteredItems = productItem.where((item) {
       // If search query is not empty, ignore category and search across all products
@@ -106,9 +117,10 @@ class _BillViewState extends ConsumerState<BillView> {
             ),
           Expanded(
             child: Scaffold(
-              appBar: const PreferredSize(
+              appBar: PreferredSize(
                 preferredSize: Size.fromHeight(70.0),
                 child: CustomAppbar(
+                  userType: userType,
                   showDrawer: false,
                   showBackButton: true,
                 ),
@@ -121,7 +133,9 @@ class _BillViewState extends ConsumerState<BillView> {
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: const BorderRadius.only(
+                          topRight: Radius.circular(12),
+                          bottomRight: Radius.circular(12)),
                       color: ColorConstants.tablePageBackgroundColor,
                       boxShadow: [
                         BoxShadow(
@@ -358,7 +372,7 @@ class _BillViewState extends ConsumerState<BillView> {
                                             state.getTableBill(widget.tableId)))
                                         .where((item) =>
                                             item.isAmount !=
-                                            true) // `isAmount == true` olanlar filtrelenir
+                                            true) // `isAmount != true` olanlar filtrelenir
                                         .toList();
                                     final totalAmount = tableBill.fold(
                                         0,
@@ -366,28 +380,7 @@ class _BillViewState extends ConsumerState<BillView> {
                                             sum +
                                             ((item.price ?? 0) *
                                                 (item.piece ?? 1)));
-                                    final tableBillAmount = ref
-                                        .watch(_tablesProvider.select((state) =>
-                                            state.getTableBill(widget.tableId)))
-                                        .where((item) =>
-                                            item.isAmount ==
-                                            true) // `isAmount == true` olanlar filtrelenir
-                                        .toList();
-                                    final negativeAmount = tableBillAmount.fold(
-                                        0,
-                                        (sum, item) =>
-                                            sum +
-                                            ((item.price ?? 0) *
-                                                (item.piece ?? 1)));
-                                    bool negativeAmountFull =
-                                        negativeAmount != 0 &&
-                                            negativeAmount == totalAmount;
-                                    bool allItemsPaid = tableBill.every(
-                                            (item) =>
-                                                item.status == 'ödendi') ||
-                                        negativeAmountFull;
-                                    final remainingAmount =
-                                        totalAmount - negativeAmount;
+                                    calculateAmount(tableBill, totalAmount);
                                     return Container(
                                       decoration: BoxDecoration(
                                           color: Colors.white,
@@ -648,7 +641,6 @@ class _BillViewState extends ConsumerState<BillView> {
                     final tablesNotifier = ref.read(_tablesProvider.notifier);
                     final isClosed =
                         await tablesNotifier.hesabiKapat(widget.tableId);
-
                     if (isClosed) {
                       // Hesap başarıyla kapatıldıysa kullanıcıya bildirim göster ve sayfayı kapat
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -656,6 +648,7 @@ class _BillViewState extends ConsumerState<BillView> {
                           content: Text('Hesap başarıyla kapatıldı!'),
                         ),
                       );
+
                       Navigator.pop(context); // Sayfayı kapat
                     } else {
                       // Eğer hesap kapatılamadıysa kullanıcıya uyarı mesajı göster
@@ -813,5 +806,51 @@ class _BillViewState extends ConsumerState<BillView> {
         ),
       ],
     );
+  }
+
+  void calculateAmount(List<Menu> tableBill, int totalAmount) {
+    final tableBillAmount = _getTableBillAmount(widget.tableId);
+    final negativeAmount = _calculateTotal(tableBillAmount);
+
+    final urunBazliOdenenler =
+        tableBill.where((item) => item.status == 'ödendi').toList();
+    final urunBazliOdenenToplam = _calculateTotal(urunBazliOdenenler);
+
+    allItemsPaid = _checkIfAllItemsPaid(
+      tableBill,
+      negativeAmount,
+      urunBazliOdenenToplam,
+      totalAmount,
+    );
+
+    remainingAmount = _calculateRemainingAmount(
+      totalAmount,
+      negativeAmount,
+      urunBazliOdenenToplam,
+    );
+  }
+
+  List<Menu> _getTableBillAmount(String tableId) {
+    return ref
+        .watch(_tablesProvider.select((state) => state.getTableBill(tableId)))
+        .where((item) => item.isAmount == true)
+        .toList();
+  }
+
+  int _calculateTotal(List<Menu> items) {
+    return items.fold(
+        0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)));
+  }
+
+  bool _checkIfAllItemsPaid(List<Menu> tableBill, int negativeAmount,
+      int urunBazliOdenenToplam, int totalAmount) {
+    return tableBill.every((item) => item.status == 'ödendi') ||
+        (negativeAmount != 0 && negativeAmount == totalAmount) ||
+        urunBazliOdenenToplam + negativeAmount == totalAmount;
+  }
+
+  int _calculateRemainingAmount(
+      int totalAmount, int negativeAmount, int urunBazliOdenenToplam) {
+    return totalAmount - negativeAmount - urunBazliOdenenToplam;
   }
 }
