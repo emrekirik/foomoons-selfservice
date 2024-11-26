@@ -1,9 +1,9 @@
-import 'package:altmisdokuzapp/featured/profile/profile_info_showdialog.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/profile_notifier.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
-import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
+import 'package:foomoons/featured/profile/profile_info_showdialog.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/profile_notifier.dart';
+import 'package:foomoons/product/constants/color_constants.dart';
+import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
+import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';

@@ -1,6 +1,6 @@
-import 'package:altmisdokuzapp/featured/providers/reports_notifier.dart';
-import 'package:altmisdokuzapp/featured/reports/dialogs/add_personal_dialog.dart';
-import 'package:altmisdokuzapp/product/widget/personal_card_item.dart';
+import 'package:foomoons/featured/providers/reports_notifier.dart';
+import 'package:foomoons/featured/reports/dialogs/add_personal_dialog.dart';
+import 'package:foomoons/product/widget/personal_card_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

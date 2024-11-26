@@ -1,4 +1,4 @@
-import 'package:altmisdokuzapp/featured/providers/reports_notifier.dart';
+import 'package:foomoons/featured/providers/reports_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

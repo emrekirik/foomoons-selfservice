@@ -1,4 +1,4 @@
-import 'package:altmisdokuzapp/product/utility/exception/custom_exception.dart';
+import 'package:foomoons/product/utility/exception/custom_exception.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 mixin IdModel {

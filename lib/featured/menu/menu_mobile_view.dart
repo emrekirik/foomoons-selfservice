@@ -1,9 +1,9 @@
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
-import 'package:altmisdokuzapp/featured/tables/dialogs/add_category_dialog.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
-import 'package:altmisdokuzapp/product/model/category.dart';
-import 'package:altmisdokuzapp/product/model/menu.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/menu_notifier.dart';
+import 'package:foomoons/featured/tables/dialogs/add_category_dialog.dart';
+import 'package:foomoons/product/constants/color_constants.dart';
+import 'package:foomoons/product/model/category.dart';
+import 'package:foomoons/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -279,7 +279,7 @@ class _MenuMobileViewState extends ConsumerState<MenuMobileView> {
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount:
-                                (constraints.maxWidth / 125).floor(),
+                                (constraints.maxWidth / 140).floor(),
                             crossAxisSpacing: 10,
                             mainAxisSpacing: 10,
                             childAspectRatio: 0.8,

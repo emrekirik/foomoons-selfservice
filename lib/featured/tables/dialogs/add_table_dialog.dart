@@ -1,6 +1,6 @@
-import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
+import 'package:foomoons/featured/providers/tables_notifier.dart';
 import 'package:flutter/material.dart';
-import 'package:altmisdokuzapp/product/model/table.dart';
+import 'package:foomoons/product/model/table.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Make sure to import the correct package
 
 void showAddTableDialog(

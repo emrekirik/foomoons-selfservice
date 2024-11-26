@@ -1,8 +1,8 @@
-import 'package:altmisdokuzapp/featured/bill/custom_numpad.dart';
-import 'package:altmisdokuzapp/featured/bill/custom_numpad_mobile.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
-import 'package:altmisdokuzapp/product/model/menu.dart';
+import 'package:foomoons/featured/bill/custom_numpad.dart';
+import 'package:foomoons/featured/bill/custom_numpad_mobile.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/tables_notifier.dart';
+import 'package:foomoons/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -123,6 +123,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                         null) // Eğer bir hata mesajı varsa göster
                       ErrorMessage(errorMessage: errorMessage),
                     Center(child: _buildSaveButton(context)),
+                    const SizedBox(height: 40)
                   ],
                 ),
               ),
@@ -203,102 +204,108 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
     );
   }
 
-  Column _paidList() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text(
-          'ÖDENENLER',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: rightList.length,
-          itemBuilder: (context, index) {
-            final item = rightList[index];
-            return Card(
-              color: Colors.white,
-              child: ListTile(
-                title: Text(item.title ?? ''),
-                subtitle: Text('${item.piece ?? 1} adet'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('₺${(item.price ?? 0) * (item.piece ?? 1)}',
-                        style: const TextStyle(fontSize: 16)),
-                    item.isCredit != null
-                        ? const Padding(
-                            padding: EdgeInsets.only(left: 4),
-                            child: Text(
-                              'Ödendi',
-                              style:
-                                  TextStyle(fontSize: 12, color: Colors.green),
+  SingleChildScrollView _paidList() {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'ÖDENENLER',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const Divider(),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: rightList.length,
+            itemBuilder: (context, index) {
+              final item = rightList[index];
+              return Card(
+                color: Colors.white,
+                child: ListTile(
+                  title: Text(item.title ?? ''),
+                  subtitle: Text('${item.piece ?? 1} adet'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                          style: const TextStyle(fontSize: 16)),
+                      item.isCredit != null
+                          ? const Padding(
+                              padding: EdgeInsets.only(left: 4),
+                              child: Text(
+                                'Ödendi',
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.green),
+                              ),
+                            )
+                          : IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              onPressed: () {
+                                _moveItemToLeftList(index);
+                              },
                             ),
-                          )
-                        : IconButton(
-                            icon: const Icon(Icons.remove_circle_outline),
-                            onPressed: () {
-                              _moveItemToLeftList(index);
-                            },
-                          ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-      ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  Column _productBased() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text(
-          'ÖDENECEKLER',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: leftList.length,
-          itemBuilder: (context, index) {
-            final item = leftList[index];
-            final isSelected = selectedIndexes.contains(index);
-            return Card(
-              color: isSelected ? Colors.green.shade100 : Colors.white,
-              child: ListTile(
-                hoverColor: Colors.transparent,
-                title: Text(item.title ?? ''),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${item.piece ?? 1} adet'),
-                    if (isSelected)
-                      const Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
-                      ), // Seçim simgesi
-                  ],
+  SingleChildScrollView _productBased() {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'ÖDENECEKLER',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const Divider(),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: leftList.length,
+            itemBuilder: (context, index) {
+              final item = leftList[index];
+              final isSelected = selectedIndexes.contains(index);
+              return Card(
+                color: isSelected ? Colors.green.shade100 : Colors.white,
+                child: ListTile(
+                  hoverColor: Colors.transparent,
+                  title: Text(item.title ?? ''),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${item.piece ?? 1} adet'),
+                      if (isSelected)
+                        const Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                        ), // Seçim simgesi
+                    ],
+                  ),
+                  trailing: Text('₺${(item.price ?? 0) * (item.piece ?? 1)}',
+                      style: const TextStyle(fontSize: 16)),
+                  onTap: () {
+                    setState(() {
+                      if (isSelected) {
+                        selectedIndexes.remove(index);
+                      } else {
+                        selectedIndexes.add(index);
+                      }
+                    });
+                  },
                 ),
-                trailing: Text('₺${(item.price ?? 0) * (item.piece ?? 1)}',
-                    style: const TextStyle(fontSize: 16)),
-                onTap: () {
-                  setState(() {
-                    if (isSelected) {
-                      selectedIndexes.remove(index);
-                    } else {
-                      selectedIndexes.add(index);
-                    }
-                  });
-                },
-              ),
-            );
-          },
-        ),
-      ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 

@@ -67,6 +67,7 @@ class _CustomNumpadMobileState extends State<CustomNumpadMobile> {
               width: MediaQuery.of(context).size.width *
                   0.8, // Genişliği sınırlayın
               child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3, // Her satırda 4 buton
                   mainAxisSpacing: 8,

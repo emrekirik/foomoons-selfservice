@@ -1,4 +1,4 @@
-import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
+import 'package:foomoons/featured/providers/tables_notifier.dart';
 import 'package:flutter/material.dart';
 
 void showAddAreaDialog(BuildContext context, TablesNotifier tablesNotifier) {

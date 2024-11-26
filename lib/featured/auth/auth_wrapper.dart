@@ -1,7 +1,7 @@
-import 'package:altmisdokuzapp/featured/auth/login_view.dart';
-import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
-import 'package:altmisdokuzapp/featured/tab/tab_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/tab/tab_view.dart';
+import 'package:foomoons/featured/auth/login_view.dart';
+import 'package:foomoons/featured/responsive/responsive_layout.dart';
+import 'package:foomoons/featured/tab/tab_mobile_view.dart';
+import 'package:foomoons/featured/tab/tab_view.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

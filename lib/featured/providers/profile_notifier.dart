@@ -1,4 +1,4 @@
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';

@@ -1,5 +1,5 @@
-import 'package:altmisdokuzapp/product/utility/base/base_firebase_model.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/firebase_collections.dart';
+import 'package:foomoons/product/utility/base/base_firebase_model.dart';
+import 'package:foomoons/product/utility/firebase/firebase_collections.dart';
 
 mixin FirebaseUtility {
   Future<List<T>?> fetchList<T extends IdModel, R extends BaseFirebaseModel<T>>(

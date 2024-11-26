@@ -1,7 +1,7 @@
-import 'package:altmisdokuzapp/featured/bill/custom_numpad.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
-import 'package:altmisdokuzapp/product/model/menu.dart';
+import 'package:foomoons/featured/bill/custom_numpad.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/tables_notifier.dart';
+import 'package:foomoons/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

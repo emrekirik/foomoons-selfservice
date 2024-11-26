@@ -1,11 +1,11 @@
-import 'package:altmisdokuzapp/featured/admin/admin_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/menu/menu_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/reports/reports_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/stock/stock_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/tables/tables_mobile_view.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
-import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
+import 'package:foomoons/featured/admin/admin_mobile_view.dart';
+import 'package:foomoons/featured/menu/menu_mobile_view.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/reports/reports_mobile_view.dart';
+import 'package:foomoons/featured/stock/stock_mobile_view.dart';
+import 'package:foomoons/featured/tables/tables_mobile_view.dart';
+import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
+import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -63,75 +63,80 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
     double deviceWidth = MediaQuery.of(context).size.width;
     if (userDetails == null) {
       // Kullanıcı bilgileri yüklenmemişse gösterilecek içerik
-      return const Center(child: CircularProgressIndicator());
+      return  const SizedBox();
     }
     final String userType = userDetails?['userType'] ?? '';
     final List<NavigationRailDestination> navigationItems =
         _buildNavigationItems(userType);
     final List<Widget> pageViews = _buildPageViews(userType);
 
-    return Column(
-      children: [
-        if (isLoading)
-          const LinearProgressIndicator(
-            color: Colors.green,
-            minHeight: 4,
-          ),
-        Expanded(
-          child: Scaffold(
-            backgroundColor: Colors.white,
-            extendBody: true,
-            appBar: PreferredSize(
-              preferredSize: const Size.fromHeight(70.0),
-              child: CustomAppbar(
-                userType: userType,
-                showDrawer: true,
-                showBackButton: false,
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        child: Column(
+          children: [
+            if (isLoading)
+              const LinearProgressIndicator(
+                color: Colors.green,
+                minHeight: 4,
+              ),
+            Expanded(
+              child: Scaffold(
+                backgroundColor: Colors.white,
+                extendBody: true,
+                appBar: PreferredSize(
+                  preferredSize: const Size.fromHeight(70.0),
+                  child: CustomAppbar(
+                    userType: userType,
+                    showDrawer: true,
+                    showBackButton: false,
+                  ),
+                ),
+                drawer: Drawer(
+                  backgroundColor: Colors.white,
+                  width: deviceWidth * 0.2,
+                  child: NavigationRail(
+                      selectedIndex: _tabIndex,
+                      groupAlignment: groupAlignment,
+                      onDestinationSelected: (int index) {
+                        setState(() {
+                          _onTabChanged(index);
+                        });
+                      },
+                      labelType: labelType,
+                      leading: showLeading
+                          ? FloatingActionButton(
+                              elevation: 0,
+                              onPressed: () {
+                                // Add your onPressed code here!
+                              },
+                              child: const Icon(Icons.add),
+                            )
+                          : const SizedBox(),
+                      trailing: showTrailing
+                          ? IconButton(
+                              onPressed: () {
+                                // Add your onPressed code here!
+                              },
+                              icon: const Icon(Icons.more_horiz_rounded),
+                            )
+                          : const SizedBox(),
+                      destinations: navigationItems),
+                ),
+                body: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: (index) {
+                      setState(() {
+                        _tabIndex = index;
+                      });
+                    },
+                    children: pageViews),
               ),
             ),
-            drawer: Drawer(
-              backgroundColor: Colors.white,
-              width: deviceWidth * 0.2,
-              child: NavigationRail(
-                  selectedIndex: _tabIndex,
-                  groupAlignment: groupAlignment,
-                  onDestinationSelected: (int index) {
-                    setState(() {
-                      _onTabChanged(index);
-                    });
-                  },
-                  labelType: labelType,
-                  leading: showLeading
-                      ? FloatingActionButton(
-                          elevation: 0,
-                          onPressed: () {
-                            // Add your onPressed code here!
-                          },
-                          child: const Icon(Icons.add),
-                        )
-                      : const SizedBox(),
-                  trailing: showTrailing
-                      ? IconButton(
-                          onPressed: () {
-                            // Add your onPressed code here!
-                          },
-                          icon: const Icon(Icons.more_horiz_rounded),
-                        )
-                      : const SizedBox(),
-                  destinations: navigationItems),
-            ),
-            body: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() {
-                    _tabIndex = index;
-                  });
-                },
-                children: pageViews),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

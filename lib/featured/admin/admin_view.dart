@@ -1,6 +1,6 @@
-import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart' as menu;
+import 'package:foomoons/featured/providers/admin_notifier.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/menu_notifier.dart' as menu;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

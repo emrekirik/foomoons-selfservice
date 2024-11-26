@@ -1,12 +1,12 @@
-import 'package:altmisdokuzapp/featured/bill/payment_showbottomsheet.dart';
-import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
-import 'package:altmisdokuzapp/product/model/menu.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
-import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
+import 'package:foomoons/featured/bill/payment_showbottomsheet.dart';
+import 'package:foomoons/featured/providers/admin_notifier.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/menu_notifier.dart';
+import 'package:foomoons/featured/providers/tables_notifier.dart';
+import 'package:foomoons/product/constants/color_constants.dart';
+import 'package:foomoons/product/model/menu.dart';
+import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
+import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -115,415 +115,451 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
       return isCategoryMatch;
     }).toList();
 
-    return LayoutBuilder(builder: (context, constraints) {
-      return Column(
-        children: [
-          if (isLoading)
-            const LinearProgressIndicator(
-              color: Colors.green,
-            ),
-          Expanded(
-            child: Scaffold(
-              appBar: PreferredSize(
-                preferredSize: Size.fromHeight(70.0),
-                child: CustomAppbar(
-                  userType: userType,
-                  showDrawer: false,
-                  showBackButton: true,
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        child: LayoutBuilder(builder: (context, constraints) {
+          return Column(
+            children: [
+              if (isLoading)
+                const LinearProgressIndicator(
+                  color: Colors.green,
                 ),
-              ),
-              backgroundColor: Colors.white,
-              body: Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: ColorConstants.white,
+              Expanded(
+                child: Scaffold(
+                  appBar: PreferredSize(
+                    preferredSize: Size.fromHeight(70.0),
+                    child: CustomAppbar(
+                      userType: userType,
+                      showDrawer: false,
+                      showBackButton: true,
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Üst taraf: Ürün listesi
-                        Flexible(
-                          flex: 2,
-                          child: Column(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: const Border(
-                                        bottom: BorderSide(
-                                      color: Colors.black12,
-                                      width: 1,
-                                    )),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey
-                                            .withOpacity(0.4), // Gölgenin rengi
-                                        spreadRadius:
-                                            1, // Gölgenin yayılma alanı
-                                        blurRadius: 5, // Gölgenin yumuşaklığı
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ]),
-                                height: 68,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Search icon
-                                    IconButton(
-                                      icon: Icon(
-                                        isSearchBarVisible
-                                            ? Icons.close
-                                            : Icons.search,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          isSearchBarVisible =
-                                              !isSearchBarVisible; // Arama çubuğu aç/kapat
-                                        });
-                                      },
-                                    ),
-                                    // Eğer arama çubuğu görünürse arama çubuğunu göster
-                                    if (isSearchBarVisible)
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8.0),
-                                          child: TextField(
-                                            controller: searchContoller,
-                                            decoration: InputDecoration(
-                                              hintText: 'Ara...',
-                                              prefixIcon: Icon(Icons.search),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
+                  ),
+                  backgroundColor: Colors.white,
+                  body: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: ColorConstants.white,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Üst taraf: Ürün listesi
+                            Flexible(
+                              flex: 2,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: const Border(
+                                            bottom: BorderSide(
+                                          color: Colors.black12,
+                                          width: 1,
+                                        )),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(
+                                                0.4), // Gölgenin rengi
+                                            spreadRadius:
+                                                1, // Gölgenin yayılma alanı
+                                            blurRadius:
+                                                5, // Gölgenin yumuşaklığı
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ]),
+                                    height: 68,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // Search icon
+                                        IconButton(
+                                          icon: Icon(
+                                            isSearchBarVisible
+                                                ? Icons.close
+                                                : Icons.search,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              isSearchBarVisible =
+                                                  !isSearchBarVisible; // Arama çubuğu aç/kapat
+                                            });
+                                          },
+                                        ),
+                                        // Eğer arama çubuğu görünürse arama çubuğunu göster
+                                        if (isSearchBarVisible)
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8.0),
+                                              child: TextField(
+                                                controller: searchContoller,
+                                                decoration: InputDecoration(
+                                                  hintText: 'Ara...',
+                                                  prefixIcon:
+                                                      Icon(Icons.search),
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                  ),
+                                                ),
+                                                onChanged: (query) {
+                                                  setState(() {
+                                                    searchQuery =
+                                                        query; // Update search query
+                                                  });
+                                                },
                                               ),
                                             ),
-                                            onChanged: (query) {
-                                              setState(() {
-                                                searchQuery =
-                                                    query; // Update search query
-                                              });
-                                            },
                                           ),
-                                        ),
-                                      ),
-                                    Expanded(
-                                      child: searchQuery.isNotEmpty
-                                          ? const SizedBox()
-                                          : ListView.builder(
-                                              scrollDirection: Axis.horizontal,
-                                              itemBuilder: (context, index) {
-                                                final category =
-                                                    categories[index];
+                                        Expanded(
+                                          child: searchQuery.isNotEmpty
+                                              ? const SizedBox()
+                                              : ListView.builder(
+                                                  scrollDirection:
+                                                      Axis.horizontal,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    final category =
+                                                        categories[index];
 
-                                                return Container(
-                                                  width: 180,
-                                                  decoration: BoxDecoration(
-                                                    border: Border(
-                                                      left: const BorderSide(
-                                                          color: Colors.black12,
-                                                          width: 1),
-                                                      bottom: BorderSide(
-                                                        color: selectedCategory ==
-                                                                category.name
-                                                            ? Colors.orange
-                                                            : Colors
-                                                                .transparent, // Seçili kategori altına çizgi ekle
-                                                        width:
-                                                            5, // Çizginin kalınlığı
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  child: Material(
-                                                    color: Colors.white,
-                                                    child: InkWell(
-                                                      splashColor: Colors.orange
-                                                          .withOpacity(0.6),
-                                                      onTap: () {
-                                                        menuNotifier
-                                                            .selectCategory(
-                                                                category.name);
-                                                      },
-                                                      child: Center(
-                                                        child: Text(
-                                                          category.name ?? '',
-                                                          style: const TextStyle(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold),
+                                                    return Container(
+                                                      width: 180,
+                                                      decoration: BoxDecoration(
+                                                        border: Border(
+                                                          left:
+                                                              const BorderSide(
+                                                                  color: Colors
+                                                                      .black12,
+                                                                  width: 1),
+                                                          bottom: BorderSide(
+                                                            color: selectedCategory ==
+                                                                    category
+                                                                        .name
+                                                                ? Colors.orange
+                                                                : Colors
+                                                                    .transparent, // Seçili kategori altına çizgi ekle
+                                                            width:
+                                                                5, // Çizginin kalınlığı
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              itemCount: categories.length),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  color:
-                                      ColorConstants.tablePageBackgroundColor,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: GridView.builder(
-                                      itemCount: filteredItems.length,
-                                      gridDelegate:
-                                          SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount:
-                                            (constraints.maxWidth / 160)
-                                                .floor(),
-                                        crossAxisSpacing: 10,
-                                        mainAxisSpacing: 10,
-                                        childAspectRatio: 1.6,
-                                      ),
-                                      itemBuilder:
-                                          (BuildContext context, int index) {
-                                        final item = filteredItems[index];
-                                        return isLoading
-                                            ? const SizedBox()
-                                            : InkWell(
-                                                onTap: () {
-                                                  // Ürün seçimi işlemi
-                                                  // Ürünü masanın adisyonuna ekle
-                                                  tablesNotifier.addItemToBill(
-                                                      widget.tableId, item);
-                                                },
-                                                child: Card(
-                                                    color: Colors.white,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15),
-                                                    ),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 10),
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceAround,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(item.title ?? '',
-                                                              style:
-                                                                  const TextStyle(
-                                                                fontSize: 16,
-                                                              )),
-                                                          Text('₺${item.price}',
-                                                              style:
-                                                                  const TextStyle(
-                                                                fontSize: 16,
-                                                              )),
-                                                        ],
-                                                      ),
-                                                    )),
-                                              );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        //Alt taraf adisyon listesi
-                        isLoadingAddItem == true
-                            ? const Expanded(
-                                child:
-                                    Center(child: CircularProgressIndicator()))
-                            : Expanded(
-                                child: Consumer(
-                                  builder: (context, ref, child) {
-                                    final tableBill = ref
-                                        .watch(_tablesProvider.select((state) =>
-                                            state.getTableBill(widget.tableId)))
-                                        .where((item) =>
-                                            item.isAmount !=
-                                            true) // `isAmount != true` olanlar filtrelenir
-                                        .toList();
-                                    final totalAmount = tableBill.fold(
-                                        0,
-                                        (sum, item) =>
-                                            sum +
-                                            ((item.price ?? 0) *
-                                                (item.piece ?? 1)));
-                                    calculateAmount(tableBill, totalAmount);
-
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: const BorderRadius.only(
-                                              topLeft: Radius.circular(16),
-                                              topRight: Radius.circular(16)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.4),
-                                                spreadRadius: 1,
-                                                blurRadius: 5,
-                                                offset: const Offset(0, -3)),
-                                          ],
-                                          border: const Border(
-                                              top: BorderSide(
-                                                  color: Colors.black12,
-                                                  width: 1))),
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(12.0),
-                                              child: Text(
-                                                'Masa ${widget.tableId}',
-                                                style: const TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                            ),
-                                            ListView.separated(
-                                              shrinkWrap: true,
-                                              physics:
-                                                  const NeverScrollableScrollPhysics(),
-                                              separatorBuilder:
-                                                  (context, index) =>
-                                                      const Divider(
-                                                indent: 10,
-                                                endIndent: 10,
-                                              ),
-                                              itemCount: tableBill.length,
-                                              itemBuilder:
-                                                  (BuildContext context,
-                                                      int index) {
-                                                final item = tableBill[index];
-                                                return ListTile(
-                                                  title: Text(item.title ?? ''),
-                                                  subtitle: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                          '${item.piece ?? 1} adet'),
-                                                      Text(
-                                                          '₺${(item.price ?? 0) * (item.piece ?? 1)}'), // Her bir item için toplam fiyat
-                                                    ],
-                                                  ), // Fiyat null ise 0 olarak göster
-                                                  trailing: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      item.status != 'ödendi'
-                                                          ? const SizedBox()
-                                                          : Text(
-                                                              '${item.status}',
+                                                      child: Material(
+                                                        color: Colors.white,
+                                                        child: InkWell(
+                                                          splashColor: Colors
+                                                              .orange
+                                                              .withOpacity(0.6),
+                                                          onTap: () {
+                                                            menuNotifier
+                                                                .selectCategory(
+                                                                    category
+                                                                        .name);
+                                                          },
+                                                          child: Center(
+                                                            child: Text(
+                                                              category.name ??
+                                                                  '',
                                                               style: const TextStyle(
                                                                   fontSize: 16,
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .green),
+                                                                          .bold),
                                                             ),
-                                                      IconButton(
-                                                        icon: const Icon(Icons
-                                                            .remove_circle_outline),
-                                                        onPressed: () {
-                                                          // Adisyondan ürünü çıkarma işlemi
-                                                          tablesNotifier
-                                                              .removeItemFromBill(
-                                                                  widget
-                                                                      .tableId,
-                                                                  item.id!);
-                                                        },
+                                                          ),
+                                                        ),
                                                       ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                            const Divider(
-                                              indent: 10,
-                                              endIndent: 10,
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 8,
-                                                      horizontal: 12),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  const Text(
-                                                    // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
-                                                    'Toplam Tutar',
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
-                                                    '₺${tableBill.fold(0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)))}',
+                                                    );
+                                                  },
+                                                  itemCount: categories.length),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      color: ColorConstants
+                                          .tablePageBackgroundColor,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: GridView.builder(
+                                          itemCount: filteredItems.length,
+                                          gridDelegate:
+                                              SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount:
+                                                (constraints.maxWidth / 160)
+                                                    .floor(),
+                                            crossAxisSpacing: 10,
+                                            mainAxisSpacing: 10,
+                                            childAspectRatio: 1.6,
+                                          ),
+                                          itemBuilder: (BuildContext context,
+                                              int index) {
+                                            final item = filteredItems[index];
+                                            return isLoading
+                                                ? const SizedBox()
+                                                : InkWell(
+                                                    onTap: () {
+                                                      // Ürün seçimi işlemi
+                                                      // Ürünü masanın adisyonuna ekle
+                                                      tablesNotifier
+                                                          .addItemToBill(
+                                                              widget.tableId,
+                                                              item);
+                                                    },
+                                                    child: Card(
+                                                        color: Colors.white,
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(15),
+                                                        ),
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                                  horizontal:
+                                                                      10),
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceAround,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(
+                                                                  item.title ??
+                                                                      '',
+                                                                  style:
+                                                                      const TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                  )),
+                                                              Text(
+                                                                  '₺${item.price}',
+                                                                  style:
+                                                                      const TextStyle(
+                                                                    fontSize:
+                                                                        16,
+                                                                  )),
+                                                            ],
+                                                          ),
+                                                        )),
+                                                  );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            //Alt taraf adisyon listesi
+                            isLoadingAddItem == true
+                                ? const Expanded(
+                                    child: Center(
+                                        child: CircularProgressIndicator()))
+                                : Expanded(
+                                    child: Consumer(
+                                      builder: (context, ref, child) {
+                                        final tableBill = ref
+                                            .watch(_tablesProvider.select(
+                                                (state) => state.getTableBill(
+                                                    widget.tableId)))
+                                            .where((item) =>
+                                                item.isAmount !=
+                                                true) // `isAmount != true` olanlar filtrelenir
+                                            .toList();
+                                        final totalAmount = tableBill.fold(
+                                            0,
+                                            (sum, item) =>
+                                                sum +
+                                                ((item.price ?? 0) *
+                                                    (item.piece ?? 1)));
+                                        calculateAmount(tableBill, totalAmount);
+
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(16),
+                                                      topRight:
+                                                          Radius.circular(16)),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.4),
+                                                    spreadRadius: 1,
+                                                    blurRadius: 5,
+                                                    offset:
+                                                        const Offset(0, -3)),
+                                              ],
+                                              border: const Border(
+                                                  top: BorderSide(
+                                                      color: Colors.black12,
+                                                      width: 1))),
+                                          child: SingleChildScrollView(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      12.0),
+                                                  child: Text(
+                                                    'Masa ${widget.tableId}',
                                                     style: const TextStyle(
-                                                        fontSize: 18,
+                                                        fontSize: 20,
                                                         fontWeight:
                                                             FontWeight.bold),
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: 8,
-                                            ),
-                                            Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
+                                                ),
+                                                ListView.separated(
+                                                  shrinkWrap: true,
+                                                  physics:
+                                                      const NeverScrollableScrollPhysics(),
+                                                  separatorBuilder:
+                                                      (context, index) =>
+                                                          const Divider(
+                                                    indent: 10,
+                                                    endIndent: 10,
+                                                  ),
+                                                  itemCount: tableBill.length,
+                                                  itemBuilder:
+                                                      (BuildContext context,
+                                                          int index) {
+                                                    final item =
+                                                        tableBill[index];
+                                                    return ListTile(
+                                                      title: Text(
+                                                          item.title ?? ''),
+                                                      subtitle: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Text(
+                                                              '${item.piece ?? 1} adet'),
+                                                          Text(
+                                                              '₺${(item.price ?? 0) * (item.piece ?? 1)}'), // Her bir item için toplam fiyat
+                                                        ],
+                                                      ), // Fiyat null ise 0 olarak göster
+                                                      trailing: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          item.status !=
+                                                                  'ödendi'
+                                                              ? const SizedBox()
+                                                              : Text(
+                                                                  '${item.status}',
+                                                                  style: const TextStyle(
+                                                                      fontSize:
+                                                                          16,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: Colors
+                                                                          .green),
+                                                                ),
+                                                          IconButton(
+                                                            icon: const Icon(Icons
+                                                                .remove_circle_outline),
+                                                            onPressed: () {
+                                                              // Adisyondan ürünü çıkarma işlemi
+                                                              tablesNotifier
+                                                                  .removeItemFromBill(
+                                                                      widget
+                                                                          .tableId,
+                                                                      item.id!);
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                                const Divider(
+                                                  indent: 10,
+                                                  endIndent: 10,
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      vertical: 8,
+                                                      horizontal: 12),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      const Text(
+                                                        // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
+                                                        'Toplam Tutar',
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
+                                                        '₺${tableBill.fold(0, (sum, item) => sum + ((item.price ?? 0) * (item.piece ?? 1)))}',
+                                                        style: const TextStyle(
+                                                            fontSize: 18,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 8,
+                                                ),
+                                                Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
                                                         horizontal: 12),
-                                                child: verticalButtons(
-                                                    tableBill,
-                                                    context,
-                                                    ref,
-                                                    allItemsPaid)),
-                                            const SizedBox(
-                                              height: 24,
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                      ],
+                                                    child: verticalButtons(
+                                                        tableBill,
+                                                        context,
+                                                        ref,
+                                                        allItemsPaid)),
+                                                const SizedBox(
+                                                  height: 24,
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ],
-      );
-    });
+            ],
+          );
+        }),
+      ),
+    );
   }
 
   Column verticalButtons(List<Menu> tableBill, BuildContext context,
@@ -565,29 +601,29 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                     }
                   }
                 : null,
-            child:  Padding(
+            child: Padding(
               padding: const EdgeInsets.symmetric(
                 vertical: 16,
               ),
               child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'ÖDE',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                      ),
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'ÖDE',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
                     ),
-                    Text(
-                      '₺$remainingAmount',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.white,
-                      ),
+                  ),
+                  Text(
+                    '₺$remainingAmount',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
             ), // Liste boşsa düğme pasif olur
           ),
         ),

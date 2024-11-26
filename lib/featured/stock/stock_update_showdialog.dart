@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
+import 'package:foomoons/featured/providers/menu_notifier.dart';
 
 void stockUpdateShowDialog(
     BuildContext context, MenuNotifier menuNotifier, String productId) {

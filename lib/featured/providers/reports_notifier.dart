@@ -1,11 +1,11 @@
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:altmisdokuzapp/product/model/user.dart' as Userr;
+import 'package:foomoons/product/model/user.dart' as Userr;
 
 class ReportsNotifier extends StateNotifier<ReportsState> {
   static const String allCategories = 'Tüm Kategoriler';
@@ -49,16 +49,16 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
       // Her bir siparişin 'price' alanını topluyoruz
       for (var doc in querySnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>?;
-
         // 'price' null değilse toplamaya ekliyoruz
         if (data != null && data['totalPrice'] != null) {
-          final totalPrice = data['totalPrice'] as int;
+          final totalPrice = (data['totalPrice'] as num).toInt();
           totalRevenues += totalPrice;
+          print('toplam sipariş: $totalRevenues');
         }
       }
 
       // State'i güncelliyoruz, sadece 'totalRevenues' alanını değiştiriyoruz
-      print(totalRevenues);
+      print('Notifier dosyası toplam hasılat: $totalRevenues');
       state = state.copyWith(totalRevenues: totalRevenues);
     } catch (e) {
       _handleError(e,
@@ -157,7 +157,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           final billItems = data['billItems'] as List<dynamic>;
           for (var item in billItems) {
             if (item['isCredit'] == true) {
-              totalCredit += item['price'] as int;
+              totalCredit += (item['price'] as num).toInt(); //
             }
           }
         }
@@ -212,7 +212,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           final billItems = data['billItems'] as List<dynamic>;
           for (var item in billItems) {
             if (item['isCredit'] == false) {
-              totalCash += item['price'] as int;
+              totalCash += (item['price'] as num).toInt();
             }
           }
         }
@@ -255,8 +255,9 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           data['closedAtDate'] != null) {
         DateTime closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
         String dayOfWeek = _getDayName(closedAtDate.weekday);
+       final totalPrice = (data['totalPrice'] as num).toInt();
         dailySales[dayOfWeek] =
-            (dailySales[dayOfWeek] ?? 0) + (data['totalPrice'] as int);
+            (dailySales[dayOfWeek] ?? 0) + (totalPrice);
       }
     }
 

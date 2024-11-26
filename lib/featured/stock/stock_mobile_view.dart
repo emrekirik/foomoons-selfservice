@@ -1,6 +1,6 @@
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/stock/stock_list_item.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/stock/stock_list_item.dart';
+import 'package:foomoons/featured/providers/menu_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,4 +1,4 @@
-package com.example.altmisdokuzapp
+package com.panel.foomoons
 
 import io.flutter.embedding.android.FlutterActivity
 

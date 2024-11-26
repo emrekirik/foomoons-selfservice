@@ -1,8 +1,8 @@
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/product/model/category.dart';
-import 'package:altmisdokuzapp/product/model/menu.dart';
-import 'package:altmisdokuzapp/product/model/table.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/product/model/category.dart';
+import 'package:foomoons/product/model/menu.dart';
+import 'package:foomoons/product/model/table.dart';
+import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';

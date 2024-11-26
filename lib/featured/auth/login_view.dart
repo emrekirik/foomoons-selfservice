@@ -1,8 +1,8 @@
-import 'package:altmisdokuzapp/featured/providers/login_notifier.dart';
-import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
-import 'package:altmisdokuzapp/featured/tab/tab_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/tab/tab_view.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
+import 'package:foomoons/featured/providers/login_notifier.dart';
+import 'package:foomoons/featured/responsive/responsive_layout.dart';
+import 'package:foomoons/featured/tab/tab_mobile_view.dart';
+import 'package:foomoons/featured/tab/tab_view.dart';
+import 'package:foomoons/product/constants/color_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';

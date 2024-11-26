@@ -1,16 +1,16 @@
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
-import 'package:altmisdokuzapp/main.dart';
-import 'package:altmisdokuzapp/product/model/menu.dart';
-import 'package:altmisdokuzapp/product/model/order.dart' as app;
-import 'package:altmisdokuzapp/product/utility/firebase/firebase_utility.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/menu_notifier.dart';
+import 'package:foomoons/main.dart';
+import 'package:foomoons/product/model/menu.dart';
+import 'package:foomoons/product/model/order.dart' as app;
+import 'package:foomoons/product/utility/firebase/firebase_utility.dart';
+import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:equatable/equatable.dart';
+import 'package:just_audio/just_audio.dart';
 import 'dart:async';
-import 'dart:html' as html;
 import 'package:uuid/uuid.dart';
 
 final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
@@ -25,6 +25,7 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
   List<app.Order> _previousOrders = [];
   Timer? _centralTimer;
   StreamSubscription? _orderSubscription; // Stream dinleyici için
+  final player = AudioPlayer();
 
   AdminNotifier(this._ref) : super(const HomeState());
 
@@ -234,9 +235,13 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
     state = state.copyWith(selectedValue: value);
   }
 
-  void playNotificationSound() {
-    final audio = html.AudioElement('assets/assets/sounds/notification.mp3');
-    audio.play();
+  void playNotificationSound() async {
+    try {
+      await player.setUrl('assets/assets/sounds/notification.mp3');
+      player.play();
+    } catch (e) {
+      print('Ses çalınamadı: $e');
+    }
   }
 
   void showOrderAlert() {

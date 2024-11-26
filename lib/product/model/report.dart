@@ -1,4 +1,4 @@
-import 'package:altmisdokuzapp/product/utility/base/base_firebase_model.dart';
+import 'package:foomoons/product/utility/base/base_firebase_model.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 

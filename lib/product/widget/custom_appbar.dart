@@ -1,8 +1,8 @@
-import 'package:altmisdokuzapp/featured/auth/login_view.dart';
-import 'package:altmisdokuzapp/featured/profile/profile_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/profile/profile_view.dart';
-import 'package:altmisdokuzapp/featured/providers/login_notifier.dart';
-import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
+import 'package:foomoons/featured/auth/login_view.dart';
+import 'package:foomoons/featured/profile/profile_mobile_view.dart';
+import 'package:foomoons/featured/profile/profile_view.dart';
+import 'package:foomoons/featured/providers/login_notifier.dart';
+import 'package:foomoons/featured/responsive/responsive_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,9 +36,9 @@ class CustomAppbar extends ConsumerWidget {
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 5,
+              spreadRadius: 1,
               blurRadius: 7,
-              offset: const Offset(0, 3),
+              offset: const Offset(0, 7),
             ),
           ],
         ),

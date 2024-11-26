@@ -1,5 +1,5 @@
-import 'package:altmisdokuzapp/featured/auth/auth_wrapper.dart';
-import 'package:altmisdokuzapp/firebase_options.dart';
+import 'package:foomoons/featured/auth/auth_wrapper.dart';
+import 'package:foomoons/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

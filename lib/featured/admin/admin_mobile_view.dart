@@ -1,6 +1,6 @@
-import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart' as menu;
+import 'package:foomoons/featured/providers/admin_notifier.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/menu_notifier.dart' as menu;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -47,16 +47,20 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 decoration: BoxDecoration(
                   border: Border(
+                    top: const BorderSide(color: Colors.black12, width: 1),
+                    left: const BorderSide(color: Colors.black12, width: 1),
                     bottom: BorderSide(
                       color: _selectedOrderType == 'Yeni Siparişler'
                           ? Colors.orange
-                          : Colors.transparent, // Highlight color when selected
-                      width: 3, // Thickness of the underline
+                          : Colors.black12, // Highlight color when selected
+                      width: _selectedOrderType == 'Yeni Siparişler'
+                          ? 3
+                          : 1, // Thickness of the underline
                     ),
                   ),
                 ),
@@ -72,20 +76,25 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                       fontSize: 12,
                       color: _selectedOrderType == 'Yeni Siparişler'
                           ? Colors.orange
-                          : Colors.blueAccent,
+                          : Colors.black,
                     ),
                   ),
                 ),
               ),
               // Hazırlanıyor Button
               Container(
-                decoration: BoxDecoration(
+               decoration: BoxDecoration(
                   border: Border(
+                    top: const BorderSide(color: Colors.black12, width: 1),
+                    left: const BorderSide(color: Colors.black12, width: 1),
+                    right: const BorderSide(color: Colors.black12, width: 1),
                     bottom: BorderSide(
                       color: _selectedOrderType == 'Hazırlanıyor'
                           ? Colors.orange
-                          : Colors.transparent,
-                      width: 3,
+                          : Colors.black12, // Highlight color when selected
+                      width: _selectedOrderType == 'Hazırlanıyor'
+                          ? 3
+                          : 1, // Thickness of the underline
                     ),
                   ),
                 ),
@@ -101,20 +110,24 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                       fontSize: 12,
                       color: _selectedOrderType == 'Hazırlanıyor'
                           ? Colors.orange
-                          : Colors.blueAccent,
+                          : Colors.black,
                     ),
                   ),
                 ),
               ),
               // Geçmiş Siparişler Button
               Container(
-                decoration: BoxDecoration(
+                      decoration: BoxDecoration(
                   border: Border(
+                    top: const BorderSide(color: Colors.black12, width: 1),
+                    right: const BorderSide(color: Colors.black12, width: 1),
                     bottom: BorderSide(
                       color: _selectedOrderType == 'Geçmiş Siparişler'
                           ? Colors.orange
-                          : Colors.transparent,
-                      width: 3,
+                          : Colors.black12, // Highlight color when selected
+                      width: _selectedOrderType == 'Geçmiş Siparişler'
+                          ? 3
+                          : 1, // Thickness of the underline
                     ),
                   ),
                 ),
@@ -130,7 +143,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                       fontSize: 12,
                       color: _selectedOrderType == 'Geçmiş Siparişler'
                           ? Colors.orange
-                          : Colors.blueAccent,
+                          : Colors.black,
                     ),
                   ),
                 ),
@@ -247,7 +260,7 @@ class _AdminMobileViewState extends ConsumerState<AdminMobileView> {
                                                 _buildOrderDetail(item
                                                             .tableId !=
                                                         null
-                                                    ? 'Masa ${item.tableId}'
+                                                    ? '${item.tableId}'
                                                     : 'Masa bilgisi bilinmiyor.'),
                                                 _buildActionButtons(
                                                     item, nextStatus, status),

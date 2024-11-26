@@ -1,9 +1,9 @@
-import 'package:altmisdokuzapp/featured/profile/profile_info_showdialog.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/profile_notifier.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
-import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
+import 'package:foomoons/featured/profile/profile_info_showdialog.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/profile_notifier.dart';
+import 'package:foomoons/product/constants/color_constants.dart';
+import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
+import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,63 +52,68 @@ class _ProfileMobileViewState extends ConsumerState<ProfileMobileView> {
     final profileNotifier = ref.read(_profileProvider.notifier);
     final String userType = userDetails?['userType'] ?? '';
 
-    return Column(
-      children: [
-        if (isLoading)
-          const LinearProgressIndicator(
-            color: Colors.green,
-          ),
-        Expanded(
-          child: Scaffold(
-            appBar: PreferredSize(
-              preferredSize: Size.fromHeight(70.0),
-              child: CustomAppbar(
-                userType: userType,
-                showDrawer: false,
-                showBackButton: true,
+    return Container(
+      color: Colors.white,
+      child: SafeArea(
+        child: Column(
+          children: [
+            if (isLoading)
+              const LinearProgressIndicator(
+                color: Colors.green,
+              ),
+            Expanded(
+              child: Scaffold(
+                appBar: PreferredSize(
+                  preferredSize: Size.fromHeight(70.0),
+                  child: CustomAppbar(
+                    userType: userType,
+                    showDrawer: false,
+                    showBackButton: true,
+                  ),
+                ),
+                backgroundColor: Colors.white,
+                body: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: !isLoading
+                      ? SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 40),
+                              _ProfilePhotoSection(
+                                deviceWidth: deviceWidth,
+                                profileNotifier: profileNotifier,
+                                profileState: profileState,
+                              ),
+                              Divider(
+                                indent: deviceWidth * 0.04,
+                                endIndent: deviceWidth * 0.04,
+                              ),
+                              // _PermissionsSection(
+                              //     deviceWidth: deviceWidth,
+                              //     deviceHeight: deviceHeight,
+                              //     icons: icons),
+                              _UserDataSection(
+                                  deviceHeight: deviceHeight,
+                                  profileState: profileState,
+                                  profileNotifier: profileNotifier),
+                              _BusinessDataSection(
+                                  deviceHeight: deviceHeight,
+                                  deviceWidth: deviceWidth,
+                                  profileState: profileState,
+                                  profileNotifier: profileNotifier),
+                            ],
+                          ),
+                        )
+                      : const SizedBox(),
+                ),
               ),
             ),
-            backgroundColor: Colors.white,
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: !isLoading
-                  ? SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 40),
-                          _ProfilePhotoSection(
-                            deviceWidth: deviceWidth,
-                            profileNotifier: profileNotifier,
-                            profileState: profileState,
-                          ),
-                          Divider(
-                            indent: deviceWidth * 0.04,
-                            endIndent: deviceWidth * 0.04,
-                          ),
-                          // _PermissionsSection(
-                          //     deviceWidth: deviceWidth,
-                          //     deviceHeight: deviceHeight,
-                          //     icons: icons),
-                          _UserDataSection(
-                              deviceHeight: deviceHeight,
-                              profileState: profileState,
-                              profileNotifier: profileNotifier),
-                          _BusinessDataSection(
-                              deviceHeight: deviceHeight,
-                              deviceWidth: deviceWidth,
-                              profileState: profileState,
-                              profileNotifier: profileNotifier),
-                        ],
-                      ),
-                    )
-                  : const SizedBox(),
-            ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

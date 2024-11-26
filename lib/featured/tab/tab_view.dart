@@ -1,15 +1,15 @@
-import 'package:altmisdokuzapp/featured/menu/menu_view.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/reports/reports_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/stock/stock_view.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
-import 'package:altmisdokuzapp/product/utility/firebase/user_firestore_helper.dart';
-import 'package:altmisdokuzapp/product/widget/custom_appbar.dart';
+import 'package:foomoons/featured/menu/menu_view.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/reports/reports_mobile_view.dart';
+import 'package:foomoons/featured/stock/stock_view.dart';
+import 'package:foomoons/product/constants/color_constants.dart';
+import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
+import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:altmisdokuzapp/featured/admin/admin_view.dart';
-import 'package:altmisdokuzapp/featured/tables/tables_view.dart';
-import 'package:altmisdokuzapp/featured/reports/reports_view.dart';
+import 'package:foomoons/featured/admin/admin_view.dart';
+import 'package:foomoons/featured/tables/tables_view.dart';
+import 'package:foomoons/featured/reports/reports_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TabView extends ConsumerStatefulWidget {
@@ -103,18 +103,15 @@ class _TabViewState extends ConsumerState<TabView> {
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
     double deviceWidth = MediaQuery.of(context).size.width;
-
-    if (userDetails == null) {
-      // Kullanıcı bilgileri yüklenmemişse gösterilecek içerik
-      return const Center(child: CircularProgressIndicator());
-    }
-
     final String userType = userDetails?['userType'] ?? '';
-
     final List<Widget> navigationItems =
         _buildNavigationItems(userType, deviceWidth);
     final List<Widget> pageViews = _buildPageViews(userType, deviceWidth);
-
+    
+    if (userDetails == null) {
+      // Kullanıcı bilgileri yüklenmemişse gösterilecek içerik
+      return const SizedBox();
+    }
     return Column(
       children: [
         if (isLoading)

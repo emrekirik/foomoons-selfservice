@@ -1,14 +1,14 @@
-import 'package:altmisdokuzapp/featured/bill/bill_mobile_view.dart';
-import 'package:altmisdokuzapp/featured/bill/bill_view.dart';
-import 'package:altmisdokuzapp/featured/providers/admin_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/loading_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/menu_notifier.dart';
-import 'package:altmisdokuzapp/featured/providers/tables_notifier.dart';
-import 'package:altmisdokuzapp/featured/responsive/responsive_layout.dart';
-import 'package:altmisdokuzapp/featured/tables/dialogs/add_areas_dialog.dart';
-import 'package:altmisdokuzapp/featured/tables/dialogs/add_table_dialog.dart';
-import 'package:altmisdokuzapp/product/constants/color_constants.dart';
-import 'package:altmisdokuzapp/product/model/menu.dart';
+import 'package:foomoons/featured/bill/bill_mobile_view.dart';
+import 'package:foomoons/featured/bill/bill_view.dart';
+import 'package:foomoons/featured/providers/admin_notifier.dart';
+import 'package:foomoons/featured/providers/loading_notifier.dart';
+import 'package:foomoons/featured/providers/menu_notifier.dart';
+import 'package:foomoons/featured/providers/tables_notifier.dart';
+import 'package:foomoons/featured/responsive/responsive_layout.dart';
+import 'package:foomoons/featured/tables/dialogs/add_areas_dialog.dart';
+import 'package:foomoons/featured/tables/dialogs/add_table_dialog.dart';
+import 'package:foomoons/product/constants/color_constants.dart';
+import 'package:foomoons/product/model/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
