@@ -60,7 +60,32 @@ class MenuNotifier extends StateNotifier<MenuState> {
     }
   }
 
-  /// Kategorileri (categories) Firebase'den getirir.
+  // Future<void> fetchCategories() async {
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse(
+  //           'https://myapiapp123.azurewebsites.net/api/categories/getall'),
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final Map<String, dynamic> data = json.decode(response.body);
+
+  //       // "categories" anahtarını kontrol ederek listeyi alıyoruz
+  //       final List<dynamic> categoryList = data['data'];
+
+  //       final categories =
+  //           categoryList.map((json) => Category.fromJson(json)).toList();
+  //       print(categories);
+  //       state = state.copyWith(categories: categories);
+  //     } else {
+  //       throw Exception('APİ Hatası');
+  //     }
+  //   } catch (e) {
+  //     _handleError(e, 'Kategorileri getirme hatası');
+  //   }
+  // }
+
+  // Kategorileri (categories) Firebase'den getirir.
   Future<void> fetchCategories() async {
     try {
       // Kullanıcı detaylarını al
@@ -113,7 +138,41 @@ class MenuNotifier extends StateNotifier<MenuState> {
     }
   }
 
-  /// Kategori ekleme işlemi
+// Future<void> addCategory(Category category) async {
+//   try {
+//     final url = Uri.parse('https://myapiapp123.azurewebsites.net/api/Categories/add');
+
+//     // JSON formatında request body'yi oluştur
+//     final body = jsonEncode({
+//       'id': 30, // ID'yi integer olarak gönderiyoruz
+//       'name': category.name,
+//       'coffeId': '1', // Gerekli alanlar burada belirlenmeli
+//     });
+
+//     // HTTP POST isteği gönder
+//     final response = await http.post(
+//       url,
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: body,
+//     );
+
+//     if (response.statusCode == 200 || response.statusCode == 201) {
+//       // Başarılı durum: Yeni kategoriyi state'e ekle
+//       state = state.copyWith(
+//         categories: [...?state.categories, category],
+//       );
+//     } else {
+//       // Hata durumu
+//       throw Exception('Kategori eklenemedi: ${response.statusCode}');
+//     }
+//   } catch (e) {
+//     _handleError(e, 'Kategori Ekleme Hatası');
+//   }
+// }
+
+  // Kategori ekleme işlemi
   Future<void> addCategory(Category category) async {
     try {
       final categoryCollection =

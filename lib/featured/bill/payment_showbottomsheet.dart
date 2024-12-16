@@ -1,4 +1,3 @@
-import 'package:foomoons/featured/bill/custom_numpad.dart';
 import 'package:foomoons/featured/bill/custom_numpad_mobile.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/featured/providers/tables_notifier.dart';
