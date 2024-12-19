@@ -172,8 +172,7 @@ class _BusinessDataSection extends StatelessWidget {
       {required this.deviceHeight,
       required this.deviceWidth,
       required this.profileState,
-      required this.profileNotifier,
-      required});
+      required this.profileNotifier});
 
   final double deviceHeight;
   final double deviceWidth;

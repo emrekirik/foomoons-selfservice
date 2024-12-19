@@ -289,7 +289,7 @@ class MenuNotifier extends StateNotifier<MenuState> {
       throw Exception('Kullanıcı bulunamadı');
     }
 
-    return userDoc.data() as Map<String, dynamic>?;
+    return userDoc.data();
   }
 
   // stock güncelleme işlemi

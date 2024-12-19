@@ -33,7 +33,7 @@ class UserFirestoreHelper {
       throw Exception('Kullanıcı bulunamadı');
     }
 
-    return userDoc.data() as Map<String, dynamic>?;
+    return userDoc.data();
   }
 
   /// Kullanıcıya özel koleksiyon içindeki belirli bir belge referansını al
@@ -50,7 +50,7 @@ class UserFirestoreHelper {
         .collection('users')
         .doc(currentUser!.uid)
         .get();
-    final userData = userDoc.data() as Map<String, dynamic>?;
+    final userData = userDoc.data();
     return userData?['userType'] as String?;
   }
 
@@ -63,7 +63,7 @@ class UserFirestoreHelper {
         .collection('users')
         .doc(currentUser!.uid)
         .get();
-    final userData = userDoc.data() as Map<String, dynamic>?;
+    final userData = userDoc.data();
     return userData?['cafeId'] as String?;
   }
 

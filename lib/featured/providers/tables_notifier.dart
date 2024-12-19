@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:foomoons/featured/providers/admin_notifier.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/product/model/area.dart';
 import 'package:foomoons/product/model/category.dart';
@@ -15,14 +14,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/model/order.dart' as app;
 import 'package:uuid/uuid.dart';
 
-final _adminProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
-  return AdminNotifier(ref);
-});
-
-final _tablesProvider =
-    StateNotifierProvider<TablesNotifier, TablesState>((ref) {
-  return TablesNotifier(ref);
-});
 
 class TablesNotifier extends StateNotifier<TablesState> {
   static const String allCategories = 'Tüm Kategoriler';

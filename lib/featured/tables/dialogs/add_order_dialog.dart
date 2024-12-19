@@ -36,7 +36,6 @@ class _AddOrderDialog extends ConsumerStatefulWidget {
     required this.tableId,
     required this.orderItems,
     required this.qrUrl,
-    super.key,
   });
 
   @override

@@ -24,7 +24,6 @@ class _PaymentPage extends ConsumerStatefulWidget {
   final String tableId;
   const _PaymentPage({
     required this.tableId,
-    super.key,
   });
 
   @override
@@ -513,18 +512,6 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
       // İşlem tamamlandıktan sonra dialog kapatılabilir
       ref.read(loadingProvider.notifier).setLoading(false); // isLoading set
       Navigator.of(context).pop(true);
-    }
-  }
-
-  void _moveItemToRightList(int index) async {
-    if (index >= 0 && index < leftList.length) {
-      final item = leftList[index]; // Öğeyi çıkarırken referans al
-      setState(() {
-        leftList.removeAt(index); // Sadece geçerli bir index varsa çıkar
-        rightList.add(item.copyWith(
-            status: 'ödendi')); // Sağ listeye ekle ve statüyü güncelle
-        _calculateAmounts(); // Tutarları yeniden hesaplayın
-      });
     }
   }
 

@@ -52,7 +52,6 @@ class LoginView extends ConsumerWidget {
 
 class _LoginContent extends StatelessWidget {
   const _LoginContent({
-    super.key,
     required this.deviceWidth,
     required this.emailController,
     required this.showPassword,

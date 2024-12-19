@@ -107,14 +107,14 @@ class AdminNotifier extends StateNotifier<HomeState> with FirebaseUtility {
   }
 
   /// Sipariş hazırlık süresini günceller
-  Future<void> _updateOrderPreparationTime(String orderId, int newTime) async {
-    try {
-      final orderDocument = _firestoreHelper.getUserDocument('orders', orderId);
-      await orderDocument.update({'preperationTime': newTime});
-    } catch (e) {
-      print('Failed to update preparation time for orderId: $orderId: $e');
-    }
-  }
+  // Future<void> _updateOrderPreparationTime(String orderId, int newTime) async {
+  //   try {
+  //     final orderDocument = _firestoreHelper.getUserDocument('orders', orderId);
+  //     await orderDocument.update({'preperationTime': newTime});
+  //   } catch (e) {
+  //     print('Failed to update preparation time for orderId: $orderId: $e');
+  //   }
+  // }
 
   //// Sipariş durumunu günceller ve durum `teslim edildi` olduğunda stok güncellemesi yapar
   Future<void> updateOrderStatus(String orderId, String status) async {

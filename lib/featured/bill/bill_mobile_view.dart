@@ -1,5 +1,4 @@
 import 'package:foomoons/featured/bill/payment_showbottomsheet.dart';
-import 'package:foomoons/featured/providers/admin_notifier.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/featured/providers/menu_notifier.dart';
 import 'package:foomoons/featured/providers/tables_notifier.dart';
@@ -10,9 +9,7 @@ import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final _adminProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
-  return AdminNotifier(ref);
-});
+
 
 final _tablesProvider =
     StateNotifierProvider<TablesNotifier, TablesState>((ref) {

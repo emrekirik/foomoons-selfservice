@@ -1,6 +1,5 @@
 import 'package:foomoons/featured/bill/bill_mobile_view.dart';
 import 'package:foomoons/featured/bill/bill_view.dart';
-import 'package:foomoons/featured/providers/admin_notifier.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/featured/providers/menu_notifier.dart';
 import 'package:foomoons/featured/providers/tables_notifier.dart';
@@ -36,10 +35,6 @@ final _tablesProvider =
 
 final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
   return MenuNotifier(ref);
-});
-
-final _adminProvider = StateNotifierProvider<AdminNotifier, HomeState>((ref) {
-  return AdminNotifier(ref);
 });
 
 /// MenuView Widget

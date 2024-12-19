@@ -123,8 +123,7 @@ class _BusinessDataSection extends StatelessWidget {
       {required this.deviceHeight,
       required this.deviceWidth,
       required this.profileState,
-      required this.profileNotifier,
-      required});
+      required this.profileNotifier});
 
   final double deviceHeight;
   final double deviceWidth;
@@ -264,62 +263,62 @@ class _UserDataSection extends ConsumerWidget {
   }
 }
 
-class _PermissionsSection extends StatelessWidget {
-  const _PermissionsSection({
-    required this.deviceWidth,
-    required this.deviceHeight,
-    required this.icons,
-  });
+// class _PermissionsSection extends StatelessWidget {
+//   const _PermissionsSection({
+//     required this.deviceWidth,
+//     required this.deviceHeight,
+//     required this.icons,
+//   });
 
-  final double deviceWidth;
-  final double deviceHeight;
-  final List<IconData> icons;
+//   final double deviceWidth;
+//   final double deviceHeight;
+//   final List<IconData> icons;
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: deviceWidth * 0.035, vertical: deviceHeight * 0.02),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _CustomTitle(
-            deviceHeight: deviceHeight,
-            title: 'YETKİLER',
-          ),
-          SizedBox(height: deviceHeight * 0.05),
-          Flexible(
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics:
-                  const NeverScrollableScrollPhysics(), // Bu, kaydırmayı devre dışı bırakır
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 30,
-                mainAxisSpacing: 30,
-              ),
-              itemCount: icons.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey.shade300,
-                    border: Border.all(color: Colors.black, width: 2),
-                  ),
-                  child: Icon(
-                    icons[index],
-                    size: 30, // Boyutu 10'dan 30'a çıkarıldı
-                    color: Colors.black,
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Padding(
+//       padding: EdgeInsets.symmetric(
+//           horizontal: deviceWidth * 0.035, vertical: deviceHeight * 0.02),
+//       child: Column(
+//         mainAxisSize: MainAxisSize.min,
+//         children: [
+//           _CustomTitle(
+//             deviceHeight: deviceHeight,
+//             title: 'YETKİLER',
+//           ),
+//           SizedBox(height: deviceHeight * 0.05),
+//           Flexible(
+//             child: GridView.builder(
+//               shrinkWrap: true,
+//               physics:
+//                   const NeverScrollableScrollPhysics(), // Bu, kaydırmayı devre dışı bırakır
+//               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//                 crossAxisCount: 4,
+//                 crossAxisSpacing: 30,
+//                 mainAxisSpacing: 30,
+//               ),
+//               itemCount: icons.length,
+//               itemBuilder: (context, index) {
+//                 return Container(
+//                   decoration: BoxDecoration(
+//                     shape: BoxShape.circle,
+//                     color: Colors.grey.shade300,
+//                     border: Border.all(color: Colors.black, width: 2),
+//                   ),
+//                   child: Icon(
+//                     icons[index],
+//                     size: 30, // Boyutu 10'dan 30'a çıkarıldı
+//                     color: Colors.black,
+//                   ),
+//                 );
+//               },
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 class _ProfilePhotoSection extends StatelessWidget {
   const _ProfilePhotoSection({
