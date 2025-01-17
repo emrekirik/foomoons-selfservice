@@ -112,7 +112,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
               ),
             ],
           ),
-          Row(
+       /*    Row(
             children: [
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -148,7 +148,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                 ),
               ),
             ],
-          ),
+          ), */
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [

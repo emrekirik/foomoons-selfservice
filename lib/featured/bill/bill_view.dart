@@ -5,7 +5,6 @@ import 'package:foomoons/featured/providers/tables_notifier.dart';
 import 'package:foomoons/product/constants/color_constants.dart';
 import 'package:foomoons/product/model/menu.dart';
 import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
-import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -20,11 +19,9 @@ final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
 
 class BillView extends ConsumerStatefulWidget {
   final String tableId;
-  final List<Menu> orderItems;
   final String? qrUrl;
   const BillView({
     required this.tableId,
-    required this.orderItems,
     this.qrUrl,
     super.key,
   });
@@ -87,7 +84,7 @@ class _BillViewState extends ConsumerState<BillView> {
     final categories = ref.watch(_menuProvider).categories ?? [];
     final selectedCategory = ref.watch(_menuProvider).selectedValue;
     double deviceWidth = MediaQuery.of(context).size.width;
-    final String userType = userDetails?['userType'] ?? '';
+    /* final String userType = userDetails?['userType'] ?? ''; */
     // Filter items based on the search query, ignoring the selected category during search
     final filteredItems = productItem.where((item) {
       // If search query is not empty, ignore category and search across all products
@@ -106,20 +103,20 @@ class _BillViewState extends ConsumerState<BillView> {
     return LayoutBuilder(builder: (context, constraints) {
       return Column(
         children: [
-          if (isLoading)
+/*           if (isLoading)
             const LinearProgressIndicator(
               color: Colors.green,
-            ),
+            ), */
           Expanded(
             child: Scaffold(
-              appBar: PreferredSize(
+           /*    appBar: PreferredSize(
                 preferredSize: Size.fromHeight(70.0),
                 child: CustomAppbar(
                   userType: userType,
                   showDrawer: false,
                   showBackButton: true,
                 ),
-              ),
+              ), */
               backgroundColor:
                   ColorConstants.appbackgroundColor.withOpacity(0.15),
               body: Center(
@@ -401,7 +398,7 @@ class _BillViewState extends ConsumerState<BillView> {
                                           Padding(
                                             padding: const EdgeInsets.all(12.0),
                                             child: Text(
-                                              widget.tableId,
+                                              'Fakülte',
                                               style: const TextStyle(
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.bold),
@@ -643,8 +640,6 @@ class _BillViewState extends ConsumerState<BillView> {
                           content: Text('Hesap başarıyla kapatıldı!'),
                         ),
                       );
-
-                      Navigator.pop(context); // Sayfayı kapat
                     } else {
                       // Eğer hesap kapatılamadıysa kullanıcıya uyarı mesajı göster
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -782,7 +777,6 @@ class _BillViewState extends ConsumerState<BillView> {
                           content: Text('Hesap başarıyla kapatıldı!'),
                         ),
                       );
-                      Navigator.pop(context); // Sayfayı kapat
                     } else {
                       // Eğer hesap kapatılamadıysa kullanıcıya uyarı mesajı göster
                       ScaffoldMessenger.of(context).showSnackBar(

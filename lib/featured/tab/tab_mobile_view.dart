@@ -1,9 +1,9 @@
 import 'package:foomoons/featured/admin/admin_mobile_view.dart';
+import 'package:foomoons/featured/bill/bill_mobile_view.dart';
 import 'package:foomoons/featured/menu/menu_mobile_view.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/featured/reports/reports_mobile_view.dart';
 import 'package:foomoons/featured/stock/stock_mobile_view.dart';
-import 'package:foomoons/featured/tables/tables_mobile_view.dart';
 import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
 import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ class TabMobileView extends ConsumerStatefulWidget {
 
 class _TabMobileViewState extends ConsumerState<TabMobileView>
     with SingleTickerProviderStateMixin {
-  int _tabIndex = 2; // Başlangıç sekmesi
+  int _tabIndex = 1; // Başlangıç sekmesi
   late PageController _pageController;
   NavigationRailLabelType labelType = NavigationRailLabelType.all;
   bool showLeading = false;
@@ -144,11 +144,11 @@ class _TabMobileViewState extends ConsumerState<TabMobileView>
 List<NavigationRailDestination> _buildNavigationItems(String userType) {
   if (userType == 'çalışan') {
     return [
-      const NavigationRailDestination(
+/*       const NavigationRailDestination(
         icon: Icon(Icons.monitor_rounded),
         selectedIcon: Icon(Icons.monitor_rounded),
         label: Text('Siparişler'),
-      ),
+      ), */
       const NavigationRailDestination(
         icon: Icon(Icons.table_bar_outlined),
         selectedIcon: Icon(Icons.table_bar_outlined),
@@ -162,21 +162,21 @@ List<NavigationRailDestination> _buildNavigationItems(String userType) {
         selectedIcon: Icon(Icons.restaurant_menu),
         label: Text('Menu'),
       ),
-      const NavigationRailDestination(
+      /*  const NavigationRailDestination(
         icon: Icon(Icons.monitor_rounded),
         selectedIcon: Icon(Icons.monitor_rounded),
         label: Text('Siparişler'),
-      ),
+      ), */
       const NavigationRailDestination(
         icon: Icon(Icons.table_bar_outlined),
         selectedIcon: Icon(Icons.table_bar_outlined),
         label: Text('Adisyonlar'),
       ),
-      const NavigationRailDestination(
+  /*     const NavigationRailDestination(
         icon: Icon(Icons.article_outlined),
         selectedIcon: Icon(Icons.article_outlined),
         label: Text('Stok'),
-      ),
+      ), */
       const NavigationRailDestination(
         icon: Icon(Icons.insert_chart_outlined_rounded),
         selectedIcon: Icon(Icons.insert_chart_outlined_rounded),
@@ -191,9 +191,9 @@ List<NavigationRailDestination> _buildNavigationItems(String userType) {
 List<Widget> _buildPageViews(String userType) {
   final pages = [
     if (userType == 'kafe') const MenuMobileView(),
-    const AdminMobileView(),
-    const TablesMobileView(),
-    if (userType == 'kafe') const StockMobileView(),
+    /* const AdminMobileView(), */
+    BillMobileView(tableId: 'Masa 9', qrUrl: 'http://foomoons.com/menu/#/table?token=YnVzaW5lc3NJZDpQME5rN21ZS3pnZG5yaFhYM1FlQnoySTNkeHEyLHRhYmxlSWQ6TWFzYSA5'),
+/*     if (userType == 'kafe') const StockMobileView(), */
     if (userType == 'kafe') const ReportsMobileView()
   ];
   return pages;

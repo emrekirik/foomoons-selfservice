@@ -1,4 +1,4 @@
-import 'package:foomoons/featured/bill/bill_mobile_view.dart';
+/* import 'package:foomoons/featured/bill/bill_mobile_view.dart';
 import 'package:foomoons/featured/bill/bill_view.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/featured/providers/menu_notifier.dart';
@@ -411,3 +411,4 @@ class _TablesViewState extends ConsumerState<TablesView> {
     return totalAmount - negativeAmount - urunBazliOdenenToplam;
   }
 }
+ */

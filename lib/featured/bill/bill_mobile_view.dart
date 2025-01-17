@@ -5,7 +5,6 @@ import 'package:foomoons/featured/providers/tables_notifier.dart';
 import 'package:foomoons/product/constants/color_constants.dart';
 import 'package:foomoons/product/model/menu.dart';
 import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
-import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,11 +20,9 @@ final _menuProvider = StateNotifierProvider<MenuNotifier, MenuState>((ref) {
 
 class BillMobileView extends ConsumerStatefulWidget {
   final String tableId;
-  final List<Menu> orderItems;
   final String? qrUrl;
   const BillMobileView({
     required this.tableId,
-    required this.orderItems,
     this.qrUrl,
     super.key,
   });
@@ -96,7 +93,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
     final categories = ref.watch(_menuProvider).categories ?? [];
     final selectedCategory = ref.watch(_menuProvider).selectedValue;
 
-    final String userType = userDetails?['userType'] ?? '';
+    /* final String userType = userDetails?['userType'] ?? ''; */
     // Filter items based on the search query, ignoring the selected category during search
     final filteredItems = productItem.where((item) {
       // If search query is not empty, ignore category and search across all products
@@ -118,20 +115,20 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
         child: LayoutBuilder(builder: (context, constraints) {
           return Column(
             children: [
-              if (isLoading)
+        /*       if (isLoading)
                 const LinearProgressIndicator(
                   color: Colors.green,
-                ),
+                ), */
               Expanded(
                 child: Scaffold(
-                  appBar: PreferredSize(
+      /*             appBar: PreferredSize(
                     preferredSize: Size.fromHeight(70.0),
                     child: CustomAppbar(
                       userType: userType,
                       showDrawer: false,
                       showBackButton: true,
                     ),
-                  ),
+                  ), */
                   backgroundColor: Colors.white,
                   body: Center(
                     child: Padding(

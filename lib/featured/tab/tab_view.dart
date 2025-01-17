@@ -1,14 +1,12 @@
+import 'package:foomoons/featured/bill/bill_view.dart';
 import 'package:foomoons/featured/menu/menu_view.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/featured/reports/reports_mobile_view.dart';
-import 'package:foomoons/featured/stock/stock_view.dart';
 import 'package:foomoons/product/constants/color_constants.dart';
 import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
 import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:foomoons/featured/admin/admin_view.dart';
-import 'package:foomoons/featured/tables/tables_view.dart';
 import 'package:foomoons/featured/reports/reports_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,7 +18,7 @@ class TabView extends ConsumerStatefulWidget {
 }
 
 class _TabViewState extends ConsumerState<TabView> {
-  int _tabIndex = 2; // Başlangıç sekmesi
+  int _tabIndex = 1; // Başlangıç sekmesi
   late PageController _pageController;
   final UserFirestoreHelper _userHelper = UserFirestoreHelper();
   Map<String, dynamic>? userDetails;
@@ -57,17 +55,17 @@ class _TabViewState extends ConsumerState<TabView> {
     // "çalışan" için farklı, "kafe" için farklı sekmeler döndürüyoruz
     if (userType == 'çalışan') {
       return [
-        _buildNavItem(Icons.monitor_rounded, 'Siparişler', 0, deviceWidth),
+        /* _buildNavItem(Icons.monitor_rounded, 'Siparişler', 0, deviceWidth), */
         _buildNavItem(Icons.table_bar_outlined, 'Adisyonlar', 1, deviceWidth),
       ];
     } else if (userType == 'kafe') {
       return [
         _buildNavItem(Icons.restaurant_menu, 'Menu', 0, deviceWidth),
-        _buildNavItem(Icons.monitor_rounded, 'Siparişler', 1, deviceWidth),
-        _buildNavItem(Icons.table_bar_outlined, 'Adisyonlar', 2, deviceWidth),
-        _buildNavItem(Icons.article_outlined, 'Stok', 3, deviceWidth),
+        /* _buildNavItem(Icons.monitor_rounded, 'Siparişler', 1, deviceWidth), */
+        _buildNavItem(Icons.table_bar_outlined, 'Adisyonlar', 1, deviceWidth),
+        /* _buildNavItem(Icons.article_outlined, 'Stok', 3, deviceWidth), */
         _buildNavItem(
-            Icons.insert_chart_outlined_rounded, 'Raporlar', 4, deviceWidth),
+            Icons.insert_chart_outlined_rounded, 'Raporlar', 2, deviceWidth),
       ];
     } else {
       return []; // Desteklenmeyen kullanıcı tipi
@@ -90,9 +88,9 @@ class _TabViewState extends ConsumerState<TabView> {
   List<Widget> _buildPageViews(String userType, double deviceWidth) {
     final pages = [
       if (userType == 'kafe') const MenuView(),
-      const AdminView(),
-      const TablesView(),
-      if (userType == 'kafe') const StockView(),
+      /* const AdminView(), */
+      BillView(tableId: 'Masa 9', qrUrl: 'http://foomoons.com/menu/#/table?token=YnVzaW5lc3NJZDpQME5rN21ZS3pnZG5yaFhYM1FlQnoySTNkeHEyLHRhYmxlSWQ6TWFzYSA5'),
+      /* if (userType == 'kafe') const StockView(), */
       if (userType == 'kafe')
         deviceWidth < 800 ? const ReportsMobileView() : const ReportsView(),
     ];
