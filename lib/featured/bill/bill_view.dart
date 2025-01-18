@@ -7,6 +7,7 @@ import 'package:foomoons/product/model/menu.dart';
 import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:foomoons/product/utility/printer/network_printer_service.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 final _tablesProvider =
@@ -30,7 +31,8 @@ class BillView extends ConsumerStatefulWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _BillViewState();
 }
 
-class _BillViewState extends ConsumerState<BillView> {
+class _BillViewState extends ConsumerState<BillView>
+    with TickerProviderStateMixin {
   bool isClosing = false;
   bool isSearchBarVisible = false;
   late TextEditingController searchContoller;
@@ -39,6 +41,30 @@ class _BillViewState extends ConsumerState<BillView> {
   late int remainingAmount;
   final UserFirestoreHelper _userHelper = UserFirestoreHelper();
   Map<String, dynamic>? userDetails;
+
+  final Map<String, AnimationController> _animationControllers = {};
+  bool _isProcessingQueue = false;
+  final List<Menu> _itemQueue = [];
+
+  Future<void> _processQueue() async {
+    if (_isProcessingQueue || _itemQueue.isEmpty) return;
+
+    _isProcessingQueue = true;
+    while (_itemQueue.isNotEmpty) {
+      final item = _itemQueue.removeAt(0);
+      await ref
+          .read(_tablesProvider.notifier)
+          .addItemToBill(widget.tableId, item);
+    }
+    _isProcessingQueue = false;
+  }
+
+  void _addItemToQueue(Menu item) {
+    setState(() {
+      _itemQueue.add(item);
+    });
+    _processQueue();
+  }
 
   @override
   void initState() {
@@ -65,6 +91,7 @@ class _BillViewState extends ConsumerState<BillView> {
 
   @override
   void dispose() {
+    _animationControllers.values.forEach((controller) => controller.dispose());
     super.dispose();
     searchContoller.dispose();
   }
@@ -77,7 +104,6 @@ class _BillViewState extends ConsumerState<BillView> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(loadingProvider);
-    final isLoadingAddItem = ref.watch(_tablesProvider).isLoading;
     final tablesNotifier = ref.read(_tablesProvider.notifier);
     final menuNotifier = ref.read(_menuProvider.notifier);
     final productItem = ref.watch(_menuProvider).products ?? [];
@@ -109,7 +135,7 @@ class _BillViewState extends ConsumerState<BillView> {
             ), */
           Expanded(
             child: Scaffold(
-           /*    appBar: PreferredSize(
+              /*    appBar: PreferredSize(
                 preferredSize: Size.fromHeight(70.0),
                 child: CustomAppbar(
                   userType: userType,
@@ -278,58 +304,95 @@ class _BillViewState extends ConsumerState<BillView> {
                                               final item = filteredItems[index];
                                               return isLoading
                                                   ? const SizedBox()
-                                                  : InkWell(
-                                                      onTap: () {
-                                                        // Ürün seçimi işlemi
-                                                        // Ürünü masanın adisyonuna ekle
-                                                        tablesNotifier
-                                                            .addItemToBill(
-                                                                widget.tableId,
-                                                                item);
-                                                      },
-                                                      child: Card(
-                                                          color: Colors.white,
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        15),
-                                                          ),
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .only(
-                                                                    top: 40,
-                                                                    bottom: 10,
-                                                                    left: 10,
-                                                                    right: 10),
-                                                            child: Column(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .spaceBetween,
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
-                                                              children: [
-                                                                Text(
-                                                                    item.title ??
-                                                                        '',
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                    )),
-                                                                Text(
-                                                                    '₺${item.price}',
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          16,
-                                                                    )),
-                                                              ],
+                                                  : Card(
+                                                      color: Colors.white,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15),
+                                                      ),
+                                                      child: InkWell(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(15),
+                                                        splashColor: Colors
+                                                            .orange
+                                                            .withOpacity(0.3),
+                                                        highlightColor: Colors
+                                                            .orange
+                                                            .withOpacity(0.1),
+                                                        onTap: () {
+                                                          _addItemToQueue(item);
+                                                        },
+                                                        child: Stack(
+                                                          children: [
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      top: 40,
+                                                                      bottom:
+                                                                          10,
+                                                                      left: 10,
+                                                                      right:
+                                                                          10),
+                                                              child: Column(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .spaceBetween,
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Text(
+                                                                      item.title ??
+                                                                          '',
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontSize:
+                                                                            16,
+                                                                      )),
+                                                                  Text(
+                                                                      '₺${item.price}',
+                                                                      style:
+                                                                          const TextStyle(
+                                                                        fontSize:
+                                                                            16,
+                                                                      )),
+                                                                ],
+                                                              ),
                                                             ),
-                                                          )),
+                                                            if (_itemQueue
+                                                                .contains(item))
+                                                              Positioned.fill(
+                                                                child:
+                                                                    Container(
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: Colors
+                                                                        .black
+                                                                        .withOpacity(
+                                                                            0.1),
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            15),
+                                                                  ),
+                                                                  child:
+                                                                      const Center(
+                                                                    child:
+                                                                        CircularProgressIndicator(
+                                                                      valueColor: AlwaysStoppedAnimation<
+                                                                              Color>(
+                                                                          Colors
+                                                                              .orange),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                          ],
+                                                        ),
+                                                      ),
                                                     );
                                             },
                                           ),
@@ -352,179 +415,195 @@ class _BillViewState extends ConsumerState<BillView> {
                           ),
                         ),
                         //Sağ taraf adisyon listesi
-                        isLoadingAddItem == true
-                            ? const Expanded(
-                                child:
-                                    Center(child: CircularProgressIndicator()))
-                            : Expanded(
-                                child: Consumer(
-                                  builder: (context, ref, child) {
-                                    final tableBill = ref
-                                        .watch(_tablesProvider.select((state) =>
-                                            state.getTableBill(widget.tableId)))
-                                        .where((item) =>
-                                            item.isAmount !=
-                                            true) // `isAmount != true` olanlar filtrelenir
-                                        .toList();
-                                    final totalAmount = tableBill.fold(
-                                        0,
-                                        (sum, item) =>
-                                            sum +
-                                            ((item.price ?? 0) *
-                                                (item.piece ?? 1)));
-                                    calculateAmount(tableBill, totalAmount);
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: const BorderRadius.only(
-                                              topRight: Radius.circular(12),
-                                              bottomRight: Radius.circular(12)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.4),
-                                                spreadRadius: 1,
-                                                blurRadius: 5,
-                                                offset: const Offset(-2, 0)),
-                                          ],
-                                          border: const Border(
-                                              left: BorderSide(
-                                                  color: Colors.black12,
-                                                  width: 1))),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(12.0),
-                                            child: Text(
-                                              'Fakülte',
-                                              style: const TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold),
+                        Expanded(
+                          child: Consumer(
+                            builder: (context, ref, child) {
+                              final tableBill = ref
+                                  .watch(_tablesProvider.select((state) =>
+                                      state.getTableBill(widget.tableId)))
+                                  .where((item) =>
+                                      item.isAmount !=
+                                      true) // `isAmount != true` olanlar filtrelenir
+                                  .toList();
+                              final totalAmount = tableBill.fold(
+                                  0,
+                                  (sum, item) =>
+                                      sum +
+                                      ((item.price ?? 0) * (item.piece ?? 1)));
+                              calculateAmount(tableBill, totalAmount);
+                              return Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: const BorderRadius.only(
+                                        topRight: Radius.circular(12),
+                                        bottomRight: Radius.circular(12)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                          color: Colors.grey.withOpacity(0.4),
+                                          spreadRadius: 1,
+                                          blurRadius: 5,
+                                          offset: const Offset(-2, 0)),
+                                    ],
+                                    border: const Border(
+                                        left: BorderSide(
+                                            color: Colors.black12, width: 1))),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Text(
+                                        'Fakülte',
+                                        style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: ListView.separated(
+                                        separatorBuilder: (context, index) =>
+                                            const Divider(
+                                          indent: 10,
+                                          endIndent: 10,
+                                        ),
+                                        itemCount: tableBill.length,
+                                        itemBuilder:
+                                            (BuildContext context, int index) {
+                                          final item = tableBill[index];
+
+                                          // Her öğe için benzersiz bir key oluştur
+                                          final itemKey =
+                                              '${item.id}_${item.piece}';
+
+                                          // Eğer bu öğe için bir controller yoksa oluştur
+                                          if (!_animationControllers
+                                              .containsKey(itemKey)) {
+                                            _animationControllers[itemKey] =
+                                                AnimationController(
+                                              duration: const Duration(
+                                                  milliseconds: 300),
+                                              vsync: this,
+                                            )..forward();
+                                          }
+
+                                          return SizeTransition(
+                                            sizeFactor: CurvedAnimation(
+                                              parent: _animationControllers[
+                                                  itemKey]!,
+                                              curve: Curves.easeOut,
                                             ),
-                                          ),
-                                          Expanded(
-                                            child: ListView.separated(
-                                              separatorBuilder:
-                                                  (context, index) =>
-                                                      const Divider(
-                                                indent: 10,
-                                                endIndent: 10,
+                                            child: FadeTransition(
+                                              opacity: CurvedAnimation(
+                                                parent: _animationControllers[
+                                                    itemKey]!,
+                                                curve: Curves.easeOut,
                                               ),
-                                              itemCount: tableBill.length,
-                                              itemBuilder:
-                                                  (BuildContext context,
-                                                      int index) {
-                                                final item = tableBill[index];
-                                                return ListTile(
-                                                  title: Text(item.title ?? ''),
-                                                  subtitle: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                          '${item.piece ?? 1} adet'),
-                                                      Text(
-                                                          '₺${(item.price ?? 0) * (item.piece ?? 1)}'), // Her bir item için toplam fiyat
-                                                    ],
-                                                  ), // Fiyat null ise 0 olarak göster
-                                                  trailing: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      item.status != 'ödendi'
-                                                          ? const SizedBox()
-                                                          : Text(
-                                                              '${item.status}',
-                                                              style: const TextStyle(
-                                                                  fontSize: 16,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .green),
-                                                            ),
-                                                      IconButton(
-                                                        icon: const Icon(Icons
-                                                            .remove_circle_outline),
-                                                        onPressed: () {
-                                                          // Adisyondan ürünü çıkarma işlemi
-                                                          tablesNotifier
-                                                              .removeItemFromBill(
-                                                                  widget
-                                                                      .tableId,
-                                                                  item.id!);
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                              },
+                                              child: ListTile(
+                                                title: Text(item.title ?? ''),
+                                                subtitle: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                        '${item.piece ?? 1} adet'),
+                                                    Text(
+                                                        '₺${(item.price ?? 0) * (item.piece ?? 1)}'), // Her bir item için toplam fiyat
+                                                  ],
+                                                ),
+                                                trailing: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    item.status != 'ödendi'
+                                                        ? const SizedBox()
+                                                        : Text(
+                                                            '${item.status}',
+                                                            style: const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Colors
+                                                                    .green),
+                                                          ),
+                                                    IconButton(
+                                                      icon: const Icon(Icons
+                                                          .remove_circle_outline),
+                                                      onPressed: () {
+                                                        // Adisyondan ürünü çıkarma işlemi
+                                                        tablesNotifier
+                                                            .removeItemFromBill(
+                                                                widget.tableId,
+                                                                item.id!);
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const Divider(
+                                      indent: 10,
+                                      endIndent: 10,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 12),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
+                                            'Toplam Tutar',
+                                            style: TextStyle(
+                                              fontSize: 18,
                                             ),
                                           ),
-                                          const Divider(
-                                            indent: 10,
-                                            endIndent: 10,
+                                          Text(
+                                            // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
+                                            '₺$totalAmount',
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold),
                                           ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 8, horizontal: 12),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                const Text(
-                                                  // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
-                                                  'Toplam Tutar',
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  // Her bir item için `price * piece` çarpımı yaparak toplam tutarı hesapla
-                                                  '₺$totalAmount',
-                                                  style: const TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            height: 8,
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 12),
-                                            child: deviceWidth < 1350
-                                                ? verticalButtons(
-                                                    tableBill,
-                                                    context,
-                                                    ref,
-                                                    allItemsPaid,
-                                                    remainingAmount)
-                                                : horiontalButtons(
-                                                    tableBill,
-                                                    context,
-                                                    ref,
-                                                    allItemsPaid,
-                                                    remainingAmount),
-                                          ),
-                                          const SizedBox(
-                                            height: 24,
-                                          )
                                         ],
                                       ),
-                                    );
-                                  },
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12),
+                                      child: deviceWidth < 1350
+                                          ? verticalButtons(
+                                              tableBill,
+                                              context,
+                                              ref,
+                                              allItemsPaid,
+                                              remainingAmount)
+                                          : horiontalButtons(
+                                              tableBill,
+                                              context,
+                                              ref,
+                                              allItemsPaid,
+                                              remainingAmount),
+                                    ),
+                                    const SizedBox(
+                                      height: 24,
+                                    )
+                                  ],
                                 ),
-                              ),
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -584,14 +663,14 @@ class _BillViewState extends ConsumerState<BillView> {
                     const Text(
                       'ÖDE',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 12,
                         color: Colors.white,
                       ),
                     ),
                     Text(
                       '₺$remainingAmount',
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 12,
                         color: Colors.white,
                       ),
                     ),
@@ -601,7 +680,7 @@ class _BillViewState extends ConsumerState<BillView> {
             ),
           ),
         ),
-        const SizedBox(width: 32),
+        const SizedBox(width: 16),
         Expanded(
             child: Container(
           decoration: BoxDecoration(boxShadow: [
@@ -661,13 +740,39 @@ class _BillViewState extends ConsumerState<BillView> {
               child: Text(
                 'HESABI KAPAT',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 12,
                   color: Colors.white,
                 ),
               ),
             ),
           ),
         )),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () async {
+              ref
+                  .read(_tablesProvider.notifier)
+                  .printReceiptOverNetwork(context, widget.tableId);
+            },
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'YAZICI TEST',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        )
       ],
     );
   }

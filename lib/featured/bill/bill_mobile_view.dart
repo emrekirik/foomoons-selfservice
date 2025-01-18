@@ -7,8 +7,7 @@ import 'package:foomoons/product/model/menu.dart';
 import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-
+import 'package:foomoons/product/utility/printer/network_printer_service.dart';
 
 final _tablesProvider =
     StateNotifierProvider<TablesNotifier, TablesState>((ref) {
@@ -33,6 +32,7 @@ class BillMobileView extends ConsumerStatefulWidget {
 
 class _BillMobileViewState extends ConsumerState<BillMobileView> {
   bool isClosing = false;
+  bool isPrinting = false;
   bool isSearchBarVisible = false;
   late TextEditingController searchContoller;
   String searchQuery = '';
@@ -115,13 +115,13 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
         child: LayoutBuilder(builder: (context, constraints) {
           return Column(
             children: [
-        /*       if (isLoading)
+              /*       if (isLoading)
                 const LinearProgressIndicator(
                   color: Colors.green,
                 ), */
               Expanded(
                 child: Scaffold(
-      /*             appBar: PreferredSize(
+                  /*             appBar: PreferredSize(
                     preferredSize: Size.fromHeight(70.0),
                     child: CustomAppbar(
                       userType: userType,
@@ -572,7 +572,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
               blurRadius: 10, // Gölgenin yumuşaklığı
               offset: const Offset(0, 1),
             )
-          ], borderRadius: BorderRadius.circular(12)),
+          ], borderRadius: BorderRadius.circular(20)),
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.transparent),
@@ -580,7 +580,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                   ? Colors.green
                   : Colors.grey, // Liste boşsa rengi gri yap
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
             onPressed: tableBill.isNotEmpty
@@ -597,7 +597,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                 : null,
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                vertical: 16,
+                vertical: 8,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -621,7 +621,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
             ), // Liste boşsa düğme pasif olur
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
         Container(
           width: double.infinity,
           decoration: BoxDecoration(boxShadow: [
@@ -631,7 +631,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
               blurRadius: 10, // Gölgenin yumuşaklığı
               offset: const Offset(0, 1),
             ),
-          ], borderRadius: BorderRadius.circular(12)),
+          ], borderRadius: BorderRadius.circular(20)),
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               backgroundColor: (allItemsPaid &&
@@ -641,7 +641,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                   : Colors
                       .grey, // Eğer adisyon boş veya tüm öğeler ödenmediyse buton gri (pasif) olur
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
             onPressed: (allItemsPaid && tableBill.isNotEmpty) &&
@@ -661,7 +661,6 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                           content: Text('Hesap başarıyla kapatıldı!'),
                         ),
                       );
-                      Navigator.pop(context); // Sayfayı kapat
                     } else {
                       // Eğer hesap kapatılamadıysa kullanıcıya uyarı mesajı göster
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -678,7 +677,7 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
                 : null, // Buton aktif değilse `null` değer atayarak pasif hale getir
             child: const Padding(
               padding: EdgeInsets.symmetric(
-                vertical: 16,
+                vertical: 8,
               ),
               child: Text(
                 'HESABI KAPAT',
@@ -690,6 +689,62 @@ class _BillMobileViewState extends ConsumerState<BillMobileView> {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.9), // Gölgenin rengi
+              spreadRadius: 1, // Gölgenin yayılma alanı
+              blurRadius: 10, // Gölgenin yumuşaklığı
+              offset: const Offset(0, 1),
+            ),
+          ], borderRadius: BorderRadius.circular(20)),
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Colors.transparent),
+              backgroundColor: tableBill.isNotEmpty && !isPrinting ? Colors.blue : Colors.grey,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            onPressed: (tableBill.isEmpty || isPrinting)
+              ? null 
+              : () async {
+                  setState(() {
+                    isPrinting = true;
+                  });
+                  try {
+                    await ref
+                        .read(_tablesProvider.notifier)
+                        .printReceiptOverNetwork(context, widget.tableId);
+                  } finally {
+                    setState(() {
+                      isPrinting = false;
+                    });
+                  }
+                },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: isPrinting 
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    'HIZLI ÖDE',
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+            ),
+          ),
+        )
       ],
     );
   }

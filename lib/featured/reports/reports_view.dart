@@ -4,6 +4,7 @@ import 'package:foomoons/product/widget/chart_section.dart';
 import 'package:foomoons/product/widget/person_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final _reportsProvider =
     StateNotifierProvider<ReportsNotifier, ReportsState>((ref) {
@@ -19,19 +20,85 @@ class ReportsView extends ConsumerStatefulWidget {
 
 class _ReportsViewState extends ConsumerState<ReportsView> {
   String selectedPeriod = 'Günlük';
+  late TimeOfDay startTime;
+  late TimeOfDay endTime;
+  final String _startTimeKey = 'start_time';
+  final String _endTimeKey = 'end_time';
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeData();
+  }
 
-    // Verileri sayfa yüklendiğinde çekiyoruz
-    Future.microtask(() {
-      ref.read(_reportsProvider.notifier).fetchAndLoad(selectedPeriod);
-    });
+  Future<void> _initializeData() async {
+    await _loadSavedTimes();
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
+  }
+
+  Future<void> _loadSavedTimes() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Varsayılan değerler
+    int startHour = 0;
+    int startMinute = 0;
+    int endHour = 23;
+    int endMinute = 59;
+
+    // Kaydedilmiş değerleri al
+    if (prefs.containsKey('${_startTimeKey}_hour')) {
+      startHour = prefs.getInt('${_startTimeKey}_hour')!;
+      startMinute = prefs.getInt('${_startTimeKey}_minute')!;
+    } else {
+      // İlk kez çalıştığında varsayılan değerleri kaydet
+      await prefs.setInt('${_startTimeKey}_hour', startHour);
+      await prefs.setInt('${_startTimeKey}_minute', startMinute);
+    }
+
+    if (prefs.containsKey('${_endTimeKey}_hour')) {
+      endHour = prefs.getInt('${_endTimeKey}_hour')!;
+      endMinute = prefs.getInt('${_endTimeKey}_minute')!;
+    } else {
+      // İlk kez çalıştığında varsayılan değerleri kaydet
+      await prefs.setInt('${_endTimeKey}_hour', endHour);
+      await prefs.setInt('${_endTimeKey}_minute', endMinute);
+    }
+
+    if (mounted) {
+      setState(() {
+        startTime = TimeOfDay(hour: startHour, minute: startMinute);
+        endTime = TimeOfDay(hour: endHour, minute: endMinute);
+      });
+
+      // Verileri yükle
+      ref.read(_reportsProvider.notifier).fetchAndLoad(
+        selectedPeriod,
+        startTime: startTime,
+        endTime: endTime,
+      );
+    }
+  }
+
+  Future<void> _saveTimeRange(TimeOfDay time, bool isStartTime) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = isStartTime ? _startTimeKey : _endTimeKey;
+    
+    await Future.wait([
+      prefs.setInt('${key}_hour', time.hour),
+      prefs.setInt('${key}_minute', time.minute),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final reportsState = ref.watch(_reportsProvider);
     final employees = reportsState.employees;
     final sizeWidth = MediaQuery.of(context).size.width;
@@ -137,9 +204,37 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                   setState(() {
                     selectedPeriod = newPeriod;
                   });
-                  ref.read(_reportsProvider.notifier).fetchAndLoad(newPeriod);
+                  ref.read(_reportsProvider.notifier).fetchAndLoad(
+                    selectedPeriod,
+                    startTime: startTime,
+                    endTime: endTime,
+                  );
                 },
                 dailySales: dailySales,
+                startTime: startTime,
+                endTime: endTime,
+                onStartTimeChanged: (newTime) async {
+                  await _saveTimeRange(newTime, true);
+                  setState(() {
+                    startTime = newTime;
+                  });
+                  ref.read(_reportsProvider.notifier).fetchAndLoad(
+                    selectedPeriod,
+                    startTime: newTime,
+                    endTime: endTime,
+                  );
+                },
+                onEndTimeChanged: (newTime) async {
+                  await _saveTimeRange(newTime, false);
+                  setState(() {
+                    endTime = newTime;
+                  });
+                  ref.read(_reportsProvider.notifier).fetchAndLoad(
+                    selectedPeriod,
+                    startTime: startTime,
+                    endTime: newTime,
+                  );
+                },
               ),
             ],
           ),
@@ -214,9 +309,37 @@ class _ReportsViewState extends ConsumerState<ReportsView> {
                   setState(() {
                     selectedPeriod = newPeriod;
                   });
-                  ref.read(_reportsProvider.notifier).fetchAndLoad(newPeriod);
+                  ref.read(_reportsProvider.notifier).fetchAndLoad(
+                    selectedPeriod,
+                    startTime: startTime,
+                    endTime: endTime,
+                  );
                 },
                 dailySales: dailySales,
+                startTime: startTime,
+                endTime: endTime,
+                onStartTimeChanged: (newTime) async {
+                  await _saveTimeRange(newTime, true);
+                  setState(() {
+                    startTime = newTime;
+                  });
+                  ref.read(_reportsProvider.notifier).fetchAndLoad(
+                    selectedPeriod,
+                    startTime: newTime,
+                    endTime: endTime,
+                  );
+                },
+                onEndTimeChanged: (newTime) async {
+                  await _saveTimeRange(newTime, false);
+                  setState(() {
+                    endTime = newTime;
+                  });
+                  ref.read(_reportsProvider.notifier).fetchAndLoad(
+                    selectedPeriod,
+                    startTime: startTime,
+                    endTime: newTime,
+                  );
+                },
               ),
             ],
           ),

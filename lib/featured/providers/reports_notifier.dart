@@ -15,7 +15,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
 
   ReportsNotifier(this.ref) : super(const ReportsState());
 
-  Future<void> fetchDeliveredRevenues({required String period}) async {
+  Future<void> fetchDeliveredRevenues({required String period, TimeOfDay? startTime, TimeOfDay? endTime}) async {
     try {
       DateTime now = DateTime.now();
       DateTime startDate;
@@ -34,35 +34,40 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           startDate = now;
       }
 
-      // 'orders' koleksiyonunu alıyoruz
       final orderCollection = _firestoreHelper.getUserCollection('pastOrders');
-
-      // Sadece 'status' alanı 'teslim edildi' olan siparişleri alıyoruz
       final querySnapshot = await orderCollection
           .where('closedAtDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
           .get();
 
-      // Toplam hasılatı başlatıyoruz
       int totalRevenues = 0;
 
-      // Her bir siparişin 'price' alanını topluyoruz
       for (var doc in querySnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>?;
-        // 'price' null değilse toplamaya ekliyoruz
         if (data != null && data['totalPrice'] != null) {
+          final closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
+          
+          // Saat kontrolü
+          if (startTime != null && endTime != null) {
+            final orderHour = closedAtDate.hour;
+            final orderMinute = closedAtDate.minute;
+            
+            if (orderHour < startTime.hour || 
+                (orderHour == startTime.hour && orderMinute < startTime.minute) ||
+                orderHour > endTime.hour ||
+                (orderHour == endTime.hour && orderMinute > endTime.minute)) {
+              continue;
+            }
+          }
+
           final totalPrice = (data['totalPrice'] as num).toInt();
           totalRevenues += totalPrice;
-          print('toplam sipariş: $totalRevenues');
         }
       }
 
-      // State'i güncelliyoruz, sadece 'totalRevenues' alanını değiştiriyoruz
-      print('Notifier dosyası toplam hasılat: $totalRevenues');
       state = state.copyWith(totalRevenues: totalRevenues);
     } catch (e) {
-      _handleError(e,
-          'Teslim edilen siparişlerin toplam hasılatı hesaplanırken hata: $e');
+      _handleError(e, 'Teslim edilen siparişlerin toplam hasılatı hesaplanırken hata: $e');
     }
   }
 
@@ -78,7 +83,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
     }
   }
 
-  Future<void> fetchTotalOrder({required String period}) async {
+  Future<void> fetchTotalOrder({required String period, TimeOfDay? startTime, TimeOfDay? endTime}) async {
     try {
       DateTime now = DateTime.now();
       DateTime startDate;
@@ -102,10 +107,26 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           .where('closedAtDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
           .get();
+
       int totalOrderCount = 0;
       for (var doc in querySnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>?;
         if (data != null && doc['billItems'] != null) {
+          final closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
+          
+          // Saat kontrolü
+          if (startTime != null && endTime != null) {
+            final orderHour = closedAtDate.hour;
+            final orderMinute = closedAtDate.minute;
+            
+            if (orderHour < startTime.hour || 
+                (orderHour == startTime.hour && orderMinute < startTime.minute) ||
+                orderHour > endTime.hour ||
+                (orderHour == endTime.hour && orderMinute > endTime.minute)) {
+              continue;
+            }
+          }
+
           final billItems = data['billItems'] as List<dynamic>;
           totalOrderCount += billItems.length;
         }
@@ -117,7 +138,7 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
     }
   }
 
-  Future<void> fetchTotalCredit({required String period}) async {
+  Future<void> fetchTotalCredit({required String period, TimeOfDay? startTime, TimeOfDay? endTime}) async {
     try {
       DateTime now = DateTime.now();
       DateTime startDate;
@@ -136,43 +157,48 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           startDate = now;
       }
 
-      // 'orders' koleksiyonunu alıyoruz
       final orderCollection = _firestoreHelper.getUserCollection('pastOrders');
-
-      // Sadece 'status' alanı 'teslim edildi' olan siparişleri alıyoruz
       final querySnapshot = await orderCollection
           .where('closedAtDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
           .get();
 
-      // Toplam hasılatı başlatıyoruz
       int totalCredit = 0;
 
-      // Her bir siparişin 'price' alanını topluyoruz
       for (var doc in querySnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>?;
-
-        // 'price' null değilse toplamaya ekliyoruz
         if (data != null && data['billItems'] != null) {
+          final closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
+          
+          // Saat kontrolü
+          if (startTime != null && endTime != null) {
+            final orderHour = closedAtDate.hour;
+            final orderMinute = closedAtDate.minute;
+            
+            if (orderHour < startTime.hour || 
+                (orderHour == startTime.hour && orderMinute < startTime.minute) ||
+                orderHour > endTime.hour ||
+                (orderHour == endTime.hour && orderMinute > endTime.minute)) {
+              continue;
+            }
+          }
+
           final billItems = data['billItems'] as List<dynamic>;
           for (var item in billItems) {
             if (item['isCredit'] == true) {
-              totalCredit += (item['price'] as num).toInt(); //
+              totalCredit += (item['price'] as num).toInt();
             }
           }
         }
       }
 
-      // State'i güncelliyoruz, sadece 'totalRevenues' alanını değiştiriyoruz
-      print('toplam kredi: $totalCredit');
       state = state.copyWith(totalCredit: totalCredit);
     } catch (e) {
-      _handleError(e,
-          'Kredi kartı ile ödeme yapanların hasılatı hesaplanırken hata: $e');
+      _handleError(e, 'Kredi kartı ile ödeme yapanların hasılatı hesaplanırken hata: $e');
     }
   }
 
-  Future<void> fetchTotalCash({required String period}) async {
+  Future<void> fetchTotalCash({required String period, TimeOfDay? startTime, TimeOfDay? endTime}) async {
     try {
       DateTime now = DateTime.now();
       DateTime startDate;
@@ -191,24 +217,32 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
           startDate = now;
       }
 
-      // 'orders' koleksiyonunu alıyoruz
       final orderCollection = _firestoreHelper.getUserCollection('pastOrders');
-
-      // Sadece 'status' alanı 'teslim edildi' olan siparişleri alıyoruz
       final querySnapshot = await orderCollection
           .where('closedAtDate',
               isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
           .get();
 
-      // Toplam hasılatı başlatıyoruz
       int totalCash = 0;
 
-      // Her bir siparişin 'price' alanını topluyoruz
       for (var doc in querySnapshot.docs) {
         final data = doc.data() as Map<String, dynamic>?;
-
-        // 'price' null değilse toplamaya ekliyoruz
         if (data != null && data['billItems'] != null) {
+          final closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
+          
+          // Saat kontrolü
+          if (startTime != null && endTime != null) {
+            final orderHour = closedAtDate.hour;
+            final orderMinute = closedAtDate.minute;
+            
+            if (orderHour < startTime.hour || 
+                (orderHour == startTime.hour && orderMinute < startTime.minute) ||
+                orderHour > endTime.hour ||
+                (orderHour == endTime.hour && orderMinute > endTime.minute)) {
+              continue;
+            }
+          }
+
           final billItems = data['billItems'] as List<dynamic>;
           for (var item in billItems) {
             if (item['isCredit'] == false) {
@@ -218,24 +252,21 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         }
       }
 
-      // State'i güncelliyoruz, sadece 'totalRevenues' alanını değiştiriyoruz
-      print('toplam nakit: $totalCash');
       state = state.copyWith(totalCash: totalCash);
     } catch (e) {
-      _handleError(e,
-          'Kredi kartı ile ödeme yapanların hasılatı hesaplanırken hata: $e');
+      _handleError(e, 'Nakit ödemeler hesaplanırken hata: $e');
     }
   }
 
-  Future<void> fetchDailySales(String period) async {
+  Future<void> fetchDailySales(String period, {TimeOfDay? startTime, TimeOfDay? endTime}) async {
     Map<String, int> dailySales = {
-      "Pazartesi": 0,
-      "Salı": 0,
-      "Çarşamba": 0,
-      "Perşembe": 0,
-      "Cuma": 0,
-      "Cumartesi": 0,
-      "Pazar": 0,
+      "Pzt": 0,
+      "Sal": 0,
+      "Çrş": 0,
+      "Prş": 0,
+      "Cum": 0,
+      "Cmt": 0,
+      "Paz": 0,
     };
 
     DateTime now = DateTime.now();
@@ -249,15 +280,52 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
         .get();
 
     for (var doc in querySnapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>?;
-      if (data != null &&
-          data['totalPrice'] != null &&
-          data['closedAtDate'] != null) {
-        DateTime closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
-        String dayOfWeek = _getDayName(closedAtDate.weekday);
-       final totalPrice = (data['totalPrice'] as num).toInt();
-        dailySales[dayOfWeek] =
-            (dailySales[dayOfWeek] ?? 0) + (totalPrice);
+      final data = doc.data() as Map<String, dynamic>;
+      final closedAtDate = (data['closedAtDate'] as Timestamp).toDate();
+      
+      // Saat kontrolü
+      if (startTime != null && endTime != null) {
+        final orderHour = closedAtDate.hour;
+        final orderMinute = closedAtDate.minute;
+        
+        // Sipariş saati, belirlenen aralığın dışındaysa atla
+        if (orderHour < startTime.hour || 
+            (orderHour == startTime.hour && orderMinute < startTime.minute) ||
+            orderHour > endTime.hour ||
+            (orderHour == endTime.hour && orderMinute > endTime.minute)) {
+          continue;
+        }
+      }
+
+      String dayName;
+      switch (closedAtDate.weekday) {
+        case 1:
+          dayName = "Pzt";
+          break;
+        case 2:
+          dayName = "Sal";
+          break;
+        case 3:
+          dayName = "Çrş";
+          break;
+        case 4:
+          dayName = "Prş";
+          break;
+        case 5:
+          dayName = "Cum";
+          break;
+        case 6:
+          dayName = "Cmt";
+          break;
+        case 7:
+          dayName = "Paz";
+          break;
+        default:
+          continue;
+      }
+
+      if (data['totalPrice'] != null) {
+        dailySales[dayName] = (dailySales[dayName] ?? 0) + (data['totalPrice'] as num).toInt();
       }
     }
 
@@ -381,32 +449,20 @@ class ReportsNotifier extends StateNotifier<ReportsState> {
   //   return dailySales;
   // }
 
-  Future<void> fetchAndLoad(String period) async {
-    ref.read(loadingProvider.notifier).setLoading(true); // isLoading set
+  Future<void> fetchAndLoad(String period, {TimeOfDay? startTime, TimeOfDay? endTime}) async {
     try {
-      // Mevcut kullanıcının kafe ID'sini alıyoruz
-      String? cafeId = await getCurrentUserCafeId();
-
-      if (cafeId != null) {
-        // final dailySalesData = await fetchDailySales(period);
-        await Future.wait([
-          fetchDeliveredRevenues(period: period),
-          fetchTotalProduct(),
-          fetchTotalOrder(period: period),
-          fetchEmployees(),
-          fetchTotalCredit(period: period),
-          fetchTotalCash(period: period),
-          fetchDailySales(period)
-        ]);
-
-        // state = state.copyWith(dailySales: dailySalesData);
-      } else {
-        print('Kafe ID bulunamadı');
-      }
+      ref.read(loadingProvider.notifier).setLoading(true);
+      await Future.wait([
+        fetchDeliveredRevenues(period: period, startTime: startTime, endTime: endTime),
+        fetchTotalOrder(period: period, startTime: startTime, endTime: endTime),
+        fetchTotalCredit(period: period, startTime: startTime, endTime: endTime),
+        fetchTotalCash(period: period, startTime: startTime, endTime: endTime),
+        fetchDailySales(period, startTime: startTime, endTime: endTime),
+      ]);
     } catch (e) {
-      _handleError(e, 'Veri yükleme hatası');
+      _handleError(e, 'Veriler yüklenirken hata oluştu');
     } finally {
-      ref.read(loadingProvider.notifier).setLoading(false); // isLoading set
+      ref.read(loadingProvider.notifier).setLoading(false);
     }
   }
 

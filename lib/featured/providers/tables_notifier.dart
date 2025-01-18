@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/product/model/area.dart';
 import 'package:foomoons/product/model/category.dart';
@@ -12,8 +13,8 @@ import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foomoons/product/model/order.dart' as app;
+import 'package:foomoons/product/utility/printer/network_printer_service.dart';
 import 'package:uuid/uuid.dart';
-
 
 class TablesNotifier extends StateNotifier<TablesState> {
   static const String allCategories = 'Tüm Kategoriler';
@@ -180,7 +181,7 @@ class TablesNotifier extends StateNotifier<TablesState> {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // Aynı ID’ye sahip masa varsa `false` döndür
+        // Aynı ID'ye sahip masa varsa `false` döndür
         return false;
       }
 
@@ -446,12 +447,14 @@ class TablesNotifier extends StateNotifier<TablesState> {
         currentBillItems,
       );
 
+      // Fiş yazdır
+      /*    await printReceiptOverNetwork(tableId, currentBillItems); */
+
       // 'bills' koleksiyonundan masayı sil
       await _deleteBill(billDocument);
 
       // State güncelle
       _updateStateAfterBillClose(tableId);
-
       print('Hesap başarıyla kapatıldı ve geçmiş siparişlere taşındı.');
       return true;
     } catch (e) {
@@ -461,6 +464,188 @@ class TablesNotifier extends StateNotifier<TablesState> {
       ref.read(loadingProvider.notifier).setLoading(false);
     }
   }
+
+  Future<void> printReceiptOverNetwork(
+      BuildContext context, String tableId) async {
+    try {
+      final userDetails = await _userHelper.getCurrentUserDetails();
+
+      // Firestore referanslarını al
+      final billDocument = _getBillDocument(userDetails, tableId);
+      final currentBillItems = await _fetchAllBillItems(billDocument);
+
+      // Tüm öğelerin durumunu "ödendi" olarak güncelle
+      for (var item in currentBillItems) {
+        await updateBillItemStatus(tableId, item.copyWith(status: 'ödendi'));
+      }
+
+      print('Starting printer test...');
+      final printer = NetworkPrinter(ipAddress: '192.168.1.165');
+      print('Generating test ticket...');
+      final ticket = await printer.testTicket(currentBillItems);
+      print('Test ticket generated, attempting to print...');
+      await printer.printTicket(ticket);
+      print('Printer test completed successfully');
+
+      // Hesabı kapat
+      await hesabiKapat(tableId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Fiş yazdırıldı ve hesap kapatıldı'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      print('Printer test failed with error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('İşlem hatası: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
+  /// Türkçe karakterleri ASCII karakterlere dönüştürür
+/*   String _convertToAscii(String text) {
+    const turkishChars = 'çÇğĞıİöÖşŞüÜ';
+    const asciiChars = 'cCgGiIoOsSuU';
+    String result = text;
+
+    for (var i = 0; i < turkishChars.length; i++) {
+      result = result.replaceAll(turkishChars[i], asciiChars[i]);
+    }
+    return result;
+  } */
+
+  /*  Future<void> printReceiptOverNetwork(
+      String tableId, List<Menu> billItems) async {
+    try {
+      print('Yazıcı profili yükleniyor...');
+      final profile = await CapabilityProfile.load();
+      final printer = NetworkPrinter(PaperSize.mm80, profile);
+
+      const String ip = '192.168.1.138';
+      const int port = 9100;
+      const int paperWidth = 42;
+      const String doubleLine = '========================================';
+      const String singleLine = '----------------------------------------';
+
+      print('Yazıcıya bağlanmayı deniyor...');
+      final PosPrintResult res = await printer
+          .connect(ip, port: port, timeout: const Duration(seconds: 10))
+          .timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          print('Bağlantı zaman aşımına uğradı');
+          throw TimeoutException('Yazıcı bağlantısı zaman aşımına uğradı');
+        },
+      );
+
+      if (res == PosPrintResult.success) {
+        print('Bağlantı başarılı, yazdırma başlıyor...');
+
+        try {
+          // Logo/Başlık bölümü
+          printer.text('\x1B\x21\x30'); // Büyük yazı modu
+          printer.text('\x1B\x61\x01'); // Ortalama
+          printer.text('FAKULTE KARABUK');
+          printer.text('\x1B\x21\x00');
+
+          // Tarih
+          printer.text('\x1B\x61\x00'); // O
+          printer.text('  ${DateTime.now().toString().substring(0, 19)}');
+          // Başlık satırı
+          printer.text('  URUN${' ' * 27}FIYAT');
+          printer.text(singleLine);
+
+          // Ürünler
+          double total = 0;
+          final Map<String, Map<String, dynamic>> groupedItems = {};
+
+          // Ürünleri grupla
+          for (final item in billItems) {
+            final itemTitle = _convertToAscii(item.title ?? "Bilinmeyen Urun");
+            if (!groupedItems.containsKey(itemTitle)) {
+              groupedItems[itemTitle] = {
+                'count': 1,
+                'price': item.price ?? 0,
+                'total': item.price ?? 0
+              };
+            } else {
+              groupedItems[itemTitle]?['count'] =
+                  (groupedItems[itemTitle]?['count'] ?? 0) + 1;
+              groupedItems[itemTitle]?['total'] =
+                  (groupedItems[itemTitle]?['total'] ?? 0) + (item.price ?? 0);
+            }
+          }
+
+          // Gruplanmış ürünleri yazdır
+          for (final entry in groupedItems.entries) {
+            final itemText = entry.key;
+            final count = entry.value['count'];
+            final totalPrice = entry.value['total'];
+            total += totalPrice;
+
+            final itemWithCount = '$itemText (${count}x)';
+            final itemStr = itemWithCount.padRight(30).substring(0, 30);
+            final priceStr = '${totalPrice.toStringAsFixed(2)} TL'.padLeft(10);
+
+            printer.text('  $itemStr$priceStr');
+          }
+
+          printer.text(doubleLine);
+
+          // Toplam tutar
+          printer.text('\x1B\x45\x01'); // Kalın yazı başlat
+          final totalText = 'TOPLAM:';
+          final totalAmount = '${total.toStringAsFixed(2)} TL'.padLeft(10);
+          final totalSpaces =
+              paperWidth - totalText.length - totalAmount.length - 2;
+          printer.text('  $totalText${' ' * totalSpaces}$totalAmount');
+          
+          // Ödeme tipi
+  /*         final paymentType = billItems.first.isCredit ?? false ? 'KREDI' : 'NAKIT';
+          printer.text('\x1B\x45\x01'); // Kalın yazı başlat
+          printer.text('  ${paymentType}');
+          printer.text('\x1B\x45\x00'); // Kalın yazı bitir
+           */
+          // Alt bilgi
+          printer.text('\x1B\x61\x01'); // Ortalama
+          printer.text('\x1B\x21\x20'); // Orta boy yazı modu başlat
+          printer.text('Iyi Calismalar :)');
+          printer.text('Wifi: fakulteynk');
+          printer.text('\x1B\x21\x00'); // Normal yazı moduna dön
+          printer.text('\x1B\x45\x00'); // Kalın yazı bitir
+
+          printer.cut();
+        } catch (printError) {
+          print('Yazdırma sırasında hata: $printError');
+        }
+
+        printer.disconnect();
+      } else {
+        print('Bağlantı başarısız. Hata: ${res.msg}');
+        if (res == PosPrintResult.timeout) {
+          print('Yazıcı yanıt vermiyor. Lütfen şunları kontrol edin:');
+          print('1. Yazıcı açık mı?');
+          print('2. Ağ kablosu takılı mı?');
+          print('3. IP adresi doğru mu?');
+        }
+      }
+    } on SocketException catch (e) {
+      print('Ağ hatası: ${e.message}');
+      print('Adres: ${e.address}');
+      print('Port: ${e.port}');
+    } on TimeoutException catch (e) {
+      print('Zaman aşımı hatası: $e');
+    } catch (e, stackTrace) {
+      print('Beklenmeyen hata: $e');
+      print('Stack trace: $stackTrace');
+    }
+  } */
 
   /// Belirtilen adisyon belgesini sil
   Future<void> _deleteBill(
@@ -507,6 +692,20 @@ class TablesNotifier extends StateNotifier<TablesState> {
     return (data['billItems'] as List<dynamic>)
         .map((item) => Menu.fromJson(item as Map<String, dynamic>))
         .where((item) => item.status == 'ödendi') // Sadece 'ödendi' olanları al
+        .toList();
+  }
+
+  /// Belirtilen belgeden tüm adisyon öğelerini getir (status filtresi olmadan)
+  Future<List<Menu>> _fetchAllBillItems(
+      DocumentReference<Map<String, dynamic>> billDocument) async {
+    final doc = await billDocument.get();
+    if (!doc.exists) {
+      return [];
+    }
+
+    final data = doc.data() as Map<String, dynamic>;
+    return (data['billItems'] as List<dynamic>)
+        .map((item) => Menu.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 

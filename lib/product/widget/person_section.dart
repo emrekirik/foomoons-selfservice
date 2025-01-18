@@ -40,7 +40,7 @@ class PersonSection extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(
-                height: 40,
+                height: 12,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

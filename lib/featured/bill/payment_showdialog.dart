@@ -105,7 +105,7 @@ class _PaymentPageState extends ConsumerState<_PaymentPage> {
                 ),
               ),
               Text(
-                'Masa Adı: ${widget.tableId}',
+                'Self Service',
                 style: const TextStyle(
                   fontSize: 18,
                 ),

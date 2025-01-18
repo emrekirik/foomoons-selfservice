@@ -1,9 +1,7 @@
-import 'package:foomoons/featured/admin/admin_mobile_view.dart';
 import 'package:foomoons/featured/bill/bill_mobile_view.dart';
 import 'package:foomoons/featured/menu/menu_mobile_view.dart';
 import 'package:foomoons/featured/providers/loading_notifier.dart';
 import 'package:foomoons/featured/reports/reports_mobile_view.dart';
-import 'package:foomoons/featured/stock/stock_mobile_view.dart';
 import 'package:foomoons/product/utility/firebase/user_firestore_helper.dart';
 import 'package:foomoons/product/widget/custom_appbar.dart';
 import 'package:flutter/material.dart';
